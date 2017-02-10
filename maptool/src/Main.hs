@@ -16,6 +16,7 @@ import Control.Lens hiding (deep)
 import Linear.Affine
 import Data.Function
 
+import Types
 import Draw
 {-
 
@@ -38,8 +39,9 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 getRange :: [MyLine] -> ((Int,Int),(Int,Int))
 getRange xs = ((minimum xCoords, maximum xCoords),(minimum yCoords,maximum yCoords))
   where
-    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _x <$> p1) ++ [view _x p2]) xs :: [Int]
-    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _y <$> p1) ++ [view _y p2]) xs :: [Int]
+    -- xCoords :: _
+    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _x <$> p1) ++ [view _x p2]) xs
+    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _y <$> p1) ++ [view _y p2]) xs
 
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
@@ -110,9 +112,9 @@ main = do
 adjustLines :: V2 Int -> [MyLine] -> [MyLine]
 adjustLines startPt ls = adjustLine <$> ls
   where
-    confirmedPoints = startPt : (lEnd <$> ls)
+    confirmedPoints = startPt : (_lEnd <$> ls)
     adjustLine :: MyLine -> MyLine
     adjustLine l@(MyLine _ Nothing _) = l
-    adjustLine l@(MyLine _ (Just lStartPt) _) = l { lStart = Just adjustedStartPt }
+    adjustLine l@(MyLine _ (Just lStartPt) _) = l { _lStart = Just adjustedStartPt }
       where
         adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
