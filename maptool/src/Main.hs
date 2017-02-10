@@ -11,7 +11,10 @@ import System.Environment
 import Data.List
 import Text.XML.HXT.Core
 import Data.Maybe
-import Control.Monad
+import Linear
+import Control.Lens hiding (deep)
+import Linear.Affine
+import Data.Function
 
 import Draw
 {-
@@ -35,8 +38,8 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 getRange :: [MyLine] -> ((Int,Int),(Int,Int))
 getRange xs = ((minimum xCoords, maximum xCoords),(minimum yCoords,maximum yCoords))
   where
-    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (ptX <$> p1) ++ [ptX p2]) xs :: [Int]
-    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (ptY <$> p1) ++ [ptY p2]) xs :: [Int]
+    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _x <$> p1) ++ [view _x p2]) xs :: [Int]
+    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _y <$> p1) ++ [view _y p2]) xs :: [Int]
 
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
@@ -52,7 +55,7 @@ getRoute = proc doc -> do
     lineName <- getAttrValue "name" -< line
     mat <- this /> hasName "matrix" -< line
     -- end point coordinate (or the origin of the "item" resource)
-    ptEnd <- getIntPair "translateX" "translateY" MyPoint -< mat
+    ptEnd <- getIntPair "translateX" "translateY" V2 -< mat
 
     -- gettling line sprite
     spriteId <- getAttrValue "characterId" -< lineRefs
@@ -77,9 +80,9 @@ getRoute = proc doc -> do
     let dy = (shY + ((yMax + yMin) `div` 2)) * 2
         mPtStart = if dx == 0 && dy == 0
                      then Nothing
-                     else Just (MyPoint (ptX ptEnd+dx) (ptY ptEnd+dy))
+                     else Just (V2 (ptEnd^._x+dx) (ptEnd^._y+dy))
     startMat <- deep (hasAttrValue "name" (== "line0")) /> hasName "matrix" -< doc
-    ptMapStart <- getIntPair "translateX" "translateY" MyPoint -< startMat
+    ptMapStart <- getIntPair "translateX" "translateY" V2 -< startMat
     -- I guess probably we have to live with the fact that ptMapStart has to be carried
     -- around duplicated..
     this -< (MyLine lineName mPtStart ptEnd, ptMapStart)
@@ -101,11 +104,15 @@ main = do
     -- (most of the time) divide them by 20 to get pixels
     -- print (getRange results)
     let startPoint = snd (head results)
-    withArgs remained $ draw startPoint (fst <$> results)
-    {-
-    -- for gnuplot
-    forM_ results $ \(MyLine _ (Just ptStart) ptEnd) -> do
-        putStrLn $ show (ptX ptStart) ++ " " ++ show (ptY ptStart)
-        putStrLn $ show (ptX ptEnd) ++ " " ++ show (ptY ptEnd)
-        putStrLn "" -}
+        adjusted = adjustLines startPoint (fst <$> results)
+    withArgs remained $ draw startPoint adjusted
 
+adjustLines :: V2 Int -> [MyLine] -> [MyLine]
+adjustLines startPt ls = adjustLine <$> ls
+  where
+    confirmedPoints = startPt : (lEnd <$> ls)
+    adjustLine :: MyLine -> MyLine
+    adjustLine l@(MyLine _ Nothing _) = l
+    adjustLine l@(MyLine _ (Just lStartPt) _) = l { lStart = Just adjustedStartPt }
+      where
+        adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
