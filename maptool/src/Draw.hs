@@ -8,6 +8,8 @@ module Draw where
 import Diagrams.Prelude
 import Diagrams.Backend.SVG.CmdLine
 import Data.Maybe
+import Data.Foldable
+import Data.Function
 
 data MyPoint = MyPoint
   { ptX :: Int
@@ -38,4 +40,22 @@ drawKCMap st xs = reflectY (mconcat [greenPoints, redPoints])
     arrowOpts = with & gaps .~ small & headLength .~ 22
 
 draw :: MyPoint -> [MyLine] -> IO ()
-draw st xs = mainWith (drawKCMap st xs)
+draw st xs = mainWith (drawKCMap st xs')
+  where
+    xs' = adjustLines st xs
+
+ptDistanceSq :: MyPoint -> MyPoint -> Int
+ptDistanceSq p1 p2 = dx*dx + dy*dy
+  where
+    dx = ptX p1 - ptX p2
+    dy = ptY p1 - ptY p2
+
+adjustLines :: MyPoint -> [MyLine] -> [MyLine]
+adjustLines startPt lines = adjustLine <$> lines
+  where
+    confirmedPoints = startPt : (lEnd <$> lines)
+    adjustLine :: MyLine -> MyLine
+    adjustLine l@(MyLine _ Nothing _) = l
+    adjustLine l@(MyLine _ (Just lStartPt) lEndPt) = l { lStart = Just adjustedStartPt }
+      where
+        adjustedStartPt = minimumBy (compare `on` (lStartPt `ptDistanceSq`)) confirmedPoints
