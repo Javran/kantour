@@ -4,17 +4,20 @@
 {-# LANGUAGE
     Arrows
   , PartialTypeSignatures
+  , ScopedTypeVariables
   #-}
 module Main where
 
 import System.Environment
 import Data.List
-import Text.XML.HXT.Core
 import Data.Maybe
+import Text.XML.HXT.Core hiding (when)
+import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
 import Linear
 import Control.Lens hiding (deep)
 import Linear.Affine
 import Data.Function
+import Control.Monad
 
 import Types
 import Draw
@@ -36,20 +39,13 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
 
-getRange :: [MyLine] -> ((Int,Int),(Int,Int))
-getRange xs = ((minimum xCoords, maximum xCoords),(minimum yCoords,maximum yCoords))
-  where
-    -- xCoords :: _
-    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _x <$> p1) ++ [view _x p2]) xs
-    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (view _y <$> p1) ++ [view _y p2]) xs
-
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
-    rawCId <- deep (hasName "item" >>>
+    mapId <- deep (hasName "item" >>>
                     hasAttrValue "name" (== "map") >>>
                     getAttrValue "characterId") -< doc
     lineRefs <- deep (hasName "item" >>>
-                     hasAttrValue "spriteId" (== rawCId)) />
+                      hasAttrValue "spriteId" (== mapId)) />
                hasName "subTags" /> hasName "item" -<< doc
     -- each of these item corresponds to a line (route)
     line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
@@ -65,24 +61,26 @@ getRoute = proc doc -> do
                     hasAttrValue "spriteId" (== spriteId)) -<< doc
     -- shape should be a child of sprite (the line)
     shapeRef <- this /> hasName "subTags"
-                     /> hasAttrValue "characterId" (pure True) -< sprite
+                     /> hasAttr "characterId" -< sprite
 
     shapeId <- getAttrValue "characterId" -< shapeRef
     matSp <- this /> hasName "matrix" -< shapeRef
-    -- (TODO) actually it's suppose to be the case that "(shX,shY) + endPoint" is the real node point..
-    -- but let's not worry about that right now.
-    (shX,shY) <- getIntPair "translateX" "translateY" (,) -< matSp
+
+    sh <- getIntPair "translateX" "translateY" V2 >>>
+          arrIO (\v -> when (v /= V2 0 0)
+                       (putStrLn $ "Warning .. non-zero shape origin: " ++ show v) >> pure v)
+          -<< matSp
     shape <- deep (hasName "item" >>>
                    hasAttrValue "shapeId" (== shapeId) />
                    hasName "shapeBounds")
              -<< doc
     (xMax,xMin) <- getIntPair "Xmax" "Xmin" (,) -< shape
     (yMax,yMin) <- getIntPair "Ymax" "Ymin" (,) -< shape
-    let dx = (shX + ((xMax + xMin) `div` 2)) * 2
-    let dy = (shY + ((yMax + yMin) `div` 2)) * 2
+    let dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
+    let dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
         mPtStart = if dx == 0 && dy == 0
                      then Nothing
-                     else Just (V2 (ptEnd^._x+dx) (ptEnd^._y+dy))
+                     else Just (ptEnd + V2 dx dy)
     startMat <- deep (hasAttrValue "name" (== "line0")) /> hasName "matrix" -< doc
     ptMapStart <- getIntPair "translateX" "translateY" V2 -< startMat
     -- I guess probably we have to live with the fact that ptMapStart has to be carried
@@ -96,18 +94,60 @@ getRoute = proc doc -> do
         &&& (getAttrValue sndName >>> asInt)
         ) >>> arr (uncurry resultF)
 
+lineView :: IOSArrow XmlTree _
+lineView = proc doc -> do
+    mapId <- deep (hasName "item" >>>
+                    hasAttrValue "name" (== "map") >>>
+                    getAttrValue "characterId") -< doc
+    lineRefs <- deep (hasName "item" >>>
+                      hasAttrValue "spriteId" (== mapId)) />
+               hasName "subTags" /> hasName "item" -<< doc
+    -- each of these item corresponds to a line (route)
+    line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
+
+    lineName <- getAttrValue "name" -< line
+    mat <- this /> hasName "matrix" -< line
+    -- end point coordinate (or the origin of the "item" resource)
+    ptEnd <- getIntPair "translateX" "translateY" V2 -< mat
+
+    -- gettling line sprite
+    spriteId <- getAttrValue "characterId" -< lineRefs
+    sprite <- deep (hasName "item" >>>
+                    hasAttrValue "spriteId" (== spriteId)) -<< doc
+    -- shape should be a child of sprite (the line)
+    (this /> hasName "subTags") `notContaining` (this /> hasAttr "characterId")
+        >>> getName -< sprite
+  where
+    asInt = arr (read :: String -> Int)
+    getIntPair :: String -> String -> (Int -> Int -> a) -> _ _ a
+    getIntPair fstName sndName resultF =
+        (   (getAttrValue fstName >>> asInt)
+        &&& (getAttrValue sndName >>> asInt)
+        ) >>> arr (uncurry resultF)
+
 main :: IO ()
 main = do
     srcFP : remained <- getArgs
-    -- [srcFP] <- getArgs
-    results <- runX (readDocument [] srcFP >>> getRoute)
+    mDoc <- runX (readDocument [] srcFP)
+    let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
+    results <- runWithDoc_ getRoute doc
+    results2 <- runWithDoc_ lineView doc
+    putStrLn "====="
     mapM_ print results
+    putStrLn "====="
+    print (length results2)
+    putStrLn "====="
+    -- let results = (fst <$> results')
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
     -- print (getRange results)
     let startPoint = snd (head results)
         adjusted = adjustLines startPoint (fst <$> results)
-    withArgs remained $ draw startPoint adjusted
+    -- withArgs remained $ draw startPoint adjusted
+    withArgs remained $ draw startPoint (fst <$> results)
+
+runWithDoc_ :: IOSLA _ XmlTree a -> XmlTree -> IO [a]
+runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
 
 adjustLines :: V2 Int -> [MyLine] -> [MyLine]
 adjustLines startPt ls = adjustLine <$> ls
