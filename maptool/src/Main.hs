@@ -5,6 +5,7 @@
     Arrows
   , PartialTypeSignatures
   , ScopedTypeVariables
+  , NoMonomorphismRestriction
   #-}
 module Main where
 
@@ -38,6 +39,14 @@ an explanation can be found at:
 http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
+
+getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
+getIntPair fstName sndName resultF =
+    (   (getAttrValue fstName >>> asInt)
+    &&& (getAttrValue sndName >>> asInt)
+    ) >>> arr (uncurry resultF)
+  where
+    asInt = arr (read :: String -> Int)
 
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
@@ -81,21 +90,10 @@ getRoute = proc doc -> do
         mPtStart = if dx == 0 && dy == 0
                      then Nothing
                      else Just (ptEnd + V2 dx dy)
-    startMat <- deep (hasAttrValue "name" (== "line0")) /> hasName "matrix" -< doc
-    ptMapStart <- getIntPair "translateX" "translateY" V2 -< startMat
-    -- I guess probably we have to live with the fact that ptMapStart has to be carried
-    -- around duplicated..
-    this -< (MyLine lineName mPtStart ptEnd, ptMapStart)
-  where
-    asInt = arr (read :: String -> Int)
-    getIntPair :: String -> String -> (Int -> Int -> a) -> _ _ a
-    getIntPair fstName sndName resultF =
-        (   (getAttrValue fstName >>> asInt)
-        &&& (getAttrValue sndName >>> asInt)
-        ) >>> arr (uncurry resultF)
+    this -< MyLine lineName mPtStart ptEnd
 
-lineView :: IOSArrow XmlTree _
-lineView = proc doc -> do
+getMapBeginNode :: IOSArrow XmlTree _
+getMapBeginNode = proc doc -> do
     mapId <- deep (hasName "item" >>>
                     hasAttrValue "name" (== "map") >>>
                     getAttrValue "characterId") -< doc
@@ -104,26 +102,17 @@ lineView = proc doc -> do
                hasName "subTags" /> hasName "item" -<< doc
     -- each of these item corresponds to a line (route)
     line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
-
-    lineName <- getAttrValue "name" -< line
     mat <- this /> hasName "matrix" -< line
     -- end point coordinate (or the origin of the "item" resource)
     ptEnd <- getIntPair "translateX" "translateY" V2 -< mat
-
     -- gettling line sprite
     spriteId <- getAttrValue "characterId" -< lineRefs
     sprite <- deep (hasName "item" >>>
                     hasAttrValue "spriteId" (== spriteId)) -<< doc
     -- shape should be a child of sprite (the line)
     (this /> hasName "subTags") `notContaining` (this /> hasAttr "characterId")
-        >>> getName -< sprite
-  where
-    asInt = arr (read :: String -> Int)
-    getIntPair :: String -> String -> (Int -> Int -> a) -> _ _ a
-    getIntPair fstName sndName resultF =
-        (   (getAttrValue fstName >>> asInt)
-        &&& (getAttrValue sndName >>> asInt)
-        ) >>> arr (uncurry resultF)
+        -< sprite
+    this -< ptEnd
 
 main :: IO ()
 main = do
@@ -131,28 +120,21 @@ main = do
     mDoc <- runX (readDocument [] srcFP)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
     results <- runWithDoc_ getRoute doc
-    results2 <- runWithDoc_ lineView doc
+    beginNodes <- runWithDoc_ getMapBeginNode doc
     putStrLn "====="
     mapM_ print results
-    putStrLn "====="
-    print (length results2)
-    putStrLn "====="
-    -- let results = (fst <$> results')
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
-    -- print (getRange results)
-    let startPoint = snd (head results)
-        adjusted = adjustLines startPoint (fst <$> results)
-    -- withArgs remained $ draw startPoint adjusted
-    withArgs remained $ draw startPoint (fst <$> results)
+    let adjusted = adjustLines beginNodes results
+    withArgs remained $ draw adjusted
 
 runWithDoc_ :: IOSLA _ XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
 
-adjustLines :: V2 Int -> [MyLine] -> [MyLine]
-adjustLines startPt ls = adjustLine <$> ls
+adjustLines :: [V2 Int] -> [MyLine] -> [MyLine]
+adjustLines startPts ls = adjustLine <$> ls
   where
-    confirmedPoints = startPt : (_lEnd <$> ls)
+    confirmedPoints = startPts ++ (_lEnd <$> ls)
     adjustLine :: MyLine -> MyLine
     adjustLine l@(MyLine _ Nothing _) = l
     adjustLine l@(MyLine _ (Just lStartPt) _) = l { _lStart = Just adjustedStartPt }
