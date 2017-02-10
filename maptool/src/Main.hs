@@ -13,6 +13,7 @@ import Text.XML.HXT.Core
 import Data.Maybe
 import Control.Monad
 
+import Draw
 {-
 
 implementation of:
@@ -31,22 +32,11 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
 
-data Point = Point
-  { ptX :: Int
-  , ptY :: Int
-  } deriving Show
-
-data Line = Line
-  { lName :: String
-  , lStart :: Maybe Point
-  , lEnd :: Point
-  } deriving Show
-
-getRange :: [Line] -> ((Int,Int),(Int,Int))
+getRange :: [MyLine] -> ((Int,Int),(Int,Int))
 getRange xs = ((minimum xCoords, maximum xCoords),(minimum yCoords,maximum yCoords))
   where
-    xCoords = concatMap (\(Line _ p1 p2) -> maybeToList (ptX <$> p1) ++ [ptX p2]) xs :: [Int]
-    yCoords = concatMap (\(Line _ p1 p2) -> maybeToList (ptY <$> p1) ++ [ptY p2]) xs :: [Int]
+    xCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (ptX <$> p1) ++ [ptX p2]) xs :: [Int]
+    yCoords = concatMap (\(MyLine _ p1 p2) -> maybeToList (ptY <$> p1) ++ [ptY p2]) xs :: [Int]
 
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
@@ -62,7 +52,7 @@ getRoute = proc doc -> do
     lineName <- getAttrValue "name" -< line
     mat <- this /> hasName "matrix" -< line
     -- end point coordinate (or the origin of the "item" resource)
-    ptEnd <- getIntPair "translateX" "translateY" Point -< mat
+    ptEnd <- getIntPair "translateX" "translateY" MyPoint -< mat
 
     -- gettling line sprite
     spriteId <- getAttrValue "characterId" -< lineRefs
@@ -87,10 +77,12 @@ getRoute = proc doc -> do
     let dy = (shY + ((yMax + yMin) `div` 2)) * 2
         mPtStart = if dx == 0 && dy == 0
                      then Nothing
-                     else Just (Point (ptX ptEnd+dx) (ptY ptEnd+dy))
+                     else Just (MyPoint (ptX ptEnd+dx) (ptY ptEnd+dy))
     startMat <- deep (hasAttrValue "name" (== "line0")) /> hasName "matrix" -< doc
-    ptMapStart <- getIntPair "translateX" "translateY" Point -< startMat
-    this -< (Line lineName mPtStart ptEnd, ptMapStart)
+    ptMapStart <- getIntPair "translateX" "translateY" MyPoint -< startMat
+    -- I guess probably we have to live with the fact that ptMapStart has to be carried
+    -- around duplicated..
+    this -< (MyLine lineName mPtStart ptEnd, ptMapStart)
   where
     asInt = arr (read :: String -> Int)
     getIntPair :: String -> String -> (Int -> Int -> a) -> _ _ a
@@ -101,16 +93,18 @@ getRoute = proc doc -> do
 
 main :: IO ()
 main = do
-    [srcFP] <- getArgs
+    srcFP : remained <- getArgs
+    -- [srcFP] <- getArgs
     results <- runX (readDocument [] srcFP >>> getRoute)
     mapM_ print results
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
     -- print (getRange results)
-
+    let startPoint = snd (head results)
+    withArgs remained $ draw startPoint (fst <$> results)
     {-
     -- for gnuplot
-    forM_ results $ \(Line _ (Just ptStart) ptEnd) -> do
+    forM_ results $ \(MyLine _ (Just ptStart) ptEnd) -> do
         putStrLn $ show (ptX ptStart) ++ " " ++ show (ptY ptStart)
         putStrLn $ show (ptX ptEnd) ++ " " ++ show (ptY ptEnd)
         putStrLn "" -}
