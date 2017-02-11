@@ -20,6 +20,8 @@ import Linear.Affine
 import Data.Function
 import Control.Monad
 
+import qualified Data.Map.Strict as M
+
 import Types
 import Draw
 {-
@@ -126,7 +128,8 @@ main = do
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
     let adjusted = adjustLines beginNodes results
-    withArgs remained $ draw adjusted
+        pointMap = mkPointMap beginNodes adjusted
+    withArgs remained $ draw adjusted pointMap
 
 runWithDoc_ :: IOSLA _ XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
@@ -140,3 +143,21 @@ adjustLines startPts ls = adjustLine <$> ls
     adjustLine l@(MyLine _ (Just lStartPt) _) = l { _lStart = Just adjustedStartPt }
       where
         adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
+
+mkPointMap :: [V2 Int] -> [MyLine] -> M.Map (V2 Int) String
+mkPointMap beginNodes xs = M.union beginNodeMaps (M.map getMin
+                                                  (M.fromListWith (++)
+                                                   (map convert xs)))
+  where
+    getMin = minimumBy (\x y -> case compare (length x) (length y) of
+                            EQ -> compare x y
+                            v -> v)
+    beginNodeMaps = M.fromList (zip beginNodes ((\x -> "<" ++ show x ++ ">") <$> [1::Int ..]))
+    lineToInt l = read (drop 4 $ _lName l)
+    nodeNameFromInt v
+        | v-1< length ns = ns !! (v-1)
+        | otherwise = show v
+      where
+        ns = map (:[]) ['A'..'Z']
+
+    convert l = (_lEnd l,[nodeNameFromInt .lineToInt $ l])

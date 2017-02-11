@@ -28,6 +28,7 @@ executable maptool
                      , strict
                      , linear
                      , lens
+                     , containers
   default-language:    Haskell2010
 
 source-repository head
