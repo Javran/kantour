@@ -19,7 +19,7 @@ import Control.Lens hiding (deep)
 import Linear.Affine
 import Data.Function
 import Control.Monad
-
+import Text.JSON
 import qualified Data.Map.Strict as M
 
 import Types
@@ -130,6 +130,8 @@ main = do
     let adjusted = adjustLines beginNodes results
         pointMap = mkPointMap beginNodes adjusted
     withArgs remained $ draw adjusted pointMap
+    putStrLn "=== JSON encoding ==="
+    putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
 
 runWithDoc_ :: IOSLA _ XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
@@ -161,3 +163,16 @@ mkPointMap beginNodes xs = M.union beginNodeMaps (M.map getMin
         ns = map (:[]) ['A'..'Z']
 
     convert l = (_lEnd l,[nodeNameFromInt .lineToInt $ l])
+
+linesToJSValue :: [MyLine] -> M.Map (V2 Int) String -> JSValue
+linesToJSValue xs nnames = JSObject (toJSObject (convert <$> ys))
+  where
+    ys = sortBy (compare `on` (\l -> read (drop 4 (_lName l)) :: Int)) xs
+    getNm v = makeStart (fromMaybe "Unknown" (M.lookup v nnames))
+      where
+        makeStart ('<':_) = "Start"
+        makeStart v = v
+    convert :: MyLine -> (String, JSValue)
+    convert l = (drop 4 (_lName l),JSArray (f <$> [getNm (fromJust $ _lStart l),getNm (_lEnd l)]))
+      where
+        f = JSString . toJSString
