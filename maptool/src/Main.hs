@@ -42,6 +42,10 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
 
+{-
+TODO: http://stackoverflow.com/a/13472431
+-}
+
 getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
 getIntPair fstName sndName resultF =
     (   (getAttrValue fstName >>> asInt)
@@ -52,12 +56,13 @@ getIntPair fstName sndName resultF =
 
 getRoute :: IOSArrow XmlTree _
 getRoute = proc doc -> do
+    -- look for name=map, which will contain the id to its "content"
     mapId <- deep (hasName "item" >>>
-                    hasAttrValue "name" (== "map") >>>
-                    getAttrValue "characterId") -< doc
+                   hasAttrValue "name" (== "map") >>>
+                   getAttrValue "characterId") -< doc
     lineRefs <- deep (hasName "item" >>>
                       hasAttrValue "spriteId" (== mapId)) />
-               hasName "subTags" /> hasName "item" -<< doc
+                hasName "subTags" /> hasName "item" -<< doc
     -- each of these item corresponds to a line (route)
     line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
 
@@ -68,6 +73,63 @@ getRoute = proc doc -> do
 
     -- gettling line sprite
     spriteId <- getAttrValue "characterId" -< lineRefs
+    sprite <- deep (hasName "item" >>>
+                    hasAttrValue "spriteId" (== spriteId)) -<< doc
+    -- shape should be a child of sprite (the line)
+    shapeRef <- this /> hasName "subTags"
+                     /> hasAttr "characterId" -< sprite
+
+    shapeId <- getAttrValue "characterId" -< shapeRef
+    matSp <- this /> hasName "matrix" -< shapeRef
+
+    sh <- getIntPair "translateX" "translateY" V2 >>>
+          arrIO (\v -> when (v /= V2 0 0)
+                       (putStrLn $ "Warning .. non-zero shape origin: " ++ show v) >> pure v)
+          -<< matSp
+    shape <- deep (hasName "item" >>>
+                   hasAttrValue "shapeId" (== shapeId) />
+                   hasName "shapeBounds")
+             -<< doc
+    (xMax,xMin) <- getIntPair "Xmax" "Xmin" (,) -< shape
+    (yMax,yMin) <- getIntPair "Ymax" "Ymin" (,) -< shape
+    let dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
+    let dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
+        mPtStart = if dx == 0 && dy == 0
+                     then Nothing
+                     else Just (ptEnd + V2 dx dy)
+    this -< MyLine lineName mPtStart ptEnd
+
+
+getExtraRoute :: IOSArrow XmlTree _
+getExtraRoute = proc doc -> do
+    mapId <- deep (hasName "item" >>>
+                    hasAttrValue "name" (== "map") >>>
+                    getAttrValue "characterId") -< doc
+    mapRefs <- deep (hasName "item" >>>
+                      hasAttrValue "spriteId" (== mapId)) />
+               hasName "subTags" /> hasName "item" -<< doc
+
+    extra <- hasAttrValue "name" ("extra" `isPrefixOf`) -<< mapRefs
+    -- extra origin extra
+    extraMat <- this /> hasName "matrix" -< extra
+    ptExEnd <- getIntPair "translateX" "translateY" V2 -< extraMat
+
+    extraId <- getAttrValue "characterId" -< extra
+    sprite' <- deep (hasName "item" >>>
+                     hasAttrValue "spriteId" (== extraId)) -<< doc
+
+    this -< sprite'
+    -- each of these item corresponds to a line (route)
+    lineRef <- this /> hasName "subTags" /> hasAttrValue "name" ("line" `isPrefixOf`) -<< sprite'
+
+    lineName <- getAttrValue "name" -< lineRef
+    mat <- this /> hasName "matrix" -< lineRef
+    -- end point coordinate (or the origin of the "item" resource)
+    ptEnd' <- getIntPair "translateX" "translateY" V2 -< mat
+    let ptEnd = ptEnd' ^+^ ptExEnd
+
+    -- gettling line sprite
+    spriteId <- getAttrValue "characterId" -< lineRef
     sprite <- deep (hasName "item" >>>
                     hasAttrValue "spriteId" (== spriteId)) -<< doc
     -- shape should be a child of sprite (the line)
@@ -122,16 +184,17 @@ main = do
     mDoc <- runX (readDocument [] srcFP)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
     results <- runWithDoc_ getRoute doc
+    results2 <- runWithDoc_ getExtraRoute doc
     beginNodes <- runWithDoc_ getMapBeginNode doc
     putStrLn "====="
-    mapM_ print results
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
-    let adjusted = adjustLines beginNodes results
+    let adjusted = adjustLines beginNodes (results ++ results2)
         pointMap = mkPointMap beginNodes adjusted
     withArgs remained $ draw adjusted pointMap
     putStrLn "=== JSON encoding ==="
     putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
+    pure ()
 
 runWithDoc_ :: IOSLA _ XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
