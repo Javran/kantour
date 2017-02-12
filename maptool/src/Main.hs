@@ -45,10 +45,6 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
 
-{-
-TODO: http://stackoverflow.com/a/13472431
--}
-
 getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
 getIntPair fstName sndName resultF =
     (   (getAttrValue fstName >>> asInt)
@@ -113,12 +109,11 @@ getChild = this /> hasName "subTags" /> hasName "item"
 
 getRoute :: IOSArrow XmlTree MyLine
 getRoute = proc doc -> do
-    lineRef <-
+    (lineName,(ptEnd,lineId)) <-
         findMapSprite
         >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`) -< doc
-    lineName <- getAttrValue "name" -< lineRef
-    (ptEnd,lineId) <- loadSubMatrixAndId -< lineRef
+        >>> hasAttrValue "name" ("line" `isPrefixOf`)
+        >>> getAttrValue "name" &&& loadSubMatrixAndId -< doc
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
@@ -128,12 +123,11 @@ getExtraRoute = proc doc -> do
         findMapSprite
         >>> getChild
         >>> loadSubMatrixAndId -< doc
-    lineRef <-
+    (lineName, (ptEnd',spriteId)) <-
         findSprite extraId
         >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`) -<< doc
-    lineName <- getAttrValue "name" -< lineRef
-    (ptEnd',spriteId) <- loadSubMatrixAndId -< lineRef
+        >>> hasAttrValue "name" ("line" `isPrefixOf`)
+        >>> getAttrValue "name" &&& loadSubMatrixAndId -<< doc
     let ptEnd = ptEnd' ^+^ ptExEnd
     (sb,sh) <- findLineShapeInfo spriteId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
@@ -158,9 +152,9 @@ main = do
     srcFP : remained <- getArgs
     mDoc <- runX (readDocument [] srcFP)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-    results <- runWithDoc_ getRoute doc
-    results2 <- runWithDoc_ getExtraRoute doc
-    beginNodes <- runWithDoc_ getMapBeginNode doc
+    [((results,results2),beginNodes)] <- runWithDoc_
+        ((listA getRoute &&& listA getExtraRoute) &&& listA getMapBeginNode)
+        doc
     putStrLn "====="
     -- the coordinates look like large numbers because SWF uses twip as basic unit
     -- (most of the time) divide them by 20 to get pixels
@@ -169,7 +163,6 @@ main = do
     withArgs remained $ draw adjusted pointMap
     putStrLn "=== JSON encoding ==="
     putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
-    pure ()
 
 runWithDoc_ :: IOSLA (XIOState ()) XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
