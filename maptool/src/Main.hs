@@ -57,7 +57,6 @@ getIntPair fstName sndName resultF =
   where
     asInt = arr (read :: String -> Int)
 
-
 loadSubMatrixAndId :: ArrowXml arr => arr XmlTree (V2 Int, String)
 loadSubMatrixAndId = proc tree -> do
     pt <- loadSubMatrix -< tree
@@ -104,53 +103,54 @@ findLineShapeInfo :: ArrowXml arr => String -> arr XmlTree (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
     sprite <- findSprite lineId -<< doc
     -- shape should be a child of sprite (the line)
-    shapeRef <- this /> hasName "subTags"
-                     /> hasAttr "characterId" -< sprite
+    shapeRef <- getChild >>> hasAttr "characterId" -< sprite
     (sh,shapeId) <- loadSubMatrixAndId -< shapeRef
     sb <- findShapeBounds shapeId -<< doc
     this -< (sb,sh)
 
+getChild :: ArrowXml arr => arr XmlTree XmlTree
+getChild = this /> hasName "subTags" /> hasName "item"
+
 getRoute :: IOSArrow XmlTree MyLine
 getRoute = proc doc -> do
-    mapSprite <- findMapSprite -< doc
-    lineRef <- this
-         /> hasName "subTags"
-         /> hasName "item"
-         >>> hasAttrValue "name" ("line" `isPrefixOf`) -<< mapSprite
+    lineRef <-
+        findMapSprite
+        >>> getChild
+        >>> hasAttrValue "name" ("line" `isPrefixOf`) -< doc
     lineName <- getAttrValue "name" -< lineRef
-    -- end point coordinate (or the origin of the "item" resource)
     (ptEnd,lineId) <- loadSubMatrixAndId -< lineRef
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 getExtraRoute :: IOSArrow XmlTree MyLine
 getExtraRoute = proc doc -> do
-    mapSprite <- findMapSprite -< doc
-    mapRefs <- this />
-               hasName "subTags" /> hasName "item" -< mapSprite
-    extra <- hasAttrValue "name" ("extra" `isPrefixOf`) -<< mapRefs
-    -- extra origin extra
-    (ptExEnd,extraId) <- loadSubMatrixAndId -< extra
-    sprite' <- findSprite extraId -<< doc
-    -- each of these item corresponds to a line (route)
-    lineRef <- this /> hasName "subTags" /> hasAttrValue "name" ("line" `isPrefixOf`) -<< sprite'
+    (ptExEnd,extraId) <-
+        findMapSprite
+        >>> getChild
+        >>> loadSubMatrixAndId -< doc
+    lineRef <-
+        findSprite extraId
+        >>> getChild
+        >>> hasAttrValue "name" ("line" `isPrefixOf`) -<< doc
     lineName <- getAttrValue "name" -< lineRef
     (ptEnd',spriteId) <- loadSubMatrixAndId -< lineRef
-    -- end point coordinate (or the origin of the "item" resource)
     let ptEnd = ptEnd' ^+^ ptExEnd
     (sb,sh) <- findLineShapeInfo spriteId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 getMapBeginNode :: IOSArrow XmlTree (V2 Int)
 getMapBeginNode = proc doc -> do
-    mapSprite <- findMapSprite -< doc
-    lineRefs <-
-        this /> hasName "subTags" /> hasName "item" -<< mapSprite
-    line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
-    (ptEnd,spriteId) <- loadSubMatrixAndId -< line
-    sprite <- findSprite spriteId -<< doc
-    (this /> hasName "subTags") `notContaining` (this /> hasAttr "characterId")
-        -< sprite
+    -- load line info
+    (ptEnd,spriteId) <-
+        findMapSprite
+        >>> getChild
+        >>> hasAttrValue "name" ("line" `isPrefixOf`)
+        >>> loadSubMatrixAndId -< doc
+    -- select lines whose childrens are without ids
+    findSprite spriteId
+        >>> ((this /> hasName "subTags")
+             `notContaining`
+             (this /> hasAttr "characterId")) -<< doc
     this -< ptEnd
 
 main :: IO ()
