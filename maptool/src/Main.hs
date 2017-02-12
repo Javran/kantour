@@ -57,10 +57,17 @@ getIntPair fstName sndName resultF =
   where
     asInt = arr (read :: String -> Int)
 
-loadSubMatrix :: ArrowXml arr => arr XmlTree (V2 Int)
-loadSubMatrix = this
-    /> hasName "matrix"
-    >>> getIntPair "translateX" "translateY" V2
+
+loadSubMatrixAndId :: ArrowXml arr => arr XmlTree (V2 Int, String)
+loadSubMatrixAndId = proc tree -> do
+    pt <- loadSubMatrix -< tree
+    charId <- getAttrValue "characterId" -< tree
+    this -< (pt,charId)
+  where
+    loadSubMatrix :: ArrowXml arr => arr XmlTree (V2 Int)
+    loadSubMatrix = this
+        /> hasName "matrix"
+        >>> getIntPair "translateX" "translateY" V2
 
 findShapeBounds :: ArrowXml arr => String -> arr XmlTree ShapeBounds
 findShapeBounds shapeId = proc doc -> do
@@ -80,25 +87,26 @@ guessStartPoint ptEnd sh ((xMax,xMin),(yMax,yMin)) = if dx == 0 && dy == 0
     dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
     dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
 
+findSprite :: ArrowXml arr => String -> arr XmlTree XmlTree
+findSprite spriteId =
+    deep (hasName "item" >>>
+          hasAttrValue "spriteId" (== spriteId))
+
 findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
 findMapSprite = proc doc -> do
     mapId <- deep
         (hasName "item"
          >>> hasAttrValue "name" (== "map")
          >>> getAttrValue "characterId") -< doc
-    deep
-        (hasName "item"
-         >>> hasAttrValue "spriteId" (== mapId)) -<< doc
+    findSprite mapId -<< doc
 
 findLineShapeInfo :: ArrowXml arr => String -> arr XmlTree (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
-    sprite <- deep (hasName "item" >>>
-                    hasAttrValue "spriteId" (== lineId)) -<< doc
+    sprite <- findSprite lineId -<< doc
     -- shape should be a child of sprite (the line)
     shapeRef <- this /> hasName "subTags"
                      /> hasAttr "characterId" -< sprite
-    shapeId <- getAttrValue "characterId" -< shapeRef
-    sh <- loadSubMatrix -< shapeRef
+    (sh,shapeId) <- loadSubMatrixAndId -< shapeRef
     sb <- findShapeBounds shapeId -<< doc
     this -< (sb,sh)
 
@@ -111,8 +119,7 @@ getRoute = proc doc -> do
          >>> hasAttrValue "name" ("line" `isPrefixOf`) -<< mapSprite
     lineName <- getAttrValue "name" -< lineRef
     -- end point coordinate (or the origin of the "item" resource)
-    ptEnd <- loadSubMatrix -< lineRef
-    lineId <- getAttrValue "characterId" -< lineRef
+    (ptEnd,lineId) <- loadSubMatrixAndId -< lineRef
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
@@ -123,40 +130,25 @@ getExtraRoute = proc doc -> do
                hasName "subTags" /> hasName "item" -< mapSprite
     extra <- hasAttrValue "name" ("extra" `isPrefixOf`) -<< mapRefs
     -- extra origin extra
-    ptExEnd <- loadSubMatrix -< extra
-
-    extraId <- getAttrValue "characterId" -< extra
-    sprite' <- deep (hasName "item" >>>
-                     hasAttrValue "spriteId" (== extraId)) -<< doc
-    this -< sprite'
+    (ptExEnd,extraId) <- loadSubMatrixAndId -< extra
+    sprite' <- findSprite extraId -<< doc
     -- each of these item corresponds to a line (route)
     lineRef <- this /> hasName "subTags" /> hasAttrValue "name" ("line" `isPrefixOf`) -<< sprite'
-
     lineName <- getAttrValue "name" -< lineRef
-    ptEnd' <- loadSubMatrix -< lineRef
+    (ptEnd',spriteId) <- loadSubMatrixAndId -< lineRef
     -- end point coordinate (or the origin of the "item" resource)
     let ptEnd = ptEnd' ^+^ ptExEnd
-    -- gettling line sprite
-    spriteId <- getAttrValue "characterId" -< lineRef
     (sb,sh) <- findLineShapeInfo spriteId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 getMapBeginNode :: IOSArrow XmlTree (V2 Int)
 getMapBeginNode = proc doc -> do
-    mapId <- deep (hasName "item" >>>
-                    hasAttrValue "name" (== "map") >>>
-                    getAttrValue "characterId") -< doc
-    lineRefs <- deep (hasName "item" >>>
-                      hasAttrValue "spriteId" (== mapId)) />
-               hasName "subTags" /> hasName "item" -<< doc
-    -- each of these item corresponds to a line (route)
+    mapSprite <- findMapSprite -< doc
+    lineRefs <-
+        this /> hasName "subTags" /> hasName "item" -<< mapSprite
     line <- hasAttrValue "name" ("line" `isPrefixOf`) -<< lineRefs
-    ptEnd <- loadSubMatrix -< line
-    -- getting line sprite
-    spriteId <- getAttrValue "characterId" -< lineRefs
-    sprite <- deep (hasName "item" >>>
-                    hasAttrValue "spriteId" (== spriteId)) -<< doc
-    -- shape should be a child of sprite (the line)
+    (ptEnd,spriteId) <- loadSubMatrixAndId -< line
+    sprite <- findSprite spriteId -<< doc
     (this /> hasName "subTags") `notContaining` (this /> hasAttr "characterId")
         -< sprite
     this -< ptEnd
