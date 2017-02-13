@@ -169,6 +169,13 @@ main = do
 runWithDoc_ :: IOSLA (XIOState ()) XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
 
+{-
+begin point of each edge is estimated from end point and the shape info of the line
+so we need to adjust begin points for each line, this is done by picking the closest
+"confirmed point" from the estimated begin point.
+
+"confirmed point" includes begin points of a map, and end point of all edges.
+-}
 adjustLines :: [V2 Int] -> [MyLine] -> [MyLine]
 adjustLines startPts ls = adjustLine <$> ls
   where
