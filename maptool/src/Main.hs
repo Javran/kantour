@@ -19,14 +19,16 @@ import Control.Lens hiding (deep)
 import Linear.Affine
 import Data.Function
 import Text.JSON
+import Data.Monoid
 import qualified Data.Map.Strict as M
 
 import Types
 import Draw
 
-type ShapeBounds = ( (Int, Int) -- x min to max
-                   , (Int, Int) -- y min to max
-                   )
+type ShapeBounds =
+    ( (Int, Int) -- x max, min
+    , (Int, Int) -- y max, min
+    )
 {-
 
 implementation of:
@@ -177,19 +179,35 @@ adjustLines startPts ls = adjustLine <$> ls
       where
         adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
 
+{-
+guess names for each node:
+
+- begin nodes are name "<n>" where n is a number,
+  in KC3Kai edges.json file, there's no distinction between begin nodes and all are called just "Start".
+
+- for all the other nodes, the name of a node depends on the name of edges pointing to it.
+  for an edge with name "line1", this will be "A", and "B" for "line2", "C" for "line3" etc.
+  if there are multiple edges pointing to one node, one with the least number wins.
+
+- note that these naming rules are not always working. so one needs to take a closer look on generated data.
+
+-}
 mkPointMap :: [V2 Int] -> [MyLine] -> M.Map (V2 Int) String
-mkPointMap beginNodes xs =
-    M.union beginNodeMaps (M.map getMin
-                           (M.fromListWith (++)
-                            (map convert xs)))
+mkPointMap beginNodes xs = M.union beginNodeNames endNodeNames
   where
-    getMin = minimumBy (\x y -> case compare (length x) (length y) of
-                            EQ -> compare x y
-                            v -> v)
-    beginNodeMaps = M.fromList (zip beginNodes ((\x -> "<" ++ show x ++ ">") <$> [1::Int ..]))
+    beginNodeNames = M.fromList (zip beginNodes (formatName <$> [1::Int ..]))
+      where
+        formatName x = "<" ++ show x ++ ">"
+
+    -- collect all possible names and pick the minimal one
+    endNodeNames = M.map getMin
+                   (M.fromListWith (++)
+                    (map convert xs))
+
+    getMin = minimumBy (\x y -> compare (length x) (length y) <> compare x y)
     lineToInt l = read (drop 4 $ _lName l)
     nodeNameFromInt v
-        | v-1< length ns = ns !! (v-1)
+        | v-1 < length ns = ns !! (v-1)
         | otherwise = show v
       where
         ns = map (:[]) ['A'..'Z']
