@@ -17,28 +17,27 @@ twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 
 drawKCMap :: [MyLine] -> M.Map (V2 Int) String -> Diagram B
-drawKCMap xs pm = (mconcat [greenPoints, redPoints]
-                   # applyAll [connectOutside' arrowOpts (ln ++ "r") (ln ++ "g")
-                              | ln <- map _lName xs])
+drawKCMap xs pm = ((endPoints <> startPoints)
+                   # applyAll
+                     (map (\l ->
+                           connectOutside' arrowOpts (lineStartName l) (lineEndName l))
+                      xs))
                   `atop`
-                  position (zip midPoints arrLbls)
+                  position (zip (lineMid <$> xs) arrLbls)
   where
-    myCircle color txt = text txt # fontSizeL 10 # fc black <> circle 10 # fc color
-    cirGreen = myCircle green
-    cirRed = myCircle red
-    greenPoints = atPoints
-                  (fmap (convertPt . _lEnd) xs)
-                  (map (\l ->
-                        cirGreen (fromMaybe "?" (M.lookup (_lEnd l) pm))
-                        # named (_lName l ++ "g")) xs)
-    redPoints = atPoints
-                (fmap (convertPt . _lStart) xs)
-                (map (\l -> cirRed (fromMaybe "?" (M.lookup (_lStart l) pm))
-                            # named (_lName l ++ "r")) xs)
+    circle' color txt = text txt # fontSizeL 10 # fc black <> circle 10 # fc color
+    mkPoints getter color lineName =
+        atPoints
+          (fmap (convertPt . getter) xs)
+          (map (\l ->
+                circle' color (fromMaybe "?" (M.lookup (getter l) pm))
+                # named (lineName l)) xs)
+    endPoints = mkPoints _lEnd green lineEndName
+    startPoints = mkPoints _lStart red lineStartName
     arrowOpts = with & gaps .~ small & headLength .~ 22
-    midPoints :: [Point V2 Double]
-    midPoints = lineMid <$> xs
     arrLbls = map (\l -> text (simpleLName l) # fc blue # fontSizeL 16) xs
+    lineStartName = (++ "r") . _lName
+    lineEndName = (++ "g") . _lName
 
 draw :: [MyLine] -> M.Map (V2 Int) String -> IO ()
 draw xs pm = mainWith (drawKCMap xs pm)
