@@ -26,14 +26,16 @@ drawKCMap xs pm = (mconcat [greenPoints, redPoints]
     myCircle color txt = text txt # fontSizeL 10 # fc black <> circle 10 # fc color
     cirGreen = myCircle green
     cirRed = myCircle red
-    greenPoints = flip atPoints (map (\l ->
-                                      cirGreen (fromMaybe "?" (M.lookup (_lEnd l) pm))
-                                                # named (_lName l ++ "g")) xs)
-                  $ reflectY (map p2 (convertPt <$> map _lEnd xs))
-    redPoints = flip atPoints (map (\l -> cirRed (fromMaybe "?" (M.lookup (fromJust $ _lStart l) pm))
-                               # named (_lName l ++ "r")) xs)
-                $ reflectY (map p2 (convertPt <$> map (fromJust . _lStart) xs))
-    convertPt (V2 x y) = (twipToPixel x, twipToPixel y)
+    greenPoints = atPoints
+                  (reflectY (fmap (convertPt . _lEnd) xs))
+                  (map (\l ->
+                        cirGreen (fromMaybe "?" (M.lookup (_lEnd l) pm))
+                        # named (_lName l ++ "g")) xs)
+    redPoints = atPoints
+                (reflectY (fmap (convertPt . fromJust . _lStart) xs))
+                (map (\l -> cirRed (fromMaybe "?" (M.lookup (fromJust $ _lStart l) pm))
+                            # named (_lName l ++ "r")) xs)
+    convertPt p = coerce (twipToPixel <$> p)
     arrowOpts = with & gaps .~ small & headLength .~ 22
     midPoints :: [Point V2 Double]
     midPoints = reflectY <$> ((coerce . lineMid) <$> xs)
@@ -44,3 +46,4 @@ draw xs pm = mainWith (drawKCMap xs pm)
 
 lineMid :: MyLine -> V2 Double
 lineMid (MyLine _ (Just pStart) pEnd) = (twipToPixel <$> (pStart ^+^ pEnd)) ^/ 2
+lineMid (MyLine _ Nothing pEnd) = twipToPixel <$> pEnd
