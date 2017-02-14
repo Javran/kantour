@@ -2,6 +2,7 @@
 module Types
   ( MyLine(..)
   , lName, lStart, lEnd
+  , simpleLName
   ) where
 
 import Linear
@@ -14,3 +15,10 @@ data MyLine = MyLine
   } deriving Show
 
 makeLenses ''MyLine
+
+simpleLName :: MyLine -> String
+simpleLName l = case splitAt 4 n of
+    ("line",sName) -> sName
+    _ -> n
+  where
+    n = _lName l

@@ -212,7 +212,7 @@ mkPointMap beginNodes xs = M.union beginNodeNames endNodeNames
                     (map convert xs))
 
     getMin = minimumBy (\x y -> compare (length x) (length y) <> compare x y)
-    lineToInt l = read (drop 4 $ _lName l)
+    lineToInt l = read (simpleLName l)
     nodeNameFromInt v
         | v-1 < length ns = ns !! (v-1)
         | otherwise = show v
@@ -224,12 +224,12 @@ mkPointMap beginNodes xs = M.union beginNodeNames endNodeNames
 linesToJSValue :: [MyLine] -> M.Map (V2 Int) String -> JSValue
 linesToJSValue xs nnames = JSObject (toJSObject (convert <$> ys))
   where
-    ys = sortBy (compare `on` (\l -> read (drop 4 (_lName l)) :: Int)) xs
+    ys = sortBy (compare `on` (\l -> read (simpleLName l) :: Int)) xs
     getNm v = makeStart (fromMaybe "Unknown" (M.lookup v nnames))
       where
         makeStart ('<':_) = "Start"
         makeStart v' = v'
     convert :: MyLine -> (String, JSValue)
-    convert l = (drop 4 (_lName l),JSArray (f <$> [getNm (fromJust $ _lStart l),getNm (_lEnd l)]))
+    convert l = (simpleLName l,JSArray (f <$> [getNm (fromJust $ _lStart l),getNm (_lEnd l)]))
       where
         f = JSString . toJSString
