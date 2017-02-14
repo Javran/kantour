@@ -10,7 +10,7 @@ import Control.Lens
 
 data MyLine = MyLine
   { _lName :: String
-  , _lStart :: Maybe (V2 Int)
+  , _lStart :: V2 Int
   , _lEnd :: V2 Int
   } deriving Show
 

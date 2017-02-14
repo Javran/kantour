@@ -76,10 +76,8 @@ findShapeBounds shapeId = proc doc -> do
     yMaxMin <- getIntPair "Ymax" "Ymin" (,) -< shape
     this -< (xMaxMin, yMaxMin)
 
-guessStartPoint :: V2 Int -> V2 Int -> ShapeBounds -> Maybe (V2 Int)
-guessStartPoint ptEnd sh ((xMax,xMin),(yMax,yMin)) = if dx == 0 && dy == 0
-    then Nothing
-    else Just (ptEnd + V2 dx dy)
+guessStartPoint :: V2 Int -> V2 Int -> ShapeBounds -> V2 Int
+guessStartPoint ptEnd sh ((xMax,xMin),(yMax,yMin)) = ptEnd + V2 dx dy
   where
     dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
     dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
@@ -181,8 +179,7 @@ adjustLines startPts ls = adjustLine <$> ls
   where
     confirmedPoints = startPts ++ (_lEnd <$> ls)
     adjustLine :: MyLine -> MyLine
-    adjustLine l@(MyLine _ Nothing _) = l
-    adjustLine l@(MyLine _ (Just lStartPt) _) = l { _lStart = Just adjustedStartPt }
+    adjustLine l@(MyLine _ lStartPt _) = l { _lStart = adjustedStartPt }
       where
         adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
 
@@ -230,6 +227,6 @@ linesToJSValue xs nnames = JSObject (toJSObject (convert <$> ys))
         makeStart ('<':_) = "Start"
         makeStart v' = v'
     convert :: MyLine -> (String, JSValue)
-    convert l = (simpleLName l,JSArray (f <$> [getNm (fromJust $ _lStart l),getNm (_lEnd l)]))
+    convert l = (simpleLName l,JSArray (f <$> [getNm (_lStart l),getNm (_lEnd l)]))
       where
         f = JSString . toJSString
