@@ -27,23 +27,25 @@ drawKCMap xs pm = (mconcat [greenPoints, redPoints]
     cirGreen = myCircle green
     cirRed = myCircle red
     greenPoints = atPoints
-                  (reflectY (fmap (convertPt . _lEnd) xs))
+                  (fmap (convertPt . _lEnd) xs)
                   (map (\l ->
                         cirGreen (fromMaybe "?" (M.lookup (_lEnd l) pm))
                         # named (_lName l ++ "g")) xs)
     redPoints = atPoints
-                (reflectY (fmap (convertPt . fromJust . _lStart) xs))
+                (fmap (convertPt . fromJust . _lStart) xs)
                 (map (\l -> cirRed (fromMaybe "?" (M.lookup (fromJust $ _lStart l) pm))
                             # named (_lName l ++ "r")) xs)
-    convertPt p = coerce (twipToPixel <$> p)
     arrowOpts = with & gaps .~ small & headLength .~ 22
     midPoints :: [Point V2 Double]
-    midPoints = reflectY <$> ((coerce . lineMid) <$> xs)
+    midPoints = lineMid <$> xs
     arrLbls = map (\l -> text (simpleLName l) # fc blue # fontSizeL 16) xs
 
 draw :: [MyLine] -> M.Map (V2 Int) String -> IO ()
 draw xs pm = mainWith (drawKCMap xs pm)
 
-lineMid :: MyLine -> V2 Double
-lineMid (MyLine _ (Just pStart) pEnd) = (twipToPixel <$> (pStart ^+^ pEnd)) ^/ 2
-lineMid (MyLine _ Nothing pEnd) = twipToPixel <$> pEnd
+lineMid :: MyLine -> Point V2 Double
+lineMid (MyLine _ (Just pStart) pEnd) = (convertPt pStart ^+^ convertPt pEnd) ^/ 2
+lineMid (MyLine _ Nothing pEnd) = convertPt pEnd
+
+convertPt :: V2 Int -> Point V2 Double
+convertPt = reflectY . coerce . (twipToPixel <$>)
