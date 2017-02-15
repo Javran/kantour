@@ -7,7 +7,6 @@ import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Control.Monad.State
 import Data.Monoid
-import Data.Maybe
 
 data BinData = BD
   { bdFirst :: ByteString
@@ -22,6 +21,14 @@ replicated https://github.com/yukixz/kctools/blob/master/Core-decode.py
 for fun.
 
 -}
+
+blockOrder :: [Int]
+blockOrder = [0, 7, 2, 5, 4, 3, 6, 1]
+
+unshuffle :: BinData -> BinData
+unshuffle bd@BD { bdShuffled = bdS } = bd { bdShuffled = bdS' }
+  where
+    bdS' = (\xs -> map (xs !!) blockOrder) <$> bdS
 
 toBinData :: ByteString -> BinData
 toBinData = evalState createBinData
@@ -48,4 +55,9 @@ fromBinData (BD bdFst bdS bdL) = bdFst <> maybe mempty mconcat bdS <> bdL
 main :: IO ()
 main = do
     (srcFP:dstFP:_) <- getArgs
-    pure ()
+    raw <- BS.readFile srcFP
+    let unshuffledBD = unshuffle . toBinData $ raw
+        unshuffled = fromBinData unshuffledBD
+    BS.writeFile dstFP unshuffled
+    putStrLn $ "File size: " ++ show (BS.length raw)
+    putStrLn $ "Leftover size: " ++ show (BS.length . bdLeftover $ unshuffledBD)
