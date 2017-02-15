@@ -54,10 +54,13 @@ fromBinData (BD bdFst bdS bdL) = bdFst <> maybe mempty mconcat bdS <> bdL
 
 main :: IO ()
 main = do
-    (srcFP:dstFP:_) <- getArgs
-    raw <- BS.readFile srcFP
-    let unshuffledBD = unshuffle . toBinData $ raw
-        unshuffled = fromBinData unshuffledBD
-    BS.writeFile dstFP unshuffled
-    putStrLn $ "File size: " ++ show (BS.length raw)
-    putStrLn $ "Leftover size: " ++ show (BS.length . bdLeftover $ unshuffledBD)
+    as <- getArgs
+    case as of
+        (srcFP:dstFP:_) -> do
+             raw <- BS.readFile srcFP
+             let unshuffledBD = unshuffle . toBinData $ raw
+                 unshuffled = fromBinData unshuffledBD
+             BS.writeFile dstFP unshuffled
+             putStrLn $ "File size: " ++ show (BS.length raw)
+             putStrLn $ "Leftover size: " ++ show (BS.length . bdLeftover $ unshuffledBD)
+        _ -> putStrLn "<prog> <src file> <dst file>"
