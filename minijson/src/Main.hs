@@ -35,6 +35,14 @@ digitsToInt :: [Int] -> Maybe Integer
 digitsToInt [] = Nothing
 digitsToInt xs = Just (foldl' (\acc i -> acc * 10 + fromIntegral i) 0 xs)
 
+
+pPair :: Parser (T.Text, JValue)
+pPair = do
+    (JText k) <- pStr
+    skipSpace >> void (char ':') >> skipSpace
+    v <- pValue
+    pure (k,v)
+
 pValue :: Parser JValue
 pValue = skipSpace >> do
     ahead <- peekChar'
@@ -48,26 +56,19 @@ pValue = skipSpace >> do
         '-' -> pNum
         _ | isDigit ahead -> pNum
         _ -> fail $ "unexpected leading character: " ++ [ahead]
-  where
-    -- all following parsers assume a non-space at beginning
-    pStr, pObj, pNum, pArr :: Parser JValue
 
-    pPair :: Parser (T.Text, JValue)
-    pPair = do
-        (JText k) <- pStr
-        skipSpace >> void (char ':') >> skipSpace
-        v <- pValue
-        pure (k,v)
-    pObj =
+-- all following parsers assume a non-space at beginning
+pStr, pObj, pNum, pArr :: Parser JValue
+
+pObj =
         char '{' >>
         (JObject <$> pPair `sepBy` (skipSpace >> char ',' >> skipSpace)) <*
         char '}'
-    pArr =
+pArr =
         char '[' >>
         (JArray <$> pValue `sepBy` (skipSpace >> char ',' >> skipSpace)) <*
         char ']'
-
-    pStr =
+pStr =
         char '"' >>
         (JText . T.pack) <$> many pChar <*
         char '"'
@@ -95,7 +96,7 @@ pValue = skipSpace >> do
                     )
                 _ | isControl ahead -> mzero
                 _ -> anyChar
-    pNum = do
+pNum = do
         let convert = map digitToInt . T.unpack
         -- sign
         sign <- option False (char '-' >> pure True)
@@ -104,7 +105,7 @@ pValue = skipSpace >> do
         beforeDot <- (string "0" >> pure [0])
                  <|> (do
                          c <- satisfy isDigit1to9
-                         cs <- T.unpack <$> takeWhile1 isDigit
+                         cs <- T.unpack <$> takeWhile isDigit
                          pure (map digitToInt (c : cs))
                      )
         -- after dot
