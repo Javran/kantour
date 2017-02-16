@@ -3,8 +3,11 @@ module Main where
 
 import qualified Data.Text as T
 import Data.Attoparsec.Text
+import Control.Applicative
 import Data.Char
 import Data.Functor
+import Data.Void
+import Control.Monad
 
 -- instead of what Data.Aeson does,
 -- we actually want to work on top of object key order preserving data structure
@@ -12,7 +15,7 @@ import Data.Functor
 
 data JValue
   = JText T.Text
-  | JNum
+  | JNum Void -- just to be a reminder that "JNum" is yet to be implemented
   | JObject [(T.Text, JValue)]
   | JArray [JValue]
   | JBool Bool
@@ -49,8 +52,36 @@ pValue = skipSpace >> do
         char '[' >>
         JArray <$> pValue `sepBy` (skipSpace >> char ',') <*
         char ']'
+
+    pStr =
+        char '"' >>
+        (JText . T.pack) <$> many pChar <*
+        char '"'
+      where
+        toChr :: String -> Char
+        toChr xs = chr $ sum $ zipWith (*) (map digitToInt $ reverse xs) hexs
+          where
+            hexs = 1 : map (* 16) hexs
+        pChar :: Parser Char
+        pChar = do
+            ahead <- peekChar'
+            case ahead of
+                '"' -> mzero
+                '\\' ->
+                    char '\\' >>
+                    (   (char '"' <* pure '"')
+                    <|> (char '\\' <* pure '\\')
+                    <|> (char '/' <* pure '/')
+                    <|> (char 'b' <* pure '\b')
+                    <|> (char 'f' <* pure '\f')
+                    <|> (char 'n' <* pure '\n')
+                    <|> (char 'r' <* pure '\r')
+                    <|> (char 't' <* pure '\t')
+                    <|> (char 'u' >> toChr <$> replicateM 4 (satisfy isHexDigit))
+                    )
+                _ | isControl ahead -> mzero
+                _ -> pure ahead
     pNum = undefined
-    pStr = undefined
 
 main :: IO ()
 main = pure ()
