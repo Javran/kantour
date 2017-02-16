@@ -5,6 +5,7 @@ import Prelude hiding (takeWhile)
 import qualified Data.Text as T
 import Data.Attoparsec.Text
 import Control.Applicative
+import Data.Foldable
 import Data.Char
 import Data.Functor
 import Control.Monad
@@ -25,6 +26,12 @@ data JValue
   | JArray [JValue]
   | JBool Bool
   | JNull
+    deriving (Show)
+
+-- list of digits to integer, preserving empty list by wraping around Maybe
+digitsToInt :: [Int] -> Maybe Integer
+digitsToInt [] = Nothing
+digitsToInt xs = Just (foldl' (\acc i -> acc * 10 + fromIntegral i) 0 xs)
 
 pValue :: Parser JValue
 pValue = skipSpace >> do
