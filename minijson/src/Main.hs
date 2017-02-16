@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Prelude hiding (takeWhile)
 import qualified Data.Text as T
 import Data.Attoparsec.Text
 import Control.Applicative
 import Data.Char
 import Data.Functor
-import Data.Void
 import Control.Monad
 
 -- instead of what Data.Aeson does,
@@ -15,7 +15,12 @@ import Control.Monad
 
 data JValue
   = JText T.Text
-  | JNum Void -- just to be a reminder that "JNum" is yet to be implemented
+  | JNum
+    { jnNeg :: Bool
+    , jnBeforeDot :: [Int]
+    , jnAfterDot :: [Int]
+    , jnEs :: Maybe (Bool {- neg sign -}, [Int])
+    }
   | JObject [(T.Text, JValue)]
   | JArray [JValue]
   | JBool Bool
@@ -81,7 +86,28 @@ pValue = skipSpace >> do
                     )
                 _ | isControl ahead -> mzero
                 _ -> pure ahead
-    pNum = undefined
+    pNum = do
+        let convert = map digitToInt . T.unpack
+        -- sign
+        sign <- option False (char '-' >> pure True)
+        -- before dot
+        let isDigit1to9 x = x /= '0' && isDigit x
+        beforeDot <- (string "0" >> pure [0])
+                 <|> (do
+                         c <- satisfy isDigit1to9
+                         cs <- T.unpack <$> takeWhile1 isDigit
+                         pure (map digitToInt (c : cs))
+                     )
+        -- after dot
+        afterDot <- option [] (char '.' >> convert <$> takeWhile1 isDigit)
+        -- exp part
+        ep <- option Nothing $ do
+            void $ char 'e' <|> char 'E'
+            signE <- option False ((char '+' >> pure False)
+                               <|> (char '-' >> pure True))
+            ds <- takeWhile1 isDigit
+            pure (Just (signE, convert ds))
+        pure (JNum sign beforeDot afterDot ep)
 
 main :: IO ()
 main = pure ()
