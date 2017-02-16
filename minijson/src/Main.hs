@@ -3,12 +3,14 @@ module Main where
 
 import Prelude hiding (takeWhile)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Attoparsec.Text
 import Control.Applicative
 import Data.Foldable
 import Data.Char
 import Data.Functor
 import Control.Monad
+import System.Environment
 
 -- instead of what Data.Aeson does,
 -- we actually want to work on top of object key order preserving data structure
@@ -53,16 +55,16 @@ pValue = skipSpace >> do
     pPair :: Parser (T.Text, JValue)
     pPair = do
         (JText k) <- pStr
-        skipSpace >> void (char ':')
+        skipSpace >> void (char ':') >> skipSpace
         v <- pValue
         pure (k,v)
     pObj =
         char '{' >>
-        JObject <$> pPair `sepBy` (skipSpace >> char ',') <*
+        (JObject <$> pPair `sepBy` (skipSpace >> char ',' >> skipSpace)) <*
         char '}'
     pArr =
         char '[' >>
-        JArray <$> pValue `sepBy` (skipSpace >> char ',') <*
+        (JArray <$> pValue `sepBy` (skipSpace >> char ',' >> skipSpace)) <*
         char ']'
 
     pStr =
@@ -92,7 +94,7 @@ pValue = skipSpace >> do
                     <|> (char 'u' >> toChr <$> replicateM 4 (satisfy isHexDigit))
                     )
                 _ | isControl ahead -> mzero
-                _ -> pure ahead
+                _ -> anyChar
     pNum = do
         let convert = map digitToInt . T.unpack
         -- sign
@@ -117,4 +119,8 @@ pValue = skipSpace >> do
         pure (JNum sign beforeDot afterDot ep)
 
 main :: IO ()
-main = pure ()
+main = do
+    [srcFP] <- getArgs
+    content <- T.readFile srcFP
+    let parsed = parseOnly pValue content
+    print parsed
