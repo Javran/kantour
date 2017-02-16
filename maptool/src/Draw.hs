@@ -16,6 +16,9 @@ import Types
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 
+find :: Ord k => k -> M.Map k a -> a
+find v m = fromJust (M.lookup v m)
+
 drawKCMap :: [MyLine] -> M.Map (V2 Int) String -> Diagram B
 drawKCMap xs pm = ((endPoints <> startPoints)
                    # applyAll
@@ -30,7 +33,7 @@ drawKCMap xs pm = ((endPoints <> startPoints)
         atPoints
           (fmap (convertPt . getter) xs)
           (map (\l ->
-                circle' color (fromMaybe "?" (M.lookup (getter l) pm))
+                circle' color (find (getter l) pm)
                 # named (lineName l)) xs)
     endPoints = mkPoints _lEnd green lineEndName
     startPoints = mkPoints _lStart red lineStartName
