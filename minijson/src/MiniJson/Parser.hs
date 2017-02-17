@@ -17,6 +17,7 @@ digitsToInt :: [Int] -> Maybe Integer
 digitsToInt [] = Nothing
 digitsToInt xs = Just (foldl' (\acc i -> acc * 10 + fromIntegral i) 0 xs)
 
+-- all following parsers assume a non-space at beginning
 pPair :: Parser (T.Text, JValue)
 pPair = do
     (JText k) <- pStr
@@ -25,7 +26,7 @@ pPair = do
     pure (k,v)
 
 pValue :: Parser JValue
-pValue = skipSpace >> do
+pValue = do
     ahead <- peekChar'
     case ahead of
         '"' -> pStr
@@ -38,7 +39,6 @@ pValue = skipSpace >> do
         _ | isDigit ahead -> pNum
         _ -> fail $ "unexpected leading character: " ++ [ahead]
 
--- all following parsers assume a non-space at beginning
 pStr, pObj, pNum, pArr :: Parser JValue
 
 pObj =

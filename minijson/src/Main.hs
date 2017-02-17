@@ -15,5 +15,5 @@ main :: IO ()
 main = do
     [srcFP] <- getArgs
     content <- T.readFile srcFP
-    let parsed = parseOnly pValue content
+    let parsed = parseOnly (skipSpace >> pValue) content
     print parsed
