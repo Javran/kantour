@@ -15,6 +15,7 @@ cabal-version:       >=1.10
 
 executable minijson
   other-modules:       MiniJson.Types
+                     , MiniJson.Parser
   hs-source-dirs:      src
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N

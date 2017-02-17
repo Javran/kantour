@@ -2,13 +2,14 @@ module MiniJson.Types where
 
 import qualified Data.Text as T
 
+-- INVARIANT: all appearance of Integer below should all be non-negative
 data JValue
   = JText T.Text
   | JNum
     { jnNeg :: Bool
-    , jnBeforeDot :: [Int]
-    , jnAfterDot :: [Int]
-    , jnEs :: Maybe (Bool {- neg sign -}, [Int])
+    , jnBeforeDot :: Integer
+    , jnAfterDot :: Maybe Integer
+    , jnEs :: Maybe (Bool {- neg sign -}, Integer)
     }
   | JObject [(T.Text, JValue)]
   | JArray [JValue]

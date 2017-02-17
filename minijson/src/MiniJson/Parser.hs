@@ -5,17 +5,11 @@ import Prelude hiding (takeWhile)
 import qualified Data.Text as T
 import Data.Attoparsec.Text
 import Control.Applicative
-import Data.Foldable
 import Data.Char
 import Data.Functor
 import Control.Monad
 
 import MiniJson.Types
-
--- list of digits to integer, preserving empty list by wraping around Maybe
-digitsToInt :: [Int] -> Maybe Integer
-digitsToInt [] = Nothing
-digitsToInt xs = Just (foldl' (\acc i -> acc * 10 + fromIntegral i) 0 xs)
 
 -- all following parsers assume a non-space at beginning
 pPair :: Parser (T.Text, JValue)
@@ -78,24 +72,25 @@ pStr =
                 _ | isControl ahead -> mzero
                 _ -> anyChar
 pNum = do
-        let convert = map digitToInt . T.unpack
         -- sign
         sign <- option False (char '-' >> pure True)
         -- before dot
         let isDigit1to9 x = x /= '0' && isDigit x
-        beforeDot <- (string "0" >> pure [0])
+        beforeDot <- (string "0" >> pure 0)
                  <|> (do
-                         c <- satisfy isDigit1to9
-                         cs <- T.unpack <$> takeWhile isDigit
-                         pure (map digitToInt (c : cs))
+                         -- look ahead just to make sure the first digit
+                         -- is 1~9
+                         ahead <- peekChar'
+                         guard (isDigit1to9 ahead)
+                         decimal
                      )
         -- after dot
-        afterDot <- option [] (char '.' >> convert <$> takeWhile1 isDigit)
+        afterDot <- option Nothing (char '.' >> Just <$> decimal)
         -- exp part
         ep <- option Nothing $ do
             void $ char 'e' <|> char 'E'
             signE <- option False ((char '+' >> pure False)
                                <|> (char '-' >> pure True))
-            ds <- takeWhile1 isDigit
-            pure (Just (signE, convert ds))
+            ds <- decimal
+            pure (Just (signE, ds))
         pure (JNum sign beforeDot afterDot ep)
