@@ -86,15 +86,20 @@ analyzeResult tot p xs = do
 
 main :: IO ()
 main = do
-    [rawDropRate,rawCnt] <- getArgs
-    case (,) <$> parseRate rawDropRate <*> parseCount rawCnt of
-        Just (dropRate,cnt) -> do
-            printf "Performing %d experiments with drop rate %6.4f%%:\n" cnt (dropRate * 100)
-            g <- createSystemRandom
-            results <- replicateM cnt (experiment g dropRate)
-            analyzeResult cnt dropRate results
-        Nothing -> do
-            putStrLn "Usage: <rate> <# of experiments>"
-            putStrLn "example of rate: '0.20' or '20%'"
-
-    pure ()
+    as <- getArgs
+    case as of
+        [rawDropRate,rawCnt]
+            | Just (dropRate,cnt) <-
+                (,) <$> parseRate rawDropRate
+                    <*> parseCount rawCnt
+            -> do
+                printf "Performing %d experiments with drop rate %6.4f%%:\n"
+                  cnt (dropRate * 100)
+                g <- createSystemRandom
+                results <- replicateM cnt (experiment g dropRate)
+                analyzeResult cnt dropRate results
+        _ -> printHelp
+  where
+    printHelp = do
+        putStrLn "Usage: <rate> <# of experiments>"
+        putStrLn "example of rate: '0.20' or '20%'"
