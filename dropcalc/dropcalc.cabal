@@ -20,6 +20,9 @@ executable dropcalc
   build-depends:       base
                      , mwc-random
                      , primitive
+                     , vector
+                     , statistics
+                     , vector-algorithms
   default-language:    Haskell2010
 
 source-repository head

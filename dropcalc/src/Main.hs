@@ -5,6 +5,10 @@ import Control.Monad
 import Control.Monad.Primitive
 import System.Random.MWC
 import Text.Printf
+import qualified Data.Vector as V
+import Statistics.Sample
+import Data.Vector.Algorithms.Intro
+import Data.Function
 
 -- either a number between 0 and 1
 -- or {x}% where x can be between 0 and 100
@@ -38,10 +42,39 @@ experiment g r = experiment' 0
 analyzeResult :: [Int] -> IO ()
 analyzeResult [] = putStrLn "Result is empty."
 analyzeResult xs = do
-    let xMin = minimum xs
-        xMax = maximum xs
-
+    let _xs = V.fromList xs :: V.Vector Int
+    ys' <- V.unsafeThaw _xs
+    sort ys'
+    -- now ys is the sorted version of xs
+    ys <- V.unsafeFreeze ys'
+    let xMin = V.head ys
+        xMax = V.last ys
+        ysDb = fromIntegral <$> ys :: V.Vector Double
+        ysAcc = V.postscanl (+) 0 ys
+        tot = V.sum ys
     printf "min: %d, max: %d\n" xMin xMax
+    printf "mean: %6.4f, std dev.: %6.4f\n" (mean ysDb) (stdDev ysDb)
+    (fix $ \indScan curInd ->
+      if curInd >= V.length ys
+        then pure ()
+        else do
+          let curE = ys V.! curInd
+          -- find next index whose elem is not curE
+          let nextInd = fix (\self curInd' ->
+                             if curInd' >= V.length ys
+                               then Nothing
+                               else if ys V.! curInd' /= curE
+                                      then Just curInd'
+                                      else self (curInd'+1)) (curInd+1)
+              fI = fromIntegral :: Int -> Double
+              ppr n cr = when (n `mod` 10 == 0) $ printf "<= %d\t%6.4f%%\n" n (cr * 100)
+          case nextInd of
+              Nothing ->
+                  ppr curE (fI (ysAcc V.! (V.length ys -1)) / fI tot )
+              Just ind -> do
+                  ppr curE (fI (ysAcc V.! (ind-1)) / fI tot)
+                  indScan ind
+          ) 0
 
 main :: IO ()
 main = do
