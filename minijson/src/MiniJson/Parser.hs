@@ -26,9 +26,9 @@ pValue = do
         '"' -> pStr
         '{' -> pObj
         '[' -> pArr
-        't' -> string "true" >> pure (JBool True)
-        'f' -> string "false" >> pure (JBool False)
-        'n' -> string "null" >> pure JNull
+        't' -> JBool True <$ "true"
+        'f' -> JBool False <$ "false"
+        'n' -> JNull <$ "null"
         '-' -> pNum
         _ | isDigit ahead -> pNum
         _ -> fail $ "unexpected leading character: " ++ [ahead]
@@ -59,8 +59,8 @@ pStr =
                 '"' -> mzero
                 '\\' ->
                     char '\\' >>
-                    (   (char '"' <* pure '"')
-                    <|> (char '\\' <* pure '\\')
+                    (   ('"' <$ char '"')
+                    <|> ('\\' <$ char '\\')
                     <|> (char '/' <* pure '/')
                     <|> (char 'b' <* pure '\b')
                     <|> (char 'f' <* pure '\f')
@@ -73,10 +73,10 @@ pStr =
                 _ -> anyChar
 pNum = do
         -- sign
-        sign <- option False (char '-' >> pure True)
+        sign <- option False (True <$ char '-')
         -- before dot
         let isDigit1to9 x = x /= '0' && isDigit x
-        beforeDot <- (string "0" >> pure 0)
+        beforeDot <- ("0" >> pure 0)
                  <|> (do
                          -- look ahead just to make sure the first digit
                          -- is 1~9
@@ -89,8 +89,8 @@ pNum = do
         -- exp part
         ep <- option Nothing $ do
             void $ char 'e' <|> char 'E'
-            signE <- option False ((char '+' >> pure False)
-                               <|> (char '-' >> pure True))
+            signE <- option False ((False <$ char '+')
+                               <|> (True <$ char '-'))
             ds <- decimal
             pure (Just (signE, ds))
         pure (JNum sign beforeDot afterDot ep)
