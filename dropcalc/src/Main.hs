@@ -9,6 +9,7 @@ import qualified Data.Vector as V
 import Statistics.Sample
 import Data.Vector.Algorithms.Intro
 import Data.Function
+import Numeric.SpecFunctions
 
 -- either a number between 0 and 1
 -- or {x}% where x can be between 0 and 100
@@ -39,9 +40,14 @@ experiment g r = experiment' 0
           then pure newCnt
           else experiment' newCnt
 
-analyzeResult :: [Int] -> IO ()
-analyzeResult [] = putStrLn "Result is empty."
-analyzeResult xs = do
+computeCDF :: Int -> Int -> Double -> Double
+computeCDF k r p = i (1-p) (fromIntegral r) (fromIntegral (k+1))
+  where
+    i x a b = incompleteBeta a b x
+
+analyzeResult :: Int -> Double -> [Int] -> IO ()
+analyzeResult _ _ [] = putStrLn "Result is empty."
+analyzeResult tot p xs = do
     let _xs = V.fromList xs :: V.Vector Int
     ys' <- V.unsafeThaw _xs
     sort ys'
@@ -50,8 +56,6 @@ analyzeResult xs = do
     let xMin = V.head ys
         xMax = V.last ys
         ysDb = fromIntegral <$> ys :: V.Vector Double
-        ysAcc = V.postscanl (+) 0 ys
-        tot = V.sum ys
     printf "min: %d, max: %d\n" xMin xMax
     printf "mean: %6.4f, std dev.: %6.4f\n" (mean ysDb) (stdDev ysDb)
     (fix $ \indScan curInd ->
@@ -67,12 +71,16 @@ analyzeResult xs = do
                                       then Just curInd'
                                       else self (curInd'+1)) (curInd+1)
               fI = fromIntegral :: Int -> Double
-              ppr n cr = when (n `mod` 10 == 0) $ printf "<= %d\t%6.4f%%\n" n (cr * 100)
+              ppr n cr = when (n `mod` 10 == 0) $
+                  printf "<= %d\tactual: %6.4f%%\tcomputed: %6.4f%%\n"
+                      n
+                      (cr * 100)
+                      (computeCDF n 1 (1-p) * 100)
           case nextInd of
               Nothing ->
-                  ppr curE (fI (ysAcc V.! (V.length ys -1)) / fI tot )
+                  ppr curE (fI (V.length ys -1) / fI tot )
               Just ind -> do
-                  ppr curE (fI (ysAcc V.! (ind-1)) / fI tot)
+                  ppr curE (fI (ind-1) / fI tot)
                   indScan ind
           ) 0
 
@@ -84,7 +92,7 @@ main = do
             printf "Performing %d experiments with drop rate %6.4f%%:\n" cnt (dropRate * 100)
             g <- createSystemRandom
             results <- replicateM cnt (experiment g dropRate)
-            analyzeResult results
+            analyzeResult cnt dropRate results
         Nothing -> do
             putStrLn "Usage: <rate> <# of experiments>"
             putStrLn "example of rate: '0.20' or '20%'"
