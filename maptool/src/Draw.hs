@@ -19,8 +19,9 @@ twipToPixel x = fromIntegral x / 20
 find :: Ord k => k -> M.Map k a -> a
 find v m = fromJust (M.lookup v m)
 
-drawKCMap :: [MyLine] -> M.Map (V2 Int) String -> Diagram B
-drawKCMap xs pm = ((endPoints <> startPoints)
+drawKCMap :: MapInfo
+          -> Diagram B
+drawKCMap MapInfo {_miLines=xs, _miNodeNames= pm } = ((endPoints <> startPoints)
                    # applyAll
                      (map (\l ->
                            connectOutside' arrowOpts (lineStartName l) (lineEndName l))
@@ -42,8 +43,9 @@ drawKCMap xs pm = ((endPoints <> startPoints)
     lineStartName = (++ "r") . _lName
     lineEndName = (++ "g") . _lName
 
-draw :: [MyLine] -> M.Map (V2 Int) String -> IO ()
-draw xs pm = mainWith (drawKCMap xs pm)
+
+draw :: MapInfo -> IO ()
+draw = mainWith . drawKCMap
 
 lineMid :: MyLine -> Point V2 Double
 lineMid (MyLine _ pStart pEnd) = (convertPt pStart ^+^ convertPt pEnd) ^/ 2

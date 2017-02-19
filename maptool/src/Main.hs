@@ -21,6 +21,7 @@ import Data.Function
 import Text.JSON
 import Data.Monoid
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 
 import Types
 import Draw
@@ -160,7 +161,8 @@ main = do
     -- (most of the time) divide them by 20 to get pixels
     let adjusted = adjustLines beginNodes (results ++ results2)
         pointMap = mkPointMap beginNodes adjusted
-    withArgs remained $ draw adjusted pointMap
+        mapInfo = MapInfo adjusted (S.fromList beginNodes) pointMap
+    withArgs remained $ draw mapInfo
     putStrLn "=== JSON encoding ==="
     putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
 
