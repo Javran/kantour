@@ -7,8 +7,6 @@ module Draw where
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG.CmdLine
-import Data.Maybe
-import qualified Data.Map.Strict as M
 import Data.Coerce
 
 import Types
@@ -16,12 +14,10 @@ import Types
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 
-find :: Ord k => k -> M.Map k a -> a
-find v m = fromJust (M.lookup v m)
 
 drawKCMap :: MapInfo
           -> Diagram B
-drawKCMap MapInfo {_miLines=xs, _miNodeNames= pm } = ((endPoints <> startPoints)
+drawKCMap mi@MapInfo {_miLines=xs} = ((endPoints <> startPoints)
                    # applyAll
                      (map (\l ->
                            connectOutside' arrowOpts (lineStartName l) (lineEndName l))
@@ -34,7 +30,7 @@ drawKCMap MapInfo {_miLines=xs, _miNodeNames= pm } = ((endPoints <> startPoints)
         atPoints
           (fmap (convertPt . getter) xs)
           (map (\l ->
-                circle' color (find (getter l) pm)
+                circle' color (getNodeName (getter l) mi)
                 # named (lineName l)) xs)
     endPoints = mkPoints _lEnd green lineEndName
     startPoints = mkPoints _lStart red lineStartName
