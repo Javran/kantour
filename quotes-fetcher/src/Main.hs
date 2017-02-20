@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings, ScopedTypeVariables #-}
 module Main where
 
 import Network.HTTP.Types
@@ -16,6 +16,8 @@ import Data.Tree.NTree.TypeDefs
 import Data.ByteString.Builder
 import Data.Default
 import Text.Pandoc.Readers.MediaWiki
+import Text.Pandoc.Walk
+import Text.Pandoc.Definition
 
 data QFState = QFS
   { qfManager :: Manager
@@ -60,9 +62,12 @@ main = do
              ]
     resp <- runQF (fetchURLContent endpoint qt) (QFS mgr)
     let resp' = T.unpack resp
-    [(NTree (XText content) _)] <- runX (readString [] resp'
+    [NTree (XText content) _] <- runX (readString [] resp'
                     >>> deep (hasName "revisions" /> hasName "rev")
                     >>> getChildren)
-    let contentResult = readMediaWiki
-        Right content' = readMediaWiki def content
-    print content'
+    let Right content' = readMediaWiki def content
+        linksRaw = query (\ (inline :: Inline) -> case inline of
+                          Link {} -> [inline]
+                          _ -> []) content'
+        links = map (\(Link _ _ (t,_)) -> t) linksRaw
+    mapM_ putStrLn links

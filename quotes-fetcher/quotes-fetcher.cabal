@@ -27,6 +27,7 @@ executable quotes-fetcher
                      , exceptions
                      , hxt
                      , pandoc
+                     , pandoc-types
                      , data-default
   default-language:    Haskell2010
 
