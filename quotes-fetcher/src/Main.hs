@@ -22,6 +22,7 @@ import Text.ParserCombinators.ReadP
 import Parser
 import Data.List
 import Control.Concurrent.ParallelIO.Global
+import Text.JSON
 
 data QFState = QFS
   { qfManager :: Manager
@@ -97,12 +98,9 @@ main = do
         links = filter (not . notKanmusuLink) (extractLinks resp')
     results <- parallel (map (processLink mgr) links)
     stopGlobalPool
-    let ppr (k,l) = putStrLn $ k ++ ": " ++ desc
-          where
-            desc = case l of
-                [] -> "<invalid ship name>"
-                _ -> intercalate ", " (map fst l)
-    mapM_ ppr results
+    let results' = filter (not . null . snd) results
+        ppr (k,l) = putStrLn $ k ++ ": " ++ intercalate ", " (map fst l)
+    writeFile "dump.json" (encode results')
     pure ()
 
 pprQuotesList :: [Quotes] -> IO ()
@@ -116,3 +114,18 @@ pprQuotesList qts = do
 
     pprQuote :: (String, String) -> IO ()
     pprQuote (k,v) = putStrLn $ "    " ++ k ++ ": " ++ v
+
+{-
+
+  (String, [QuotesSection])
+
+- String for link name
+
+- QuotesSection = (String, [Quotes])
+
+    - String for header name
+    - [Quotes] a list of quotes
+
+    - a single Quotes consists of some key-value bindings
+
+-}
