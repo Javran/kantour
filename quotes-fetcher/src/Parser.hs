@@ -107,3 +107,14 @@ pQuotesList :: ReadP [ Quotes ]
 pQuotesList =
     token (string "{{台词翻译表/页头}}")
     *> many pQuotesStr <* token (string "{{页尾}}")
+
+{-
+TODO: sample
+
+==舰娘属性==
+<tabber>
+朝风={{舰娘资料|编号=272}}
+|-|
+朝风改={{舰娘资料|编号=272a}}
+</tabber>
+-}

@@ -21,6 +21,7 @@ import Data.ByteString.Builder
 import Text.ParserCombinators.ReadP
 import Parser
 import Data.List
+import Control.Concurrent.ParallelIO.Global
 
 data QFState = QFS
   { qfManager :: Manager
@@ -76,15 +77,17 @@ getRevisionsContent raw = content
          >>> deep (hasName "revisions" /> hasName "rev")
          >>> getChildren) raw'
 
-processLink :: Manager -> String -> IO ()
+processLink :: Manager -> String -> IO (String, [QuotesSection])
 processLink mgr linkName = do
     resp <- runQF (fetchWikiLink linkName) (QFS mgr)
     let content = getRevisionsContent resp
-    when ("==舰娘属性==" `isInfixOf` content) $ do
-        putStrLn $ "for: " ++ linkName
+    if "==舰娘属性==" `isInfixOf` content
+      then do
         let parsed = readP_to_S pFullScan content
             parsed2 = map fst . filter ((== []) . snd) $ parsed
-        mapM_ (\(h,q) -> putStrLn ("header: " ++ h) >> pprQuotesList q) parsed2
+        -- mapM_ (\(h,q) -> putStrLn ("header: " ++ h) >> pprQuotesList q) parsed2
+        pure (linkName, parsed2)
+      else pure (linkName, [])
 
 main :: IO ()
 main = do
@@ -92,8 +95,15 @@ main = do
     resp <- runQF (fetchWikiLink "Template:舰娘导航") (QFS mgr)
     let resp' = T.unpack resp
         links = filter (not . notKanmusuLink) (extractLinks resp')
-        testLinks = take 5 links
-    mapM_ (processLink mgr) testLinks
+    results <- parallel (map (processLink mgr) links)
+    stopGlobalPool
+    let ppr (k,l) = putStrLn $ k ++ ": " ++ desc
+          where
+            desc = case l of
+                [] -> "<invalid ship name>"
+                _ -> intercalate ", " (map fst l)
+    mapM_ ppr results
+    pure ()
 
 pprQuotesList :: [Quotes] -> IO ()
 pprQuotesList qts = do
