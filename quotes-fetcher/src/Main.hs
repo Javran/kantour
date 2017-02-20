@@ -10,8 +10,12 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Encoding as T
 import Control.Monad.State
 import Control.Monad.Catch
+import Text.XML.HXT.Core
+import Data.Tree.NTree.TypeDefs
 
 import Data.ByteString.Builder
+import Data.Default
+import Text.Pandoc.Readers.MediaWiki
 
 data QFState = QFS
   { qfManager :: Manager
@@ -55,4 +59,10 @@ main = do
              , ("titles", Just "Template:舰娘导航")
              ]
     resp <- runQF (fetchURLContent endpoint qt) (QFS mgr)
-    T.putStrLn resp
+    let resp' = T.unpack resp
+    [(NTree (XText content) _)] <- runX (readString [] resp'
+                    >>> deep (hasName "revisions" /> hasName "rev")
+                    >>> getChildren)
+    let contentResult = readMediaWiki
+        Right content' = readMediaWiki def content
+    print content'
