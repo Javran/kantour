@@ -1,4 +1,9 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE
+    GeneralizedNewtypeDeriving
+  , OverloadedStrings
+  , ScopedTypeVariables
+  , LambdaCase
+  #-}
 module Main where
 
 import Network.HTTP.Types
@@ -6,19 +11,16 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import qualified Data.Text.Encoding as T
-import Control.Monad.State
+import Control.Monad.State hiding (get)
 import Control.Monad.Catch
-import Text.XML.HXT.Core
+import Text.XML.HXT.Core hiding (when)
 import Data.Tree.NTree.TypeDefs
 
 import Data.ByteString.Builder
-import Data.Default
-import Text.Pandoc.Readers.MediaWiki
-import Text.Pandoc.Walk
-import Text.Pandoc.Definition
-import Data.String
+import Text.ParserCombinators.ReadP
+import Parser
+import Data.List
 
 data QFState = QFS
   { qfManager :: Manager
@@ -49,13 +51,13 @@ fetchURL url qt = do
         then pure (T.decodeUtf8 . LBS.toStrict . responseBody $ resp)
         else fail $ "error with status code: " ++ show (statusCode st)
 
-fetchWikiLink :: T.Text -> QuoteFetch T.Text
+fetchWikiLink :: String -> QuoteFetch T.Text
 fetchWikiLink wlink = do
     let qt = [ ("action", Just "query")
              , ("prop", Just "revisions")
              , ("rvprop", Just "content")
              , ("format", Just "xml")
-             , ("titles", Just wlink)
+             , ("titles", Just (T.pack wlink))
              , ("converttitles", Nothing)
              , ("redirects", Nothing)
              ]
@@ -64,19 +66,43 @@ fetchWikiLink wlink = do
 runQF :: QuoteFetch a -> QFState -> IO a
 runQF (QF m) = evalStateT m
 
+getRevisionsContent :: T.Text -> String
+getRevisionsContent raw = content
+  where
+    raw' = T.unpack raw
+    -- xreadDoc is like xread but reads the XML spec
+    [NTree (XText content) _] = runLA
+        (xreadDoc >>> isElem
+         >>> deep (hasName "revisions" /> hasName "rev")
+         >>> getChildren) raw'
+
+processLink :: Manager -> String -> IO ()
+processLink mgr linkName = do
+    resp <- runQF (fetchWikiLink linkName) (QFS mgr)
+    let content = getRevisionsContent resp
+    when ("==舰娘属性==" `isInfixOf` content) $ do
+        putStrLn $ "for: " ++ linkName
+        let parsed = readP_to_S pFullScan content
+            parsed2 = map fst . filter ((== []) . snd) $ parsed
+        mapM_ (\(h,q) -> putStrLn ("header: " ++ h) >> pprQuotesList q) parsed2
+
 main :: IO ()
 main = do
     mgr <- newManager tlsManagerSettings
     resp <- runQF (fetchWikiLink "Template:舰娘导航") (QFS mgr)
     let resp' = T.unpack resp
-    [NTree (XText content) _] <- runX (readString [] resp'
-                    >>> deep (hasName "revisions" /> hasName "rev")
-                    >>> getChildren)
-    let Right content' = readMediaWiki def content
-        linksRaw = query (\ (inline :: Inline) -> case inline of
-                          Link {} -> [inline]
-                          _ -> []) content'
-        links = map (\(Link _ _ (t,_)) -> t) linksRaw
-        testLink = head links
-    resp1 <- runQF (fetchWikiLink (fromString testLink)) (QFS mgr)
-    T.putStrLn resp1
+        links = filter (not . notKanmusuLink) (extractLinks resp')
+        testLinks = take 5 links
+    mapM_ (processLink mgr) testLinks
+
+pprQuotesList :: [Quotes] -> IO ()
+pprQuotesList qts = do
+    putStrLn "++++ begin listing"
+    mapM_ pprQuotes qts
+    putStrLn "---- end listing"
+  where
+    pprQuotes :: Quotes -> IO ()
+    pprQuotes = mapM_ pprQuote
+
+    pprQuote :: (String, String) -> IO ()
+    pprQuote (k,v) = putStrLn $ "    " ++ k ++ ": " ++ v
