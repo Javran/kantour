@@ -18,6 +18,7 @@ import Data.Default
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Walk
 import Text.Pandoc.Definition
+import Data.String
 
 data QFState = QFS
   { qfManager :: Manager
@@ -36,8 +37,8 @@ newtype QuoteFetch a = QF (StateT QFState IO a)
 endpoint :: String
 endpoint = "http://zh.kcwiki.moe/api.php"
 
-fetchURLContent :: String -> QueryText -> QuoteFetch T.Text
-fetchURLContent url qt = do
+fetchURL :: String -> QueryText -> QuoteFetch T.Text
+fetchURL url qt = do
     mgr <- gets qfManager
     initReq <- parseRequest url
     let qs = LBS.toStrict . toLazyByteString . renderQueryText False $ qt
@@ -48,19 +49,25 @@ fetchURLContent url qt = do
         then pure (T.decodeUtf8 . LBS.toStrict . responseBody $ resp)
         else fail $ "error with status code: " ++ show (statusCode st)
 
+fetchWikiLink :: T.Text -> QuoteFetch T.Text
+fetchWikiLink wlink = do
+    let qt = [ ("action", Just "query")
+             , ("prop", Just "revisions")
+             , ("rvprop", Just "content")
+             , ("format", Just "xml")
+             , ("titles", Just wlink)
+             , ("converttitles", Nothing)
+             , ("redirects", Nothing)
+             ]
+    fetchURL endpoint qt
+
 runQF :: QuoteFetch a -> QFState -> IO a
 runQF (QF m) = evalStateT m
 
 main :: IO ()
 main = do
     mgr <- newManager tlsManagerSettings
-    let qt = [ ("action", Just "query")
-             , ("prop", Just "revisions")
-             , ("rvprop", Just "content")
-             , ("format", Just "xml")
-             , ("titles", Just "Template:舰娘导航")
-             ]
-    resp <- runQF (fetchURLContent endpoint qt) (QFS mgr)
+    resp <- runQF (fetchWikiLink "Template:舰娘导航") (QFS mgr)
     let resp' = T.unpack resp
     [NTree (XText content) _] <- runX (readString [] resp'
                     >>> deep (hasName "revisions" /> hasName "rev")
@@ -70,4 +77,6 @@ main = do
                           Link {} -> [inline]
                           _ -> []) content'
         links = map (\(Link _ _ (t,_)) -> t) linksRaw
-    mapM_ putStrLn links
+        testLink = head links
+    resp1 <- runQF (fetchWikiLink (fromString testLink)) (QFS mgr)
+    T.putStrLn resp1
