@@ -88,6 +88,7 @@ pQuotesStr =
         _ <- token (char '=')
         val <- normString <$> munch (\c -> c /='|' && c /= '}')
         pure (key,val)
+    -- TODO: also need to remove "ref" tags from it.
     normString = normString2 . normString1
     normString1 [] = []
     normString1 (x:xs)

@@ -99,7 +99,6 @@ main = do
     results <- parallel (map (processLink mgr) links)
     stopGlobalPool
     let results' = filter (not . null . snd) results
-        ppr (k,l) = putStrLn $ k ++ ": " ++ intercalate ", " (map fst l)
     writeFile "dump.json" (encode results')
     pure ()
 
