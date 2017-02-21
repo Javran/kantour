@@ -1,19 +1,15 @@
 {-# LANGUAGE
-    GeneralizedNewtypeDeriving
-  , OverloadedStrings
+    OverloadedStrings
   , ScopedTypeVariables
-  , LambdaCase
   #-}
 module Main where
 
 import Network.HTTP.Types
 import Network.HTTP.Client
-import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Client.TLS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Control.Monad.State hiding (get)
-import Control.Monad.Catch
 import Text.XML.HXT.Core hiding (when)
 import Data.Tree.NTree.TypeDefs
 
@@ -24,36 +20,22 @@ import Data.List
 import Control.Concurrent.ParallelIO.Global
 import Text.JSON
 
-data QFState = QFS
-  { qfManager :: Manager
-  }
-
-newtype QuoteFetch a = QF (StateT QFState IO a)
-  deriving
-  ( MonadState QFState
-  , MonadIO
-  , MonadThrow
-  , Monad
-  , Applicative
-  , Functor
-  )
-
 endpoint :: String
 endpoint = "http://zh.kcwiki.moe/api.php"
 
-fetchURL :: String -> QueryText -> QuoteFetch String
+fetchURL :: String -> QueryText -> IO String
 fetchURL url qt = do
-    mgr <- gets qfManager
+    mgr <- getGlobalManager
     initReq <- parseRequest url
     let qs = LBS.toStrict . toLazyByteString . renderQueryText False $ qt
         req = initReq { queryString = qs }
-    resp <- liftIO (httpLbs req mgr)
+    resp <- httpLbs req mgr
     let st = responseStatus resp
     if st == ok200
         then pure (T.unpack . T.decodeUtf8 . LBS.toStrict . responseBody $ resp)
         else fail $ "error with status code: " ++ show (statusCode st)
 
-fetchWikiLink :: String -> QuoteFetch String
+fetchWikiLink :: String -> IO String
 fetchWikiLink wlink = do
     let qt = [ ("action", Just "query")
              , ("prop", Just "revisions")
@@ -65,9 +47,6 @@ fetchWikiLink wlink = do
              ]
     fetchURL endpoint qt
 
-runQF :: QuoteFetch a -> QFState -> IO a
-runQF (QF m) = evalStateT m
-
 getRevisionsContent :: String -> String
 getRevisionsContent raw = content
   where
@@ -77,9 +56,9 @@ getRevisionsContent raw = content
          >>> deep (hasName "revisions" /> hasName "rev")
          >>> getChildren) raw
 
-processLink :: Manager -> String -> IO (String, [QuotesSection])
-processLink mgr linkName = do
-    resp <- runQF (fetchWikiLink linkName) (QFS mgr)
+processLink :: String -> IO (String, [QuotesSection])
+processLink linkName = do
+    resp <- fetchWikiLink linkName
     let content = getRevisionsContent resp
     if "==舰娘属性==" `isInfixOf` content
       then do
@@ -91,9 +70,11 @@ processLink mgr linkName = do
 main :: IO ()
 main = do
     mgr <- newManager tlsManagerSettings
-    resp <- runQF (fetchWikiLink "Template:舰娘导航") (QFS mgr)
+    setGlobalManager mgr
+
+    resp <- fetchWikiLink "Template:舰娘导航"
     let links = filter (not . notKanmusuLink) (extractLinks resp)
-    results <- parallel (map (processLink mgr) links)
+    results <- parallel (map processLink links)
     stopGlobalPool
     let results' = filter (not . null . snd) results
     writeFile "dump.json" (encode results')

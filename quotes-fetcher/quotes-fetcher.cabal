@@ -24,8 +24,6 @@ executable quotes-fetcher
                      , bytestring
                      , text
                      , http-types
-                     , mtl
-                     , exceptions
                      , hxt
                      , data-default
                      , containers
