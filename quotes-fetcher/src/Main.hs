@@ -41,7 +41,7 @@ newtype QuoteFetch a = QF (StateT QFState IO a)
 endpoint :: String
 endpoint = "http://zh.kcwiki.moe/api.php"
 
-fetchURL :: String -> QueryText -> QuoteFetch T.Text
+fetchURL :: String -> QueryText -> QuoteFetch String
 fetchURL url qt = do
     mgr <- gets qfManager
     initReq <- parseRequest url
@@ -50,10 +50,10 @@ fetchURL url qt = do
     resp <- liftIO (httpLbs req mgr)
     let st = responseStatus resp
     if st == ok200
-        then pure (T.decodeUtf8 . LBS.toStrict . responseBody $ resp)
+        then pure (T.unpack . T.decodeUtf8 . LBS.toStrict . responseBody $ resp)
         else fail $ "error with status code: " ++ show (statusCode st)
 
-fetchWikiLink :: String -> QuoteFetch T.Text
+fetchWikiLink :: String -> QuoteFetch String
 fetchWikiLink wlink = do
     let qt = [ ("action", Just "query")
              , ("prop", Just "revisions")
@@ -68,15 +68,14 @@ fetchWikiLink wlink = do
 runQF :: QuoteFetch a -> QFState -> IO a
 runQF (QF m) = evalStateT m
 
-getRevisionsContent :: T.Text -> String
+getRevisionsContent :: String -> String
 getRevisionsContent raw = content
   where
-    raw' = T.unpack raw
     -- xreadDoc is like xread but reads the XML spec
     [NTree (XText content) _] = runLA
         (xreadDoc >>> isElem
          >>> deep (hasName "revisions" /> hasName "rev")
-         >>> getChildren) raw'
+         >>> getChildren) raw
 
 processLink :: Manager -> String -> IO (String, [QuotesSection])
 processLink mgr linkName = do
@@ -86,7 +85,6 @@ processLink mgr linkName = do
       then do
         let parsed = readP_to_S pFullScan content
             parsed2 = map fst . filter ((== []) . snd) $ parsed
-        -- mapM_ (\(h,q) -> putStrLn ("header: " ++ h) >> pprQuotesList q) parsed2
         pure (linkName, parsed2)
       else pure (linkName, [])
 
@@ -94,8 +92,7 @@ main :: IO ()
 main = do
     mgr <- newManager tlsManagerSettings
     resp <- runQF (fetchWikiLink "Template:舰娘导航") (QFS mgr)
-    let resp' = T.unpack resp
-        links = filter (not . notKanmusuLink) (extractLinks resp')
+    let links = filter (not . notKanmusuLink) (extractLinks resp)
     results <- parallel (map (processLink mgr) links)
     stopGlobalPool
     let results' = filter (not . null . snd) results
