@@ -5,6 +5,8 @@ import Data.Functor
 import Data.List
 import Data.Char
 
+import Types
+
 -- quick and dirty parser that just work
 
 {-
@@ -68,8 +70,6 @@ pFullScan = munch (/='=')
     *> ((pQuotesSection <* munch (const True))
         +++ (munch1 (=='=') *> pFullScan))
 
-type Quotes = [(String,String)]
-type QuotesSection = (String, [Quotes])
 
 pQuotesSection :: ReadP QuotesSection
 pQuotesSection = (,) <$> pHeader3 <*> pQuotesList
