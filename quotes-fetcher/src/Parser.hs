@@ -75,7 +75,12 @@ pQuotesSection :: ReadP QuotesSection
 pQuotesSection = (,) <$> pHeader3 <*> pQuotesList
 
 pHeader3 :: ReadP String
-pHeader3 = token (string "===") *> munch1 (/= '=') <* token (string "===")
+pHeader3 = pHeader 3
+
+pHeader :: Int -> ReadP String
+pHeader n = deco *> munch1 (/= '=') <* deco
+  where
+    deco = token (string (replicate n '='))
 
 pQuotesStr :: ReadP Quotes
 pQuotesStr =
@@ -109,6 +114,8 @@ pQuotesList =
     token (string "{{台词翻译表/页头}}")
     *> many pQuotesStr <* token (string "{{页尾}}")
 
+
+
 {-
 TODO: sample
 
@@ -118,4 +125,33 @@ TODO: sample
 |-|
 朝风改={{舰娘资料|编号=272a}}
 </tabber>
+
+output:
+
+[ (朝风,272)
+, (朝风改,272a)
+]
+
 -}
+
+type TabberRow = (String, String)
+
+pTabber :: ReadP [TabberRow]
+pTabber = header *> body
+  where
+    header = token (string "==舰娘属性==")
+    body = token (string "<tabber>")
+        *> (pair `sepBy1` token (string "|-|"))
+        <* token (string "</tabber>")
+    pair = do
+        name <- munch1 (/= '=')
+        _ <- string "={{舰娘资料|编号="
+        cid <- munch1 (\x -> x /= '}' && x /= '|')
+        _ <- token (munch (/= '}') >> string "}}")
+        pure (name,cid)
+
+collectAll :: String -> ([TabberRow], [QuotesSection])
+collectAll raw = (trs, results)
+  where
+    [(trs, leftover)] = readP_to_S pTabber raw
+    results = map fst . filter (null . snd) $ readP_to_S pFullScan leftover

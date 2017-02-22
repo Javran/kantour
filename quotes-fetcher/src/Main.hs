@@ -4,44 +4,42 @@
   #-}
 module Main where
 
-import qualified Data.Text as T
-
-import Text.ParserCombinators.ReadP
 import Parser
 import Types
 import Data.List
 import Control.Concurrent.ParallelIO.Global
 import Text.JSON
-import Language.Lua.Parser
-import Language.Lua.Syntax
 import Fetch
+import ShipDatabase
 
-processLink :: String -> IO (String, [QuotesSection])
-processLink linkName = do
+processLink :: ShipDatabase -> String -> IO (String, [QuotesSection])
+processLink sdb linkName = do
     content <- fetchWikiLink linkName
     if "==舰娘属性==" `isInfixOf` content
       then do
-        let parsed = readP_to_S pFullScan content
-            parsed2 = map fst . filter ((== []) . snd) $ parsed
-        pure (linkName, parsed2)
+        let (trs,results) = collectAll content
+            ppr (k,v) = putStrLn $ k ++ ": " ++ v ++ " ==> " ++ show (findMasterId v sdb)
+        mapM_ ppr trs
+        pure (linkName, results)
       else pure (linkName, [])
 
-dumpQuotes :: IO ()
-dumpQuotes = do
+dumpQuotes :: ShipDatabase -> IO ()
+dumpQuotes sdb = do
     resp <- fetchWikiLink "Template:舰娘导航"
     let links = filter (not . notKanmusuLink) (extractLinks resp)
-    results <- parallel (map processLink links)
+        testLinks = links -- take 5 links
+    results <- parallel (map (processLink sdb) testLinks)
     stopGlobalPool
     let results' = filter (not . null . snd) results
     writeFile "dump.json" (encode results')
+    pure ()
 
 main :: IO ()
 main = do
     initializeFetcher
-    -- dumpQuotes
-    content <- fetchWikiLink "模块:舰娘数据"
-    let Right (Block parsed _) = parseText chunk (T.pack content)
-    print (parsed !! 1)
+    sdb <- fetchDatabase
+    dumpQuotes sdb
+    pure ()
 
 pprQuotesList :: [Quotes] -> IO ()
 pprQuotesList qts = do

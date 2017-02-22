@@ -1,7 +1,12 @@
 module Types where
 
+import Language.Lua
+
 type Quotes = [(String,String)]
 type QuotesSection = (String, [Quotes])
+
+-- for type-level tagging
+newtype ShipDatabase = ShipDb [TableField]
 
 {-
 
