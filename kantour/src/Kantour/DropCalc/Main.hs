@@ -1,4 +1,4 @@
-module Main where
+module Kantour.DropCalc.Main where
 
 import System.Environment
 import Control.Monad
@@ -65,8 +65,8 @@ analyzeResult tot p xs = do
                   indScan ind
           ) 0
 
-main :: IO ()
-main = do
+defaultMain :: IO ()
+defaultMain = do
     as <- getArgs
     case as of
         [rawDropRate,rawCnt]
