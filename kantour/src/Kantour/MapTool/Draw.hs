@@ -3,13 +3,13 @@
   , FlexibleContexts
   , TypeFamilies
   #-}
-module Draw where
+module Kantour.MapTool.Draw where
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG.CmdLine
 import Data.Coerce
 
-import Types
+import Kantour.MapTool.Types
 
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20

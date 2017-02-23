@@ -7,7 +7,7 @@
   , ScopedTypeVariables
   , NoMonomorphismRestriction
   #-}
-module Main where
+module Kantour.MapTool.Main where
 
 import System.Environment
 import Data.List
@@ -23,8 +23,8 @@ import Data.Monoid
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
-import Types
-import Draw
+import Kantour.MapTool.Types
+import Kantour.MapTool.Draw
 
 type ShapeBounds =
     ( (Int, Int) -- x max, min
@@ -148,8 +148,8 @@ getMapBeginNode = proc doc -> do
              (this /> hasAttr "characterId")) -<< doc
     this -< ptEnd
 
-main :: IO ()
-main = do
+defaultMain :: IO ()
+defaultMain = do
     srcFP : remained <- getArgs
     mDoc <- runX (readDocument [] srcFP)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc

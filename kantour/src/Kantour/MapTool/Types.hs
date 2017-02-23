@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Types
+module Kantour.MapTool.Types
   ( MyLine(..)
   , lName, lStart, lEnd
   , simpleLName
