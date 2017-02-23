@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Main where
+module Kantour.Coded.Main where
 
 import System.Environment
 
@@ -52,8 +52,8 @@ toBinData = evalState createBinData
 fromBinData :: BinData -> ByteString
 fromBinData (BD bdFst bdS bdL) = bdFst <> maybe mempty mconcat bdS <> bdL
 
-main :: IO ()
-main = do
+defaultMain :: IO ()
+defaultMain = do
     as <- getArgs
     case as of
         (srcFP:dstFP:_) -> do
