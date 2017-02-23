@@ -1,4 +1,4 @@
-module MiniJson.Types where
+module Kantour.MiniJson.Types where
 
 import qualified Data.Text as T
 

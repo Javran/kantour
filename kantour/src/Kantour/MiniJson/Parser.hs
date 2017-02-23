@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module MiniJson.Parser where
+module Kantour.MiniJson.Parser where
 
 import Prelude hiding (takeWhile)
 import qualified Data.Text as T
@@ -9,7 +9,7 @@ import Data.Char
 import Data.Functor
 import Control.Monad
 
-import MiniJson.Types
+import Kantour.MiniJson.Types
 
 -- all following parsers assume a non-space at beginning
 pPair :: Parser (T.Text, JValue)
