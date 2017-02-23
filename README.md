@@ -1,4 +1,4 @@
-# tuppence
+# kantour
 
 A set of tools for KanColle-related developments.
 
