@@ -37,7 +37,6 @@ dumpQuotes sdb = do
 
 defaultMain :: IO ()
 defaultMain = do
-    initializeFetcher
     sdb <- fetchDatabase
     dumpQuotes sdb
     pure ()

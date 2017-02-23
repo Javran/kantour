@@ -46,8 +46,3 @@ fetchWikiLink wlink = do
             (xreadDoc >>> isElem
              >>> deep (hasName "revisions" /> hasName "rev")
              >>> getChildren) raw
-
-initializeFetcher :: IO ()
-initializeFetcher = do
-    mgr <- newManager tlsManagerSettings
-    setGlobalManager mgr
