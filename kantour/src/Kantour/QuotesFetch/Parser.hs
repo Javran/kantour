@@ -1,11 +1,11 @@
-module Parser where
+module Kantour.QuotesFetch.Parser where
 
 import Text.ParserCombinators.ReadP
 import Data.Functor
 import Data.List
 import Data.Char
 
-import Types
+import Kantour.QuotesFetch.Types
 
 -- quick and dirty parser that just work
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Fetch where
+module Kantour.QuotesFetch.Fetch where
 
 import Text.XML.HXT.Core hiding (when)
 import qualified Data.Text as T

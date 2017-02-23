@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
-module ShipDatabase where
+module Kantour.QuotesFetch.ShipDatabase where
 
 import Language.Lua
 import Data.Monoid
@@ -7,8 +7,8 @@ import Data.Coerce
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Fetch
-import Types
+import Kantour.QuotesFetch.Fetch
+import Kantour.QuotesFetch.Types
 
 fetchDatabase :: IO ShipDatabase
 fetchDatabase = do

@@ -23,6 +23,11 @@ library
                      , Kantour.MapTool.Main
                      , Kantour.MapTool.Types
                      , Kantour.MapTool.Draw
+                     , Kantour.QuotesFetch.Types
+                     , Kantour.QuotesFetch.ShipDatabase
+                     , Kantour.QuotesFetch.Parser
+                     , Kantour.QuotesFetch.Fetch
+                     , Kantour.QuotesFetch.Main
   build-depends:       base
                      , mwc-random
                      , primitive
@@ -43,6 +48,11 @@ library
                      , lens
                      , containers
                      , json
+                     , language-lua
+                     , http-client
+                     , http-client-tls
+                     , http-types
+                     , parallel-io
   default-language:    Haskell2010
 
 executable dropcalc
@@ -71,6 +81,14 @@ executable minijson
 
 executable maptool
   hs-source-dirs:      mains/maptool
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , kantour
+  default-language:    Haskell2010
+
+executable quotesfetch
+  hs-source-dirs:      mains/quotesfetch
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base

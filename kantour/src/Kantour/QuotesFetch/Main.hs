@@ -2,15 +2,16 @@
     OverloadedStrings
   , ScopedTypeVariables
   #-}
-module Main where
+module Kantour.QuotesFetch.Main where
 
-import Parser
-import Types
+import Kantour.QuotesFetch.Parser
+import Kantour.QuotesFetch.Types
+import Kantour.QuotesFetch.Fetch
+import Kantour.QuotesFetch.ShipDatabase
+
 import Data.List
 import Control.Concurrent.ParallelIO.Global
 import Text.JSON
-import Fetch
-import ShipDatabase
 
 processLink :: ShipDatabase -> String -> IO (String, [QuotesSection])
 processLink sdb linkName = do
@@ -34,8 +35,8 @@ dumpQuotes sdb = do
     writeFile "dump.json" (encode results')
     pure ()
 
-main :: IO ()
-main = do
+defaultMain :: IO ()
+defaultMain = do
     initializeFetcher
     sdb <- fetchDatabase
     dumpQuotes sdb
