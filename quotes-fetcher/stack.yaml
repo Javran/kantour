@@ -1,7 +1,0 @@
-flags: {}
-extra-package-dbs: []
-packages:
-- '.'
-extra-deps:
-- language-lua-0.10.0
-resolver: lts-7.19
