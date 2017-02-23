@@ -1,5 +1,7 @@
 # kantour
 
+[![Build Status](https://travis-ci.org/Javran/kantour.svg?branch=master)](https://travis-ci.org/Javran/kantour)
+
 A set of tools for KanColle-related developments.
 
 Most of them are just re-implementation of existing stuff - another purpose of this repo
