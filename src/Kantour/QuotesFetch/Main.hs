@@ -28,11 +28,18 @@ dumpQuotes :: ShipDatabase -> IO ()
 dumpQuotes sdb = do
     resp <- fetchWikiLink "Template:舰娘导航"
     let links = filter (not . notKanmusuLink) (extractLinks resp)
-        testLinks = links -- take 5 links
+        testLinks = take 5 links
     results <- parallel (map (processLink sdb) testLinks)
     stopGlobalPool
     let results' = filter (not . null . snd) results
-    writeFile "dump.json" (encode results')
+        ppr (n,qs) = do
+            putStrLn $ "Name: " ++ n
+            let ppr' (s, qts) = do
+                    putStrLn $ "Section: " ++ s
+                    pprQuotesList qts
+            mapM_ ppr' qs
+    mapM_ ppr results'
+    -- writeFile "dump.json" (encode results')
 
 defaultMain :: IO ()
 defaultMain = do
