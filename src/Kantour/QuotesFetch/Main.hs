@@ -33,13 +33,11 @@ dumpQuotes sdb = do
     stopGlobalPool
     let results' = filter (not . null . snd) results
     writeFile "dump.json" (encode results')
-    pure ()
 
 defaultMain :: IO ()
 defaultMain = do
     sdb <- fetchDatabase
     dumpQuotes sdb
-    pure ()
 
 pprQuotesList :: [Quotes] -> IO ()
 pprQuotesList qts = do

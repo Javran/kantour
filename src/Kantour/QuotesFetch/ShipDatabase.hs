@@ -10,6 +10,10 @@ import qualified Data.Text.IO as T
 import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.Types
 
+-- we can probably use "hslua" to properly interpret everything,
+-- but in order to do so we need way more complicated code than this,
+-- so for now let's better just live with it.
+
 fetchDatabase :: IO ShipDatabase
 fetchDatabase = do
     content <- fetchWikiLink "模块:舰娘数据"

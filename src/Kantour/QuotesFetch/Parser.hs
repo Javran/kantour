@@ -4,8 +4,11 @@ import Text.ParserCombinators.ReadP
 import Data.Functor
 import Data.List
 import Data.Char
-
+import Control.Monad
+import Data.Monoid
 import Kantour.QuotesFetch.Types
+import Data.Coerce
+{-# ANN module "HLint: ignore Use fromMaybe" #-}
 
 -- quick and dirty parser that just work
 
@@ -82,39 +85,63 @@ pHeader n = deco *> munch1 (/= '=') <* deco
   where
     deco = token (string (replicate n '='))
 
+collapseWs :: String -> String
+collapseWs xs = case xs of
+    [] -> []
+    (y:ys) -> if isSpace y
+                then ' ':collapseWs (dropWhile isSpace ys)
+                else y:collapseWs ys
+
+strip, lstrip, rstrip :: String -> String
+lstrip = dropWhile isSpace
+rstrip = reverse . lstrip . reverse
+strip = rstrip . lstrip
+
+removeRefs :: String -> String
+removeRefs [] = []
+removeRefs xs = case removePrefix "<ref>" xs of
+    Nothing -> head xs : removeRefs (tail xs)
+    Just ys -> removeRefs (removeEndTag ys)
+  where
+    removeEndTag [] = []
+    removeEndTag as = case removePrefix "</ref>" as of
+        Nothing -> removeEndTag (tail as)
+        Just bs -> bs
+
+removeBrs :: String -> String
+removeBrs [] = []
+removeBrs xs = case coerce (mconcat [ removePrefix "<br>" xs
+                                    , removePrefix "<br/>" xs
+                                    , removePrefix "<br />" xs]) of
+    Nothing -> head xs : removeBrs (tail xs)
+    Just ys -> removeBrs ys
+
+-- a more informative version of isPrefixOf
+removePrefix :: String -> String -> Maybe String
+removePrefix xs ys = do
+    guard $ xs `isPrefixOf` ys
+    pure (drop (length xs) ys)
+
 pQuotesStr :: ReadP Quotes
 pQuotesStr =
     token (string "{{台词翻译表") >> token (string "|")
     >> (pPair `sepBy1` token (char '|'))
     <* token (string "}}")
   where
+    -- TODO: <br/> ?
+    -- TODO: do it a different way:
+    -- <ref> and <br> should be dealt with in a separated "Quotes" module
     pPair = do
         key <- normString <$> munch1 (/= '=')
         _ <- token (char '=')
-        val <- normString <$> munch (\c -> c /='|' && c /= '}')
+        val <- removeBrs . removeRefs . normString <$> munch (\c -> c /='|' && c /= '}')
         pure (key,val)
-    -- TODO: also need to remove "ref" tags from it.
-    normString = normString2 . normString1
-    normString1 [] = []
-    normString1 (x:xs)
-        | isSpace x = ' ' : normString1 (dropWhile isSpace xs)
-        | otherwise = x : normString1 xs
-    normString2 [] = []
-    normString2 xs = xs2
-      where
-        xs1 = if isSpace (head xs)
-                then tail xs
-                else xs
-        xs2 = if isSpace (last xs1)
-                then init xs1
-                else xs1
+    normString = strip . collapseWs
 
 pQuotesList :: ReadP [ Quotes ]
 pQuotesList =
     token (string "{{台词翻译表/页头}}")
     *> many pQuotesStr <* token (string "{{页尾}}")
-
-
 
 {-
 TODO: sample
