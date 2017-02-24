@@ -28,6 +28,7 @@ library
                      , Kantour.QuotesFetch.Parser
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.Main
+                     , Kantour.Utils
   build-depends:       base
                      , mwc-random
                      , primitive
