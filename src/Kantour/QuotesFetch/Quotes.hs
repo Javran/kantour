@@ -170,8 +170,10 @@ renderQuote tbl (Q q) = vcat (map (\(k,v) -> text (k ++ ": " ++ v)) xs)
        . IM.toList
        $ q
 
-renderAll :: [(String, Int)] -> IM.IntMap Quote -> Doc
-renderAll tbl qs = vcat (map rdr xs)
+renderAll :: ShipDatabase -> [(String, Int)] -> IM.IntMap Quote -> Doc
+renderAll sdb tbl qs = vcat (map rdr xs)
   where
-    rdr (mstId, q) = text (show mstId) $$ nest 2 (renderQuote tbl q)
+    rdr (mstId, q) = text (jp ++ " (" ++ show mstId ++ ")" ) $$ nest 2 (renderQuote tbl q)
+      where
+        (jp,_) = findShipName sdb mstId
     xs = IM.toAscList qs

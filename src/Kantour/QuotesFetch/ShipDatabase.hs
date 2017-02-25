@@ -3,6 +3,7 @@ module Kantour.QuotesFetch.ShipDatabase where
 
 import Language.Lua
 import Data.Monoid
+import Data.Maybe
 import Data.Coerce
 import qualified Data.Text as T
 
@@ -54,3 +55,17 @@ findMasterId cid (ShipDb xs) = read (T.unpack x)
   where
     Just shipInfo = luaLookup ("\"" ++ cid ++ "\"") (TableConst xs)
     Just (Number x) = luaLookup "\"ID\"" shipInfo
+
+findShipName :: ShipDatabase -> MasterId -> (String, String)
+findShipName (ShipDb db) mstId = fromJust (lookup mstId revTbl)
+  where
+    convert :: TableField -> Maybe (MasterId, (String,String))
+    convert (ExpField _ ev) = do
+        let deConst = init . tail
+        (Number raw) <- luaLookup "\"ID\"" ev
+        let mId = read (T.unpack raw)
+        (String jp) <- luaLookup "\"日文名\"" ev
+        (String scn) <- luaLookup "\"中文名\"" ev
+        pure (mId, (deConst $ T.unpack jp,deConst $ T.unpack scn))
+    convert _ = Nothing
+    revTbl = mapMaybe convert db
