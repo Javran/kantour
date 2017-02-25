@@ -1,26 +1,43 @@
-module Kantour.QuotesFetch.Quotes where
+{-# LANGUAGE ScopedTypeVariables #-}
+module Kantour.QuotesFetch.Quotes
+  ( rqGetField
+  , rqArchiveName, rqSituation
+  , rqQuoteJP, rqQuoteSCN
 
-import qualified Data.IntMap.Strict as M
+  , kc3Table
+  , kcwikiTable
+
+  , Quote, mkQuote
+
+  , processPage
+  ) where
+
+import Data.List
+import qualified Data.IntMap.Strict as IM
 import Data.Either
 import Kantour.Utils
 import Data.Maybe
+import Control.Monad
 import Kantour.QuotesFetch.Types
+import Kantour.QuotesFetch.ShipDatabase
 
-newtype Quote = Q (M.IntMap String)
+{-# ANN module "HLint: ignore Eta reduce" #-}
 
-rqGetField :: String -> RawQuote -> String
-rqGetField k rq = fromJust (lookup k rq)
+newtype Quote = Q (IM.IntMap String)
 
-rqArchiveName :: RawQuote -> String
+rqGetField :: String -> RawQuote -> Maybe String
+rqGetField k rq = lookup k rq
+
+rqArchiveName :: RawQuote -> Maybe String
 rqArchiveName = rqGetField "档名"
 
-rqSituation :: RawQuote -> String
+rqSituation :: RawQuote -> Maybe String
 rqSituation = rqGetField "场合"
 
-rqQuoteJP :: RawQuote -> String
+rqQuoteJP :: RawQuote -> Maybe String
 rqQuoteJP = rqGetField "日文台词"
 
-rqQuoteSCN :: RawQuote -> String
+rqQuoteSCN :: RawQuote -> Maybe String
 rqQuoteSCN = rqGetField "中文译文"
 
 kc3Table :: [(String, Int)]
@@ -51,13 +68,11 @@ kcwikiTable =
     , ("DockLightDmg", 11), ("DockMedDmg", 12), ("DockComplete", 6)
     , ("FleetOrg", 13)
     , ("Sortie", 14), ("Battle", 15)
-    , ("Atk1", 16)
-    , ("Atk2", 17)
+    , ("Atk1", 16), ("Atk2", 17)
     , ("NightBattle", 18)
     , ("LightDmg1", 19), ("LightDmg2", 20), ("MedDmg", 21), ("Sunk", 22)
     , ("MVP", 23), ("Proposal", 24), ("Resupply", 27)
-    , ("SecWed", 28)
-    , ("Idle", 29)
+    , ("SecWed", 28), ("Idle", 29)
     , ("0000",30), ("0100",31), ("0200",32), ("0300",33)
     , ("0400",34), ("0500",35), ("0600",36), ("0700",37)
     , ("0800",38), ("0900",39), ("1000",40), ("1100",41)
@@ -68,16 +83,73 @@ kcwikiTable =
 
 -- assume a common prefix then convert raw quotes into a structured one.
 -- all unrecognized pairs are outputed as well
-mkQuote :: String -> [RawQuote] -> (Quote, [(String,String)])
-mkQuote kcwikiId xs = (Q . M.fromList $ rs, ls)
-  where
-    (ls,rs) = partitionEithers $ map convertQuote xs
-    convertQuote :: RawQuote -> Either (String,String) (Int,String)
-    convertQuote q = case removePrefix (kcwikiId ++ "-") k of
-        Nothing -> Left (k,v)
-        Just k' -> case lookup k' kcwikiTable of
-            Nothing -> Left (k,v)
-            Just i -> Right (i,v)
-      where
-        k = rqArchiveName q
-        v = rqQuoteSCN q
+mkQuote :: String -> [RawQuote] -> Maybe (Quote, [(String,String)])
+mkQuote kcwikiId xs = do
+
+    let -- (ls,rs) = partitionEithers $ map convertQuote xs
+        convertQuote :: RawQuote -> Maybe (Either (String,String) (Int,String))
+        convertQuote q = do
+            k <- rqArchiveName q
+            v <- rqQuoteSCN q
+            case removePrefix (kcwikiId ++ "-") k of
+                Nothing -> pure (Left (k,v))
+                Just k' -> case lookup k' kcwikiTable of
+                    Nothing -> pure (Left (k,v))
+                    Just i -> pure (Right (i,v))
+    results <- mapM convertQuote xs
+    let (ls,rs) = partitionEithers results
+    pure (Q . IM.fromList $ rs, ls)
+
+mergeQuoteM :: Quote -> Quote -> IO Quote
+mergeQuoteM (Q q1) (Q q2) = do
+    let qi = q1 `IM.intersection` q2
+    when (IM.size qi > 0) $
+        putStrLn $ "Warning: overlapping quote keys: " ++ show (IM.keys qi)
+    pure (Q (q1 `IM.union` q2))
+
+processPage :: ShipDatabase -> (LinkName, RawPage) -> IO (IM.IntMap Quote)
+processPage sdb (lName, (tRows, qSecs)) = do
+    -- putStrLn $ "Processing link: " ++ lName
+    let tabberNames = map fst tRows
+        -- LId: library Id (used by kcwiki)
+        getLId = takeWhile (/= '-')
+        strWithCode s = s ++ " (" ++ show s ++ ")"
+        processSection :: (SectionName, [RawQuote]) -> IO (Maybe (Int,Quote))
+        processSection (secName, rqs) = do
+            -- putStrLn $ "  Processing section: " ++ secName
+            let lId = getLId . fromJust . rqArchiveName . head $ rqs
+                -- codex id
+                tbLId = lookup secName tRows
+            unless (maybe True (== lId) tbLId) $
+                putStrLn $
+                  "Warning: inconsistent lib id: " ++ show (fromJust tbLId, lId)
+            when (secName `notElem` (["报时","时报","语音存档"] ++ tabberNames)) $ do
+                putStrLn $
+                  "Warning: unrecognized section name: " ++ strWithCode secName
+                putStrLn $ "Tabber: " ++ intercalate ", " (map strWithCode tabberNames)
+            if secName /= "语音存档"
+              then do
+                let mstId = findMasterId lId sdb
+                    mResult = mkQuote lId rqs
+                case mResult of
+                    Just (q,left) -> do
+                        unless (null left) $ do
+                            putStrLn $ "Warning: unconsumed quote input for link: "
+                                ++ lName ++ " section: " ++ secName
+                            let ppr (k,v) = putStrLn $ "W: (" ++ k ++ ", " ++ v ++ ")"
+                            mapM_ ppr left
+                        pure (Just (mstId, q))
+                    Nothing -> do
+                       putStrLn $ "Warning: Failed to process quotes for link: "
+                           ++ lName ++ " section: " ++ secName
+                       pure Nothing
+             else pure Nothing
+    processed <- catMaybes <$> mapM processSection qSecs :: IO [(Int,Quote)]
+    let merge :: IM.IntMap Quote -> (Int,Quote) -> IO (IM.IntMap Quote)
+        merge acc (k,v) = maybe
+          (pure (IM.insert k v acc))
+          (\oldV -> do
+               newV <- mergeQuoteM oldV v
+               pure (IM.insert k newV acc))
+          (IM.lookup k acc)
+    foldM merge IM.empty processed :: IO (IM.IntMap Quote)

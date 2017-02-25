@@ -103,6 +103,7 @@ test-suite spec
   main-is:             Spec.hs
   hs-source-dirs:      test
   ghc-options:         -Wall
+  other-modules:       Kantour.UtilsSpec
   build-depends:       base
                      , kantour
                      , hspec
