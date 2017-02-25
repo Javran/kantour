@@ -2,23 +2,36 @@ module Kantour.QuotesFetch.Types where
 
 import Language.Lua
 
-type Quotes = [(String,String)]
-type QuotesSection = (String, [Quotes])
-
 -- for type-level tagging
 newtype ShipDatabase = ShipDb [TableField]
 
 {-
+a raw quote is a bunch of key-value pairs
+-}
+type RawQuote = [(String,String)]
 
-  (String, [QuotesSection])
+type LinkName = String
+type SectionName = String
 
-- String for link name
+{-
+example of tabber rows:
 
-- QuotesSection = (String, [Quotes])
+==舰娘属性==
+<tabber>
+朝风={{舰娘资料|编号=272}}
+|-|
+朝风改={{舰娘资料|编号=272a}}
+</tabber>
 
-    - String for header name
-    - [Quotes] a list of quotes
+represented as a list of TabberRows:
 
-    - a single Quotes consists of some key-value bindings
+[ (朝风,272)
+, (朝风改,272a)
+]
 
 -}
+type TabberRow = (String, String)
+type RawQSection = (SectionName, [RawQuote])
+type RawPage = ([TabberRow], [RawQSection])
+
+type MasterId = Int

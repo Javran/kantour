@@ -27,6 +27,7 @@ library
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.ShipDatabase
                      , Kantour.QuotesFetch.Parser
+                     , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.Main
                      , Kantour.Utils

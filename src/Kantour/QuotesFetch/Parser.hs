@@ -4,10 +4,9 @@ import Text.ParserCombinators.ReadP
 import Data.Functor
 import Data.List
 import Data.Char
-import Control.Monad
-import Data.Monoid
 import Kantour.QuotesFetch.Types
 import Data.Coerce
+import Kantour.Utils
 {-# ANN module "HLint: ignore Use fromMaybe" #-}
 
 -- quick and dirty parser that just work
@@ -68,14 +67,14 @@ the decision is non-deterministic so we might get more than one result
 and all of them represents a valid quote section
 
 -}
-pFullScan :: ReadP QuotesSection
+pFullScan :: ReadP RawQSection
 pFullScan = munch (/='=')
-    *> ((pQuotesSection <* munch (const True))
+    *> ((pQuoteSection <* munch (const True))
         +++ (munch1 (=='=') *> pFullScan))
 
 
-pQuotesSection :: ReadP QuotesSection
-pQuotesSection = (,) <$> pHeader3 <*> pQuotesList
+pQuoteSection :: ReadP RawQSection
+pQuoteSection = (,) <$> pHeader3 <*> pQuoteList
 
 pHeader3 :: ReadP String
 pHeader3 = pHeader 3
@@ -116,14 +115,9 @@ removeBrs xs = case coerce (mconcat [ removePrefix "<br>" xs
     Nothing -> head xs : removeBrs (tail xs)
     Just ys -> removeBrs ys
 
--- a more informative version of isPrefixOf
-removePrefix :: String -> String -> Maybe String
-removePrefix xs ys = do
-    guard $ xs `isPrefixOf` ys
-    pure (drop (length xs) ys)
 
-pQuotesStr :: ReadP Quotes
-pQuotesStr =
+pQuoteStr :: ReadP RawQuote
+pQuoteStr =
     token (string "{{台词翻译表") >> token (string "|")
     >> (pPair `sepBy1` token (char '|'))
     <* token (string "}}")
@@ -138,30 +132,10 @@ pQuotesStr =
         pure (key,val)
     normString = strip . collapseWs
 
-pQuotesList :: ReadP [ Quotes ]
-pQuotesList =
+pQuoteList :: ReadP [ RawQuote ]
+pQuoteList =
     token (string "{{台词翻译表/页头}}")
-    *> many pQuotesStr <* token (string "{{页尾}}")
-
-{-
-TODO: sample
-
-==舰娘属性==
-<tabber>
-朝风={{舰娘资料|编号=272}}
-|-|
-朝风改={{舰娘资料|编号=272a}}
-</tabber>
-
-output:
-
-[ (朝风,272)
-, (朝风改,272a)
-]
-
--}
-
-type TabberRow = (String, String)
+    *> many pQuoteStr <* token (string "{{页尾}}")
 
 pTabber :: ReadP [TabberRow]
 pTabber = header *> body
@@ -177,7 +151,7 @@ pTabber = header *> body
         _ <- token (munch (/= '}') >> string "}}")
         pure (name,cid)
 
-collectAll :: String -> ([TabberRow], [QuotesSection])
+collectAll :: String -> RawPage
 collectAll raw = (trs, results)
   where
     [(trs, leftover)] = readP_to_S pTabber raw

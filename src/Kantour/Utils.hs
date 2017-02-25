@@ -1,6 +1,8 @@
 module Kantour.Utils where
 
 import Data.Foldable
+import Control.Monad
+import Data.List
 
 -- well, I don't think removing some extra parameters would make anyone look smarter.
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -23,3 +25,9 @@ deleteAL k = alterAL (const Nothing) k
 
 unionAL :: Eq k => [(k,v)] -> [(k,v)] -> [(k,v)]
 unionAL = foldl' (\acc (k,v) -> insertAL k v acc)
+
+-- a more informative version of isPrefixOf
+removePrefix :: String -> String -> Maybe String
+removePrefix xs ys = do
+    guard $ xs `isPrefixOf` ys
+    pure (drop (length xs) ys)

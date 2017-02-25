@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 module Kantour.QuotesFetch.Fetch where
 
 import Text.XML.HXT.Core hiding (when)
@@ -10,6 +10,12 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 import Data.ByteString.Builder
+import Data.List
+import Control.Monad
+
+import Control.Concurrent.ParallelIO.Global
+import Kantour.QuotesFetch.Parser
+import Kantour.QuotesFetch.Types
 
 endpoint :: String
 endpoint = "http://zh.kcwiki.moe/api.php"
@@ -46,3 +52,28 @@ fetchWikiLink wlink = do
             (xreadDoc >>> isElem
              >>> deep (hasName "revisions" /> hasName "rev")
              >>> getChildren) raw
+
+fetchRawQuotesByLink :: String
+                     -> IO (LinkName, Maybe RawPage)
+fetchRawQuotesByLink linkName = do
+    content <- fetchWikiLink linkName
+    pure . (linkName,) $ do
+        guard $ "==舰娘属性==" `isInfixOf` content
+        let page = collectAll content
+        pure page
+
+fetchRawQuotes :: IO [(LinkName, RawPage)]
+fetchRawQuotes = do
+    resp <- fetchWikiLink "Template:舰娘导航"
+    let links = filter (not . notKanmusuLink) (extractLinks resp)
+        -- testLinks = take 5 links
+        testLinks = links
+    results <- parallel (map fetchRawQuotesByLink testLinks)
+    stopGlobalPool
+    let (ls,rs) =
+            partitionEither $
+                map (\(l,m) -> maybe (Left l) (Right . (l,)) m)
+                    results
+    putStrLn "Fetched nothing from following links:"
+    putStrLn (intercalate ", " ls)
+    pure rs

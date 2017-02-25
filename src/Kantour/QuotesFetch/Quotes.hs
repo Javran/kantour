@@ -1,8 +1,27 @@
 module Kantour.QuotesFetch.Quotes where
 
 import qualified Data.IntMap.Strict as M
+import Data.Either
+import Kantour.Utils
+import Data.Maybe
+import Kantour.QuotesFetch.Types
 
-newtype Quotes = Q (M.IntMap String)
+newtype Quote = Q (M.IntMap String)
+
+rqGetField :: String -> RawQuote -> String
+rqGetField k rq = fromJust (lookup k rq)
+
+rqArchiveName :: RawQuote -> String
+rqArchiveName = rqGetField "档名"
+
+rqSituation :: RawQuote -> String
+rqSituation = rqGetField "场合"
+
+rqQuoteJP :: RawQuote -> String
+rqQuoteJP = rqGetField "日文台词"
+
+rqQuoteSCN :: RawQuote -> String
+rqQuoteSCN = rqGetField "中文译文"
 
 kc3Table :: [(String, Int)]
 kc3Table =
@@ -29,7 +48,7 @@ kcwikiTable =
     , ("Sec1", 2), ("Sec2", 3), ("Sec3", 4)
     , ("Return", 7), ("ConstComplete", 5), ("Achievement", 8)
     , ("Equip1", 9), ("Equip2", 10), ("Equip3", 26)
-    , ("DockLightDmg", 11), ("DockMedDmg", 12)
+    , ("DockLightDmg", 11), ("DockMedDmg", 12), ("DockComplete", 6)
     , ("FleetOrg", 13)
     , ("Sortie", 14), ("Battle", 15)
     , ("Atk1", 16)
@@ -47,5 +66,18 @@ kcwikiTable =
     , ("2000",50), ("2100",51), ("2200",52), ("2300",53)
     ]
 
-mkQuotes :: String -> [(String,String)] -> (Quotes, [(String,String)])
-mkQuotes kcwikiId xs = undefined
+-- assume a common prefix then convert raw quotes into a structured one.
+-- all unrecognized pairs are outputed as well
+mkQuote :: String -> [RawQuote] -> (Quote, [(String,String)])
+mkQuote kcwikiId xs = (Q . M.fromList $ rs, ls)
+  where
+    (ls,rs) = partitionEithers $ map convertQuote xs
+    convertQuote :: RawQuote -> Either (String,String) (Int,String)
+    convertQuote q = case removePrefix (kcwikiId ++ "-") k of
+        Nothing -> Left (k,v)
+        Just k' -> case lookup k' kcwikiTable of
+            Nothing -> Left (k,v)
+            Just i -> Right (i,v)
+      where
+        k = rqArchiveName q
+        v = rqQuoteSCN q

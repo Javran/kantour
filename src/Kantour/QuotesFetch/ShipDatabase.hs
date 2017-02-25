@@ -5,7 +5,6 @@ import Language.Lua
 import Data.Monoid
 import Data.Coerce
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 
 import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.Types
@@ -39,6 +38,7 @@ luaLookup k (TableConst xs) = coerce (foldMap (coerce check) xs :: Alt Maybe Exp
     check (ExpField (String ek) ev)
         | ek == T.pack k = Just ev
     check _ = Nothing
+luaLookup _ _ = error "luaLookup: not a table"
 
 printKeys :: Exp -> IO ()
 printKeys (TableConst xs) = mapM_ ppr xs
@@ -47,8 +47,9 @@ printKeys (TableConst xs) = mapM_ ppr xs
         let v = luaLookup "\"ID\"" tbl
         putStrLn $ T.unpack e ++ " => " ++ show v
     ppr e = putStrLn $ "Unexpected structure: " ++ show e
+printKeys _ = error "printKeys: not a table"
 
-findMasterId :: String -> ShipDatabase -> Int
+findMasterId :: String -> ShipDatabase -> MasterId
 findMasterId cid (ShipDb xs) = read (T.unpack x)
   where
     Just shipInfo = luaLookup ("\"" ++ cid ++ "\"") (TableConst xs)
