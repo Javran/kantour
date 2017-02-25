@@ -10,8 +10,12 @@ module Kantour.QuotesFetch.Quotes
   , Quote, mkQuote
 
   , processPage
+  , renderAll
   ) where
 
+import Control.Arrow
+import Data.Tuple
+import Text.PrettyPrint
 import Data.List
 import qualified Data.IntMap.Strict as IM
 import Data.Either
@@ -20,6 +24,7 @@ import Data.Maybe
 import Control.Monad
 import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.ShipDatabase
+import Data.Function
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
@@ -132,12 +137,12 @@ processPage sdb (lName, (tRows, qSecs)) = do
                 let mstId = findMasterId lId sdb
                     mResult = mkQuote lId rqs
                 case mResult of
-                    Just (q,left) -> do
-                        unless (null left) $ do
+                    Just (q,lft) -> do
+                        unless (null lft) $ do
                             putStrLn $ "Warning: unconsumed quote input for link: "
                                 ++ lName ++ " section: " ++ secName
                             let ppr (k,v) = putStrLn $ "W: (" ++ k ++ ", " ++ v ++ ")"
-                            mapM_ ppr left
+                            mapM_ ppr lft
                         pure (Just (mstId, q))
                     Nothing -> do
                        putStrLn $ "Warning: Failed to process quotes for link: "
@@ -153,3 +158,20 @@ processPage sdb (lName, (tRows, qSecs)) = do
                pure (IM.insert k newV acc))
           (IM.lookup k acc)
     foldM merge IM.empty processed :: IO (IM.IntMap Quote)
+
+renderQuote :: [(String, Int)] -> Quote -> Doc
+renderQuote tbl (Q q) = vcat (map (\(k,v) -> text (k ++ ": " ++ v)) xs)
+  where
+    revTbl = IM.fromList (map swap tbl)
+    -- sorted for printing
+    xs :: [(String,String)]
+    xs = sortBy (compare `on` fst)
+       . (map . first) (fromJust . (`IM.lookup` revTbl))
+       . IM.toList
+       $ q
+
+renderAll :: [(String, Int)] -> IM.IntMap Quote -> Doc
+renderAll tbl qs = vcat (map rdr xs)
+  where
+    rdr (mstId, q) = text (show mstId) $$ nest 2 (renderQuote tbl q)
+    xs = IM.toAscList qs

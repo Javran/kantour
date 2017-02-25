@@ -12,5 +12,5 @@ defaultMain :: IO ()
 defaultMain = do
     sdb <- fetchDatabase
     rqs <- fetchRawQuotes
-    mapM_ (processPage sdb) rqs
-    pure ()
+    pages <- mapM (processPage sdb) rqs
+    mapM_ (\page -> print (renderAll kc3Table page)) pages
