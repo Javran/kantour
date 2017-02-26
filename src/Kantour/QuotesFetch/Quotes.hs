@@ -28,7 +28,15 @@ import Data.Function
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
 
-newtype Quote = Q (IM.IntMap String)
+newtype Quote = Q (IM.IntMap QuoteLine)
+
+data QuoteLine = QL
+  { _qlKey :: Int -- ^ situation key for this line, must be consistent with archive name
+  , _qlRaw :: [(String,String)] -- ^ raw parsed data
+  }
+
+qlQuoteSCN :: QuoteLine -> Maybe String
+qlQuoteSCN (QL _ r) = rqQuoteSCN r
 
 rqGetField :: String -> RawQuote -> Maybe String
 rqGetField k rq = lookup k rq
@@ -90,9 +98,7 @@ kcwikiTable =
 -- all unrecognized pairs are outputed as well
 mkQuote :: String -> [RawQuote] -> Maybe (Quote, [(String,String)])
 mkQuote kcwikiId xs = do
-
-    let -- (ls,rs) = partitionEithers $ map convertQuote xs
-        convertQuote :: RawQuote -> Maybe (Either (String,String) (Int,String))
+    let convertQuote :: RawQuote -> Maybe (Either (String,String) (Int,QuoteLine))
         convertQuote q = do
             k <- rqArchiveName q
             v <- rqQuoteSCN q
@@ -100,9 +106,9 @@ mkQuote kcwikiId xs = do
                 Nothing -> pure (Left (k,v))
                 Just k' -> case lookup k' kcwikiTable of
                     Nothing -> pure (Left (k,v))
-                    Just i -> pure (Right (i,v))
+                    Just i -> pure (Right (i,QL i q))
     results <- mapM convertQuote xs
-    let (ls,rs) = partitionEithers results
+    let (ls,rs :: [(Int, QuoteLine)]) = partitionEithers results
     pure (Q . IM.fromList $ rs, ls)
 
 mergeQuoteM :: Quote -> Quote -> IO Quote
@@ -164,9 +170,11 @@ renderQuote tbl (Q q) = vcat (map (\(k,v) -> text (k ++ ": " ++ v)) xs)
   where
     revTbl = IM.fromList (map swap tbl)
     -- sorted for printing
+    trKey = fromJust . (`IM.lookup` revTbl)
+    trQuote = fromMaybe "?" . qlQuoteSCN
     xs :: [(String,String)]
     xs = sortBy (compare `on` fst)
-       . (map . first) (fromJust . (`IM.lookup` revTbl))
+       . fmap (trKey *** trQuote)
        . IM.toList
        $ q
 
