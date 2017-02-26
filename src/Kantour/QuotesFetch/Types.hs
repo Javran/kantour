@@ -1,10 +1,5 @@
 module Kantour.QuotesFetch.Types where
 
-import Language.Lua
-
--- for type-level tagging
-newtype ShipDatabase = ShipDb [TableField]
-
 {-
 a raw quote is a bunch of key-value pairs
 -}

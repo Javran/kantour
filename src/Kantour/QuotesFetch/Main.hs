@@ -1,12 +1,10 @@
-{-# LANGUAGE
-    OverloadedStrings
-  , ScopedTypeVariables
-  #-}
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Quotes
+
+{-# ANN module "HLint: ignore Avoid lambda" #-}
 
 defaultMain :: IO ()
 defaultMain = do
