@@ -7,18 +7,11 @@ import Data.Maybe
 import Data.Coerce
 import qualified Data.Text as T
 
-import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.Types
 
 -- we can probably use "hslua" to properly interpret everything,
 -- but in order to do so we need way more complicated code than this,
 -- so for now let's better just live with it.
-
-fetchDatabase :: IO ShipDatabase
-fetchDatabase = do
-    content <- fetchWikiLink "模块:舰娘数据"
-    let (TableConst xs) = getRawDatabase (T.pack content)
-    pure (ShipDb xs)
 
 -- search the first assign that looks like "_.shipDataTb = dbRaw"
 -- and retrieve the expression on RHS
@@ -31,6 +24,11 @@ getRawDatabase raw = dbRaw
         isTarget (Assign [SelectName _ (Name n)] [tbl@TableConst {}])
             | n == "shipDataTb"= Just tbl
         isTarget _ = Nothing
+
+getDatabase :: String -> ShipDatabase
+getDatabase raw = ShipDb xs
+  where
+    (TableConst xs) = getRawDatabase (T.pack raw)
 
 -- lookup bindings in a lua table
 luaLookup :: String -> Exp -> Maybe Exp

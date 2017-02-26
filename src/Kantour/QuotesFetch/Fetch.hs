@@ -77,3 +77,7 @@ fetchRawQuotes = do
     putStrLn "Fetched nothing from following links:"
     putStrLn (intercalate ", " ls)
     pure rs
+
+fetchRawDatabase :: IO String
+fetchRawDatabase = fetchWikiLink "模块:舰娘数据"
+
