@@ -72,7 +72,6 @@ pFullScan = munch (/='=')
     *> ((pQuoteSection <* munch (const True))
         +++ (munch1 (=='=') *> pFullScan))
 
-
 pQuoteSection :: ReadP RawQSection
 pQuoteSection = (,) <$> pHeader3 <*> pQuoteList
 
@@ -115,7 +114,6 @@ removeBrs xs = case coerce (mconcat [ removePrefix "<br>" xs
     Nothing -> head xs : removeBrs (tail xs)
     Just ys -> removeBrs ys
 
-
 pQuoteStr :: ReadP RawQuote
 pQuoteStr =
     token (string "{{台词翻译表") >> token (string "|")
@@ -132,9 +130,17 @@ pQuoteStr =
         pure (key,val)
     normString = strip . collapseWs
 
+pFullScanSeasonal :: ReadP [RawQuote]
+pFullScanSeasonal =
+    munch (/='{')
+    *> ((pQuoteList <* munch (const True))
+        +++ (munch1 (== '{') *> pFullScanSeasonal))
+
 pQuoteList :: ReadP [ RawQuote ]
 pQuoteList =
-    token (string "{{台词翻译表/页头}}")
+    token (string "{{台词翻译表/页头" >>
+           optional (string "|type=seasonal")
+           >> string "}}")
     *> many pQuoteStr <* token (string "{{页尾}}")
 
 pTabber :: ReadP [TabberRow]
