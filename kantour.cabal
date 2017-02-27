@@ -27,6 +27,7 @@ library
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.ShipDatabase
                      , Kantour.QuotesFetch.Parser
+                     , Kantour.QuotesFetch.QParser
                      , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.Main
@@ -57,6 +58,7 @@ library
                      , http-types
                      , parallel-io
                      , pretty
+                     , megaparsec
   default-language:    Haskell2010
 
 executable dropcalc
