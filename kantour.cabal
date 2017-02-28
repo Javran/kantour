@@ -107,10 +107,14 @@ test-suite spec
   hs-source-dirs:      test
   ghc-options:         -Wall
   other-modules:       Kantour.UtilsSpec
+                       Kantour.QuotesFetch.QParserSpec
   build-depends:       base
                      , kantour
                      , hspec
+                     , hspec-megaparsec
+                     , megaparsec
                      , QuickCheck
+                     , heredoc
   default-language:    Haskell2010
 
 source-repository head

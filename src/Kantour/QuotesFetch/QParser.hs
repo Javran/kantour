@@ -4,7 +4,7 @@ import Data.List
 
 import Text.Megaparsec
 import Text.Megaparsec.String
-
+import Data.Char
 {-
 this module aims at providing a more sophisticated quote parsing solution
 than just simply using ReadP.
@@ -25,7 +25,7 @@ data Template
   | TplUnknown
   { tName :: String
   , tArgs :: [TemplateArg] }
-  deriving Eq
+  deriving (Eq, Show)
 
 type TemplateArg =
   ( Maybe String -- optional key
@@ -81,21 +81,38 @@ pTemplate =
       (string "{{")
       (string "}}")
       $ do
-          -- TODO: eliminate list overhead of using "noneOf"
-          tpName <- some (noneOf "|}")
+          -- PCCB: pipe, curly closing bracket
+          -- PCCBE: PCCB + equal
+          let notPCCB x = x /= '|' && x /= '}'
+              notPCCBE x = x /= '=' && notPCCB x
+              -- normalize key / value by cutting first and last whitespace
+              -- we only need to cut one space out because "pElemAsText" should
+              -- have collapsed consecutive whitespaces into one
+              normKV [] = []
+              normKV inp@(x:xs) =
+                  if isSpace (last ys)
+                    then init ys
+                    else ys
+                where
+                  ys = if isSpace x
+                         then xs
+                         else inp
+          tpName <- some (satisfy notPCCB)
           let pArg = do
                   raw1 <- concat <$>
                             some (pElemAsText
-                                  <|> pure <$> noneOf "=|}")
+                                  <|> pure <$> satisfy notPCCBE)
                   raw2 <- option
                             Nothing
                             (Just . concat <$> (char '=' >>
                                        some (pElemAsText
-                                             <|> pure <$> noneOf "|}")))
+                                             <|> pure <$> satisfy notPCCB)))
                   case raw2 of
-                      Nothing -> pure (Nothing, raw1)
-                      Just raw2' -> pure (Just raw1, raw2')
-          tpArgs <- pArg `sepBy` (char '|' >> space) :: Parser [TemplateArg]
+                      Nothing -> pure (Nothing, normKV raw1)
+                      Just raw2' -> pure (Just (normKV raw1), normKV raw2')
+          tpArgs <- option
+                      []
+                      $ char '|' >> pArg `sepBy` (char '|' >> space)
           pure $ case tpName of
               "台词翻译表/页头" -> TplQuoteListBegin tpArgs
               "台词翻译表" -> TplQuote tpArgs
@@ -105,7 +122,7 @@ pTemplate =
 
 tplAsText :: Template -> String
 -- {{lang|<language>|<content>}}
-tplAsText (TplLang [_,_,(Nothing,content)]) = content
+tplAsText (TplLang [_,(Nothing,content)]) = content
 tplAsText _ = ""
 
 {-
@@ -142,13 +159,17 @@ pElemAsText =
           >> manyTill anyChar (string "</ref>"))
     pLink :: Parser String
     pLink = do
-        endP <- (string "]]" <$ string "[[")
-                <|> (string "]" <$ string "]")
+        (endP,sepChar) <- ((string "]]",'|') <$ string "[[")
+                          <|> ((string "]",' ') <$ string "[")
         linkContent <- manyTill anyChar endP
-        let content1 = dropWhile (/= '|') linkContent
+        let content1 = dropWhile (/= sepChar) linkContent
         case content1 of
-            [] -> pure linkContent -- pipe not found, return full content
-            '|':content2 -> pure content2 -- cut first part and return the rest of it
+            [] ->
+                -- pipe not found, return full content
+                pure linkContent
+            sep:content2 | sep == sepChar ->
+                -- cut first part and return the rest of it
+                pure content2
             _ -> error "pText: pLink: unreachable"
     pTemplateAsText :: Parser String
     pTemplateAsText = tplAsText <$> pTemplate
