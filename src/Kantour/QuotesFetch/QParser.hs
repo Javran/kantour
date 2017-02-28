@@ -13,10 +13,19 @@ we are not exactly parsing the whole MediaWiki format, but parsing
 just a small subset of it that has enough quote-related info that we want.
 -}
 
-data Template = Template
+data Template
+  = TplQuote
+  { tArgs :: [TemplateArg] }
+  | TplQuoteListBegin
+  { tArgs :: [TemplateArg] }
+  | TplEnd
+  { tArgs :: [TemplateArg] }
+  | TplLang
+  { tArgs :: [TemplateArg] }
+  | TplUnknown
   { tName :: String
-  , tArgs :: [TemplateArg]
-  }
+  , tArgs :: [TemplateArg] }
+  deriving Eq
 
 type TemplateArg =
   ( Maybe String -- optional key
@@ -67,35 +76,50 @@ pHeader = do
     pure (Header (length eqSigns) content)
 
 pTemplate :: Parser Template
-pTemplate = do
-    _ <- string "{{"
-    tpName <- some (noneOf "|}")
-    let pArg = do
-            raw1 <- some (noneOf "=|}")
-            raw2 <- option
-                      Nothing
-                      (Just <$> (char '=' >> some (noneOf "|}")))
-            case raw2 of
-                Nothing -> pure (Nothing, raw1)
-                Just raw2' -> pure (Just raw1, raw2')
-    tpArgs <- pArg `sepBy` (char '|' >> space) :: Parser [TemplateArg]
-    _ <- string "}}"
-    pure (Template tpName tpArgs)
+pTemplate =
+    between
+      (string "{{")
+      (string "}}")
+      $ do
+          -- TODO: eliminate list overhead of using "noneOf"
+          tpName <- some (noneOf "|}")
+          let pArg = do
+                  raw1 <- concat <$>
+                            some (pElemAsText
+                                  <|> pure <$> noneOf "=|}")
+                  raw2 <- option
+                            Nothing
+                            (Just . concat <$> (char '=' >>
+                                       some (pElemAsText
+                                             <|> pure <$> noneOf "|}")))
+                  case raw2 of
+                      Nothing -> pure (Nothing, raw1)
+                      Just raw2' -> pure (Just raw1, raw2')
+          tpArgs <- pArg `sepBy` (char '|' >> space) :: Parser [TemplateArg]
+          pure $ case tpName of
+              "台词翻译表/页头" -> TplQuoteListBegin tpArgs
+              "台词翻译表" -> TplQuote tpArgs
+              "页尾" -> TplEnd tpArgs
+              "lang" -> TplLang tpArgs
+              _ -> TplUnknown tpName tpArgs
+
+tplAsText :: Template -> String
+-- {{lang|<language>|<content>}}
+tplAsText (TplLang [_,_,(Nothing,content)]) = content
+tplAsText _ = ""
 
 {-
 TODO: do we get a speed boost, if dlist, rather than [Char] is used?
 
-"pText cond" tries to consume as much input as possible, forcing the result to be text
-and stops when a requirement is met.
-
-this parser consumes at least one input upon success, and thus
-the first char in the input is *not* checked against "cond".
+parsing some special elements as text
 -}
-pText :: (Char -> Bool) -> Parser String
-pText stopCond = do
-    x <- pElem <|> (pure <$> anyChar)
-    xs <- many (pElem <|> (pure <$> satisfy (not . stopCond)))
-    pure (concat (x : xs))
+pElemAsText :: Parser String
+pElemAsText =
+    pSpaces
+    <|> pBr
+    <|> pRef
+    <|> pLink
+    <|> pTemplateAsText
   where
     -- consumes one or more whitespaces.
     -- returns a "\n" when the input begins with "\n\n"
@@ -126,8 +150,5 @@ pText stopCond = do
             [] -> pure linkContent -- pipe not found, return full content
             '|':content2 -> pure content2 -- cut first part and return the rest of it
             _ -> error "pText: pLink: unreachable"
-    -- TODO: for handling {{lang ...}} stuff.
     pTemplateAsText :: Parser String
-    pTemplateAsText = undefined
-
-    pElem = pSpaces <|> pBr <|> pRef <|> pLink <|> pTemplateAsText
+    pTemplateAsText = tplAsText <$> pTemplate
