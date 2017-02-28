@@ -5,6 +5,8 @@ import Data.List
 import Text.Megaparsec
 import Text.Megaparsec.String
 import Data.Char
+
+import Kantour.QuotesFetch.Types
 {-
 this module aims at providing a more sophisticated quote parsing solution
 than just simply using ReadP.
@@ -173,3 +175,22 @@ pElemAsText =
             _ -> error "pText: pLink: unreachable"
     pTemplateAsText :: Parser String
     pTemplateAsText = tplAsText <$> pTemplate
+
+pTabber :: Parser [TabberRow]
+pTabber = between
+    (string "<tabber>")
+    (string "</tabber>")
+    $ do
+        let item = do
+                tmName <- some (satisfy (/= '='))
+                _ <- char '=' <* space
+                tTpl <- pTemplate
+                case tTpl of
+                    TplUnknown "舰娘资料" pairs
+                        | Just nStr <- lookup "编号"
+                                       $ concatMap (\(mk,v) -> maybe [] (\k -> [(k,v)]) mk)
+                                         pairs
+                          -> pure (tmName, nStr)
+                    _ -> fail "pTabber: unexpected template"
+        space
+        (item <* space) `sepBy1` (string "|-|" <* space)

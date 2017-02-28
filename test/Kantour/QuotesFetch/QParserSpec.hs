@@ -72,3 +72,23 @@ spec = do
                    , (Just "日文台词", "て・い・と・く♪ はい！ 大鯨からのチョコレート、どうか受け取って下さい。あ、ありがとうございます♪")
                    , (Just "中文译文", "T·I·D·U♪来！请务必收下，这份大鲸的巧克力。谢，谢谢♪")
                    ]
+    describe "pTabber" $ do
+        let parse' = parse pTabber ""
+        specify "parsing normal tabber" $
+            parse' [str|<tabber>
+                       |大鲸={{舰娘资料|编号=184}}
+                       ||-|
+                       |龙凤={{舰娘资料|编号=185}}
+                       ||-|
+                       |龙凤改={{舰娘资料|编号=190}}
+                       |</tabber>
+                       |]
+            `shouldParse` [("大鲸","184"),("龙凤","185"),("龙凤改","190")]
+        specify "parsing tabber with extras" $
+            parse' [str|<tabber>
+                       |丸输={{舰娘资料|编号=163|运提供=1}}
+                       ||-|
+                       |丸输改={{舰娘资料|编号=163a|运提供=1|婚后耐久=11}}
+                       |</tabber>
+                       |]
+            `shouldParse` [("丸输","163"),("丸输改","163a")]
