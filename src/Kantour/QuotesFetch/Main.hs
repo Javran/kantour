@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
@@ -10,6 +11,7 @@ import Text.ParserCombinators.ReadP
 
 import qualified Kantour.QuotesFetch.QParser as QP
 import Text.Megaparsec
+import Data.Dynamic
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -33,5 +35,10 @@ defaultMain = do
         pprPair (k,v) = putStrLn $ k ++ ": " ++ v
     mapM_ pprRq results -}
     content <- fetchWikiLink "大鲸"
-    let result = parse QP.pScanAll "" content
-    print result
+    let Right result = parse QP.pScanAll "" content
+        ppr dyn
+            | Just (a :: QP.Template) <- fromDynamic dyn = print a
+            | Just (a :: [TabberRow]) <- fromDynamic dyn = print a
+            | Just (a :: QP.Header) <- fromDynamic dyn = print a
+            | otherwise = putStrLn $ "Unknown: " ++ show dyn
+    mapM_ ppr result

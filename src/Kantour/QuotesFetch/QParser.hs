@@ -104,7 +104,7 @@ pTemplate =
               -- have collapsed consecutive whitespaces into one
               normKV [] = []
               normKV inp@(x:xs) =
-                  if isSpace (last ys)
+                  if not (null ys) && isSpace (last ys)
                     then init ys
                     else ys
                 where
@@ -127,6 +127,7 @@ pTemplate =
           tpArgs <- option
                       []
                       $ char '|' >> pArg `sepBy` (char '|' >> space)
+          -- TODO: also normalize tpName!
           pure $ case tpName of
               "台词翻译表/页头" -> TplQuoteListBegin tpArgs
               "台词翻译表" -> TplQuote tpArgs
