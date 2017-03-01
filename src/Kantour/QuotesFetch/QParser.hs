@@ -79,7 +79,7 @@ tArgsToTable = concatMap (\(mk,v) -> maybeToList ((,v) <$> mk))
 data Header = Header
   { hdLevel :: Int
   , hdContent :: String
-  }
+  } deriving (Eq, Show)
 
 pHeader :: Parser Header
 pHeader = do

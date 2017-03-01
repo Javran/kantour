@@ -14,6 +14,16 @@ main = hspec spec
 
 spec :: Spec
 spec = do
+    describe "pHeader" $ do
+        let parse' = parse pHeader ""
+        specify "header lvl 1" $
+            parse' "=h1=" `shouldParse` Header 1 "h1"
+        specify "header lvl 2" $
+            parse' "==h2==" `shouldParse` Header 2 "h2"
+        specify "header lvl 3" $
+            parse' "===h3===" `shouldParse` Header 3 "h3"
+        specify "fail on empty input" $
+            parse' `shouldFailOn` ""
     describe "pElemAsText" $ do
         let parse' = parse pElemAsText ""
         specify "fail on empty input" $
