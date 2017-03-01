@@ -8,6 +8,9 @@ import Kantour.QuotesFetch.Parser
 import Kantour.QuotesFetch.Types
 import Text.ParserCombinators.ReadP
 
+import qualified Kantour.QuotesFetch.QParser as QP
+import Text.Megaparsec
+
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
 processRegularQuotes :: IO ()
@@ -19,6 +22,7 @@ processRegularQuotes = do
 
 defaultMain :: IO ()
 defaultMain = do
+    {-
     content <- fetchWikiLink "季节性/2017年情人节"
     let results :: [RawQuote]
         results =
@@ -27,4 +31,7 @@ defaultMain = do
             $ readP_to_S pFullScanSeasonal content
         pprRq xs = mapM_ pprPair xs >> putStrLn "===="
         pprPair (k,v) = putStrLn $ k ++ ": " ++ v
-    mapM_ pprRq results
+    mapM_ pprRq results -}
+    content <- fetchWikiLink "大鲸"
+    let result = parse QP.pScanAll "" content
+    print result

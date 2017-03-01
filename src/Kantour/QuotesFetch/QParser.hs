@@ -7,7 +7,8 @@ import Text.Megaparsec
 import Text.Megaparsec.String
 import Data.Char
 import Data.Maybe
-
+import Data.Dynamic
+import Data.Functor
 import Kantour.QuotesFetch.Types
 {-
 this module aims at providing a more sophisticated quote parsing solution
@@ -33,7 +34,7 @@ data Template
   | TplUnknown
   { tName :: String
   , tArgs :: [TemplateArg] }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Typeable)
 
 type TemplateArg =
   ( Maybe String -- optional key
@@ -205,3 +206,19 @@ pTabber = between
                     _ -> fail "pTabber: unexpected template"
         space
         (item <* space) `sepBy1` (string "|-|" <* space)
+
+-- scan and parse a document line-by-line
+-- and only retrieve things recognizable
+-- as we know headers and templates always begins
+-- without any padding, this should be a perfect method
+-- to reduce the amount of backtracking.
+pScanAll :: Parser [Dynamic]
+pScanAll = catMaybes <$> manyTill pScan eof
+  where
+    pScan :: Parser (Maybe Dynamic)
+    pScan =
+            (Just . toDyn <$> pHeader <* untilEol)
+        <|> (Just . toDyn <$> pTabber <* untilEol)
+        <|> (Just . toDyn <$> pTemplate <* untilEol)
+        <|> Nothing <$ untilEol
+    untilEol = manyTill anyChar (void eol <|> eof)
