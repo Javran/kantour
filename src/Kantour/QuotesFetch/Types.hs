@@ -30,3 +30,4 @@ type RawQSection = (SectionName, [RawQuote])
 type RawPage = ([TabberRow], [RawQSection])
 
 type MasterId = Int
+type LibraryId = String -- library id is used by kcwiki

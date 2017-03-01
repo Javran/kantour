@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Kantour.QuotesFetch.QParser where
 
 import Data.List
@@ -5,6 +6,7 @@ import Data.List
 import Text.Megaparsec
 import Text.Megaparsec.String
 import Data.Char
+import Data.Maybe
 
 import Kantour.QuotesFetch.Types
 {-
@@ -15,6 +17,8 @@ we are not exactly parsing the whole MediaWiki format, but parsing
 just a small subset of it that has enough quote-related info that we want.
 -}
 
+-- TODO: Template as a separated module
+
 data Template
   = TplQuote
   { tArgs :: [TemplateArg] }
@@ -23,6 +27,8 @@ data Template
   | TplEnd
   { tArgs :: [TemplateArg] }
   | TplLang
+  { tArgs :: [TemplateArg] }
+  | TplShipInfo
   { tArgs :: [TemplateArg] }
   | TplUnknown
   { tName :: String
@@ -64,6 +70,11 @@ some component might appear in key-value part of a template:
 - "{{lang ...}}
 
 -}
+
+-- ignore "Nothing" and convert rest of a template
+-- arg pairs into a table for further looking up
+tArgsToTable :: [TemplateArg] -> [(String,String)]
+tArgsToTable = concatMap (\(mk,v) -> maybeToList ((,v) <$> mk))
 
 data Header = Header
   { hdLevel :: Int
@@ -120,6 +131,7 @@ pTemplate =
               "台词翻译表" -> TplQuote tpArgs
               "页尾" -> TplEnd tpArgs
               "lang" -> TplLang tpArgs
+              "舰娘资料" -> TplShipInfo tpArgs
               _ -> TplUnknown tpName tpArgs
 
 tplAsText :: Template -> String
@@ -186,10 +198,9 @@ pTabber = between
                 _ <- char '=' <* space
                 tTpl <- pTemplate
                 case tTpl of
-                    TplUnknown "舰娘资料" pairs
-                        | Just nStr <- lookup "编号"
-                                       $ concatMap (\(mk,v) -> maybe [] (\k -> [(k,v)]) mk)
-                                         pairs
+                    TplShipInfo pairs
+                        | tbl <- tArgsToTable pairs
+                        , Just nStr <- lookup "编号" tbl
                           -> pure (tmName, nStr)
                     _ -> fail "pTabber: unexpected template"
         space
