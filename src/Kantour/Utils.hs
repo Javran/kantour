@@ -3,6 +3,7 @@ module Kantour.Utils where
 import Data.Foldable
 import Control.Monad
 import Data.List
+import Data.Char
 
 -- well, I don't think removing some extra parameters would make anyone look smarter.
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -31,3 +32,25 @@ removePrefix :: String -> String -> Maybe String
 removePrefix xs ys = do
     guard $ xs `isPrefixOf` ys
     pure (drop (length xs) ys)
+
+stripL :: String -> String
+stripL = dropWhile isSpace
+
+stripR :: String -> String
+stripR xs = case remained of
+    [] -> part1
+    _ -> part1 ++ part2 ++ stripR remained
+ where
+   -- INVARIANT:
+   -- xs == part1 ++ part2 ++ remained
+   -- part1 are all non-spaces
+   -- part2 are all spaces
+   -- remained begins with non-space
+   (part1, sp) = break isSpace xs
+   (part2, remained) = span isSpace sp
+
+strip :: String -> String
+strip =
+    -- stripL first so we can leave
+    -- the longest non-space leading chunk to stripR
+    stripR . stripL
