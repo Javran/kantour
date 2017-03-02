@@ -141,7 +141,7 @@ pElemAsText =
     pTemplateAsText :: Parser String
     pTemplateAsText = templateAsText <$> pTemplate
 
-pTabber :: Parser [TabberRow]
+pTabber :: Parser TabberRows
 pTabber = between
     (string "<tabber>")
     (string "</tabber>")
@@ -154,11 +154,11 @@ pTabber = between
                     Just nStr -> pure (tmName, nStr)
                     _ -> fail "pTabber: unexpected template"
         space
-        (item <* space) `sepBy1` (string "|-|" <* space)
+        TR <$> (item <* space) `sepBy1` (string "|-|" <* space)
 
 data Parsed
   = PHeader Header
-  | PTabber [TabberRow]
+  | PTabber TabberRows
   | PTemplate Template
 
 -- scan and parse a document line-by-line

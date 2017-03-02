@@ -1,5 +1,8 @@
 module Kantour.QuotesFetch.Types where
 
+import Text.PrettyPrint.HughesPJClass
+import Data.Coerce
+
 {-
 a raw quote is a bunch of key-value pairs
 -}
@@ -26,8 +29,17 @@ represented as a list of TabberRows:
 
 -}
 type TabberRow = (String, String)
+newtype TabberRows = TR [TabberRow] deriving (Eq, Show)
 type RawQSection = (SectionName, [RawQuote])
 type RawPage = ([TabberRow], [RawQSection])
 
 type MasterId = Int
 type LibraryId = String -- library id is used by kcwiki
+
+pprTabberRows :: [TabberRow] -> Doc
+pprTabberRows rows =
+    hang (text "Tabber") 2 $
+      vcat (map (\(k,v) -> text k <+> text "==>" <+> text v) rows)
+
+instance Pretty TabberRows where
+    pPrint = coerce pprTabberRows

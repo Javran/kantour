@@ -5,6 +5,7 @@ import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
 import Kantour.QuotesFetch.QParser
+import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Kcwiki
 import Text.Heredoc
 
@@ -95,7 +96,7 @@ spec = do
                        |龙凤改={{舰娘资料|编号=190}}
                        |</tabber>
                        |]
-            `shouldParse` [("大鲸","184"),("龙凤","185"),("龙凤改","190")]
+            `shouldParse` TR [("大鲸","184"),("龙凤","185"),("龙凤改","190")]
         specify "parsing tabber with extras" $
             parse' [str|<tabber>
                        |丸输={{舰娘资料|编号=163|运提供=1}}
@@ -103,4 +104,4 @@ spec = do
                        |丸输改={{舰娘资料|编号=163a|运提供=1|婚后耐久=11}}
                        |</tabber>
                        |]
-            `shouldParse` [("丸输","163"),("丸输改","163a")]
+            `shouldParse` TR [("丸输","163"),("丸输改","163a")]

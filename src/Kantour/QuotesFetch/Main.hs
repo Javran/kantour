@@ -5,8 +5,6 @@ import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Quotes
 
-import Kantour.QuotesFetch.Types
-import Kantour.QuotesFetch.Kcwiki
 import Text.PrettyPrint.HughesPJClass
 
 import qualified Kantour.QuotesFetch.QParser as QP
@@ -21,9 +19,6 @@ processRegularQuotes = do
     pages <- mapM (processPage sdb) rqs
     mapM_ (\page -> print (renderAll sdb kc3Table page)) pages
 
-instance Pretty Doc where
-    pPrint = id
-
 defaultMain :: IO ()
 defaultMain = do
     -- content <- fetchWikiLink "季节性/2017年情人节"
@@ -31,6 +26,6 @@ defaultMain = do
     let Right result = parse QP.pScanAll "" content
         ppr x = case x of
             QP.PHeader h -> putStrLn (prettyShow h)
-            QP.PTabber tb -> putStrLn (prettyShow (pprTabberRows tb))
+            QP.PTabber tb -> putStrLn (prettyShow tb)
             QP.PTemplate t -> putStrLn (prettyShow t)
     mapM_ ppr result

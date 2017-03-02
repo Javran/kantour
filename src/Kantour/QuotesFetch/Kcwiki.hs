@@ -27,7 +27,6 @@ import Data.Maybe
 import Data.Typeable
 import Control.Monad
 import Text.PrettyPrint.HughesPJClass
-import Text.PrettyPrint
 
 {-|
   Kcwiki template.
@@ -140,11 +139,6 @@ instance Pretty Header where
           vcat [ text "level:" <+> int (hdLevel h)
                , text "content:" <+> text (hdContent h)
                ]
-
-pprTabberRows :: [TabberRow] -> Doc
-pprTabberRows rows =
-    hang (text "Tabber") 2 $
-      vcat (map (\(k,v) -> text k <+> text "==>" <+> text v) rows)
 
 instance Pretty Template where
     pPrint t = case t of
