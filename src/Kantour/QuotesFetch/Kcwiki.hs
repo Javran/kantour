@@ -36,25 +36,25 @@ import Text.PrettyPrint
 -}
 data Template
   = TplQuote
-    -- ^ <https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8>
+    -- https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8
     { tQuoteLine :: QuoteLine }
   | TplQuoteListBegin
-    -- ^ <https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8/%E9%A1%B5%E5%A4%B4>
+    -- https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8/%E9%A1%B5%E5%A4%B4
     { tIsSeasonal :: Bool
     }
   | TplEnd
-    -- ^ <https://zh.kcwiki.moe/wiki/Template:%E9%A1%B5%E5%B0%BE>
+    -- https://zh.kcwiki.moe/wiki/Template:%E9%A1%B5%E5%B0%BE
   | TplLang
-    -- ^ <https://zh.kcwiki.moe/wiki/Template:Lang>
+    -- https://zh.kcwiki.moe/wiki/Template:Lang
     { tLang :: Maybe String
     , tContent :: Maybe String
     }
   | TplShipInfo
-    -- ^ <https://zh.kcwiki.moe/wiki/Template:%E8%88%B0%E5%A8%98%E8%B5%84%E6%96%99>
+    -- https://zh.kcwiki.moe/wiki/Template:%E8%88%B0%E5%A8%98%E8%B5%84%E6%96%99
     { tLibId :: Maybe LibraryId
     }
   | TplUnknown
-    -- ^ general representation of not yet recognized templates
+    -- general representation of not yet recognized templates
     { tName :: String
     , tArgs :: [TemplateArg]
     }
