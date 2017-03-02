@@ -6,7 +6,7 @@ import Data.List
 import Data.Char
 import Kantour.QuotesFetch.Types
 import Data.Coerce
-import Kantour.Utils hiding (strip)
+import Kantour.Utils
 {-# ANN module "HLint: ignore Use fromMaybe" #-}
 
 -- quick and dirty parser that just work
@@ -89,11 +89,6 @@ collapseWs xs = case xs of
     (y:ys) -> if isSpace y
                 then ' ':collapseWs (dropWhile isSpace ys)
                 else y:collapseWs ys
-
-strip, lstrip, rstrip :: String -> String
-lstrip = dropWhile isSpace
-rstrip = reverse . lstrip . reverse
-strip = rstrip . lstrip
 
 removeRefs :: String -> String
 removeRefs [] = []

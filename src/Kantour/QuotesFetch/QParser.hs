@@ -5,12 +5,13 @@ import Data.List
 
 import Text.Megaparsec
 import Text.Megaparsec.String
-import Data.Char
 import Data.Maybe
 import Data.Dynamic
 import Data.Functor
 import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Template
+
+import Kantour.Utils
 
 {-
 this module aims at providing a more sophisticated quote parsing solution
@@ -81,16 +82,7 @@ pTemplate =
               -- normalize key / value by cutting first and last whitespace
               -- we only need to cut one space out because "pElemAsText" should
               -- have collapsed consecutive whitespaces into one
-              normKV [] = []
-              normKV inp@(x:xs) =
-                  if not (null ys) && isSpace (last ys)
-                    then init ys
-                    else ys
-                where
-                  ys = if isSpace x
-                         then xs
-                         else inp
-          tpName <- some (satisfy notPCCB)
+          tpName <- strip <$> some (satisfy notPCCB)
           let pArg = do
                   raw1 <- concat <$>
                             some (pElemAsText
@@ -101,12 +93,11 @@ pTemplate =
                                        some (pElemAsText
                                              <|> pure <$> satisfy notPCCB)))
                   case raw2 of
-                      Nothing -> pure (Nothing, normKV raw1)
-                      Just raw2' -> pure (Just (normKV raw1), normKV raw2')
+                      Nothing -> pure (Nothing, strip raw1)
+                      Just raw2' -> pure (Just (strip raw1), strip raw2')
           tpArgs <- option
                       []
                       $ char '|' >> pArg `sepBy` (char '|' >> space)
-          -- TODO: also normalize tpName!
           pure $ fromRawTemplate tpName tpArgs
 
 {-
