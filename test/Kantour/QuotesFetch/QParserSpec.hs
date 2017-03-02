@@ -5,7 +5,7 @@ import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
 import Kantour.QuotesFetch.QParser
-import Kantour.QuotesFetch.Template
+import Kantour.QuotesFetch.Kcwiki
 import Text.Heredoc
 
 {-# ANN module "HLint: ignore Redundant do" #-}

@@ -9,7 +9,7 @@ import Data.Maybe
 import Data.Dynamic
 import Data.Functor
 import Kantour.QuotesFetch.Types
-import Kantour.QuotesFetch.Template
+import Kantour.QuotesFetch.Kcwiki
 
 import Kantour.Utils
 
@@ -56,11 +56,6 @@ some component might appear in key-value part of a template:
 -- arg pairs into a table for further looking up
 tArgsToTable :: [TemplateArg] -> [(String,String)]
 tArgsToTable = concatMap (\(mk,v) -> maybeToList ((,v) <$> mk))
-
-data Header = Header
-  { hdLevel :: Int
-  , hdContent :: String
-  } deriving (Eq, Show)
 
 pHeader :: Parser Header
 pHeader = do

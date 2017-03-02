@@ -1,19 +1,21 @@
 {-|
-Module: Kantour.QuotesFetch.Template
-Description: Kcwiki templates
+Module: Kantour.QuotesFetch.Kcwiki
+Description: Kcwiki- or MediaWiki-related structures
 
-Templates supported by Kcwiki.
-Note that the representation we use is by no means complete
-but is extended sufficient to serve the purpose.
+Kcwiki- or MediaWiki-related structures
+Note that all representations in this module are by no means complete
+but are extended sufficiently to serve the purpose.
 |-}
 {-# LANGUAGE TupleSections #-}
-module Kantour.QuotesFetch.Template
+module Kantour.QuotesFetch.Kcwiki
   ( Template(..)
 
   , TemplateArg
   , fromRawTemplate
 
   , templateAsText
+
+  , Header(..)
   ) where
 
 import Kantour.QuotesFetch.Types
@@ -55,6 +57,11 @@ type TemplateArg =
   ( Maybe String -- optional key
   , String -- value
   )
+
+data Header = Header
+  { hdLevel :: Int
+  , hdContent :: String
+  } deriving (Eq, Show)
 
 {-|
   ignore 'Nothing's and convert rest of a template

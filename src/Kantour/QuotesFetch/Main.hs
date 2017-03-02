@@ -6,7 +6,7 @@ import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Quotes
 
 import Kantour.QuotesFetch.Types
-import Kantour.QuotesFetch.Template
+import Kantour.QuotesFetch.Kcwiki
 
 import qualified Kantour.QuotesFetch.QParser as QP
 import Text.Megaparsec
@@ -38,6 +38,6 @@ defaultMain = do
         ppr dyn
             | Just (a :: Template) <- fromDynamic dyn = print a
             | Just (a :: [TabberRow]) <- fromDynamic dyn = print a
-            | Just (a :: QP.Header) <- fromDynamic dyn = print a
+            | Just (a :: Header) <- fromDynamic dyn = print a
             | otherwise = putStrLn $ "Unknown: " ++ show dyn
     mapM_ ppr result
