@@ -6,7 +6,7 @@ import Data.List
 import Data.Char
 import Kantour.QuotesFetch.Types
 import Data.Coerce
-import Kantour.Utils
+import Kantour.Utils hiding (strip)
 {-# ANN module "HLint: ignore Use fromMaybe" #-}
 
 -- quick and dirty parser that just work

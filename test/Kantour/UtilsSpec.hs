@@ -2,6 +2,9 @@ module Kantour.UtilsSpec where
 
 import Test.Hspec
 import Kantour.Utils
+import Test.Hspec.QuickCheck
+import Test.QuickCheck
+import Control.Monad
 
 {-# ANN module "HLint: ignore Redundant do" #-}
 
@@ -27,3 +30,18 @@ spec = do
                 toggle (Just _) = Nothing
             alterAL toggle 6 ex1 `shouldBe` [(1,10),(6,1)]
             alterAL toggle 3 ex2 `shouldBe` [(2,20),(1,10)]
+    describe "stripR" $ do
+        let stripR' = reverse . stripL . reverse
+        prop "general correctness" $
+            \xs -> stripR xs === stripR' xs
+        prop "dense whitespace" $ do
+            let charGen = elements (['a'..'z'] ++ ['A'..'Z'])
+                spaceGen = elements " \t\v\n\f\r"
+                cGen = do
+                  which <- choose (0,9)
+                  if which < (3 :: Int)
+                    then charGen -- 30% chance of generating a-z A-Z
+                    else spaceGen -- 70% chance of generating whitespaces
+            l <- choose (0,20)
+            xs <- replicateM l cGen
+            pure $ counterexample xs (stripR xs === stripR' xs)
