@@ -75,14 +75,15 @@ spec = do
                     |}}
                     |]
                `shouldParse` TplQuote
-                   [ (Just "type","seasonal")
-                   , (Just "档名","184-Sec1Valentine2017")
-                   , (Just "编号", "184")
-                   , (Just "舰娘名字","大鲸")
-                     -- spaces are normalized so the text does look a bit different, but that shouldn't matter
-                   , (Just "日文台词", "て・い・と・く♪ はい！ 大鯨からのチョコレート、どうか受け取って下さい。あ、ありがとうございます♪")
-                   , (Just "中文译文", "T·I·D·U♪来！请务必收下，这份大鲸的巧克力。谢，谢谢♪")
-                   ]
+                   QL
+                     { qlIsSeasonal = True
+                     , qlArchiveName = "184-Sec1Valentine2017"
+                     , qlSituation = Nothing
+                     , qlShipId = Just "184"
+                     , qlShipName = Just "大鲸"
+                     , qlTextJP = Just "て・い・と・く♪ はい！ 大鯨からのチョコレート、どうか受け取って下さい。あ、ありがとうございます♪"
+                     , qlTextSCN = Just "T·I·D·U♪来！请务必收下，这份大鲸的巧克力。谢，谢谢♪"
+                     }
     describe "pTabber" $ do
         let parse' = parse pTabber ""
         specify "parsing normal tabber" $

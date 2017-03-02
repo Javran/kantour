@@ -7,10 +7,10 @@ import Kantour.QuotesFetch.Quotes
 
 import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Kcwiki
+import Text.PrettyPrint.HughesPJClass
 
 import qualified Kantour.QuotesFetch.QParser as QP
 import Text.Megaparsec
-import Data.Dynamic
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -21,23 +21,16 @@ processRegularQuotes = do
     pages <- mapM (processPage sdb) rqs
     mapM_ (\page -> print (renderAll sdb kc3Table page)) pages
 
+instance Pretty Doc where
+    pPrint = id
+
 defaultMain :: IO ()
 defaultMain = do
-    {-
-    content <- fetchWikiLink "季节性/2017年情人节"
-    let results :: [RawQuote]
-        results =
-              concatMap fst
-            . filter (null . snd)
-            $ readP_to_S pFullScanSeasonal content
-        pprRq xs = mapM_ pprPair xs >> putStrLn "===="
-        pprPair (k,v) = putStrLn $ k ++ ": " ++ v
-    mapM_ pprRq results -}
+    -- content <- fetchWikiLink "季节性/2017年情人节"
     content <- fetchWikiLink "大鲸"
     let Right result = parse QP.pScanAll "" content
-        ppr dyn
-            | Just (a :: Template) <- fromDynamic dyn = print a
-            | Just (a :: [TabberRow]) <- fromDynamic dyn = print a
-            | Just (a :: Header) <- fromDynamic dyn = print a
-            | otherwise = putStrLn $ "Unknown: " ++ show dyn
+        ppr x = case x of
+            QP.PHeader h -> putStrLn (prettyShow h)
+            QP.PTabber tb -> putStrLn (prettyShow (pprTabberRows tb))
+            QP.PTemplate t -> putStrLn (prettyShow t)
     mapM_ ppr result

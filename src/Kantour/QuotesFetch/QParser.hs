@@ -6,7 +6,6 @@ import Data.List
 import Text.Megaparsec
 import Text.Megaparsec.String
 import Data.Maybe
-import Data.Dynamic
 import Data.Functor
 import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Kcwiki
@@ -22,8 +21,6 @@ just a small subset of it that has enough quote-related info that we want.
 -}
 
 {-
-
-TODO:
 
 things we might be interested in parsing:
 
@@ -159,18 +156,23 @@ pTabber = between
         space
         (item <* space) `sepBy1` (string "|-|" <* space)
 
+data Parsed
+  = PHeader Header
+  | PTabber [TabberRow]
+  | PTemplate Template
+
 -- scan and parse a document line-by-line
 -- and only retrieve things recognizable
 -- as we know headers and templates always begins
 -- without any padding, this should be a perfect method
 -- to reduce the amount of backtracking.
-pScanAll :: Parser [Dynamic]
+pScanAll :: Parser [Parsed]
 pScanAll = catMaybes <$> manyTill pScan eof
   where
-    pScan :: Parser (Maybe Dynamic)
+    pScan :: Parser (Maybe Parsed)
     pScan =
-            (Just . toDyn <$> pHeader <* untilEol)
-        <|> (Just . toDyn <$> pTabber <* untilEol)
-        <|> (Just . toDyn <$> pTemplate <* untilEol)
+            (Just . PHeader <$> pHeader <* untilEol)
+        <|> (Just . PTabber <$> pTabber <* untilEol)
+        <|> (Just . PTemplate <$> pTemplate <* untilEol)
         <|> Nothing <$ untilEol
     untilEol = manyTill anyChar (void eol <|> eof)

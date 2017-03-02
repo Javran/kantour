@@ -16,12 +16,18 @@ module Kantour.QuotesFetch.Kcwiki
   , templateAsText
 
   , Header(..)
+
+  , QuoteLine(..)
+
+  , pprTabberRows
   ) where
 
 import Kantour.QuotesFetch.Types
 import Data.Maybe
 import Data.Typeable
 import Control.Monad
+import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint
 
 {-|
   Kcwiki template.
@@ -30,7 +36,8 @@ import Control.Monad
 -}
 data Template
   = TplQuote
-    { tArgs :: [TemplateArg] }
+    -- ^ <https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8>
+    { tQuoteLine :: QuoteLine }
   | TplQuoteListBegin
     -- ^ <https://zh.kcwiki.moe/wiki/Template:%E5%8F%B0%E8%AF%8D%E7%BF%BB%E8%AF%91%E8%A1%A8/%E9%A1%B5%E5%A4%B4>
     { tIsSeasonal :: Bool
@@ -63,6 +70,17 @@ data Header = Header
   , hdContent :: String
   } deriving (Eq, Show)
 
+data QuoteLine = QL
+  { qlArchiveName :: String
+  , qlSituation :: Maybe String
+  , qlTextJP :: Maybe String
+  , qlTextSCN :: Maybe String
+  , qlIsSeasonal :: Bool
+    -- followings are for seasonal only
+  , qlShipName :: Maybe String
+  , qlShipId :: Maybe LibraryId
+  } deriving (Eq, Show)
+
 {-|
   ignore 'Nothing's and convert rest of a template
   argument pairs into a table for further looking up
@@ -77,7 +95,7 @@ fromRawTemplate :: String -> [TemplateArg] -> Template
 fromRawTemplate tpName tpArgs = case tpName of
     "台词翻译表/页头" ->
         TplQuoteListBegin (lkup "type" == Just "seasonal")
-    "台词翻译表" -> TplQuote tpArgs
+    "台词翻译表" -> TplQuote (fromRawQuoteLine tArgTbl)
     "页尾" -> TplEnd
     "lang" -> TplLang (safeInd 0) (safeInd 1)
     "舰娘资料" -> TplShipInfo (lkup "编号")
@@ -99,3 +117,67 @@ fromRawTemplate tpName tpArgs = case tpName of
 templateAsText :: Template -> String
 templateAsText (TplLang _ (Just content)) = content
 templateAsText _ = ""
+
+fromRawQuoteLine :: [(String, String)] -> QuoteLine
+fromRawQuoteLine xs = QL
+    { qlArchiveName =
+          fromMaybe
+            (error "fromRawQuoteLine: missing archive name")
+            (lkup "档名")
+    , qlSituation = lkup "场合"
+    , qlTextJP = lkup "日文台词"
+    , qlTextSCN = lkup "中文译文"
+    , qlIsSeasonal = lkup "type" == Just "seasonal"
+    , qlShipName = lkup "舰娘名字"
+    , qlShipId = lkup "编号"
+    }
+  where
+    lkup k = lookup k xs
+
+instance Pretty Header where
+    pPrint h =
+        hang (text "Header") 2 $
+          vcat [ text "level:" <+> int (hdLevel h)
+               , text "content:" <+> text (hdContent h)
+               ]
+
+pprTabberRows :: [TabberRow] -> Doc
+pprTabberRows rows =
+    hang (text "Tabber") 2 $
+      vcat (map (\(k,v) -> text k <+> text "==>" <+> text v) rows)
+
+instance Pretty Template where
+    pPrint t = case t of
+        TplQuote ql -> pPrint ql
+        TplQuoteListBegin s ->
+            text "ListBegin"
+            <> if s then text " (Seasonal)" else empty
+        TplEnd -> text "ListEnd"
+        TplLang _ content ->
+            hang (text "Lang") 2
+            $ maybe empty text content
+        TplShipInfo m ->
+            hang (text "ShipInfo") 2
+            $ maybe empty (\x -> text "Id:" <+> text x) m
+        TplUnknown n ps ->
+            let ps' = zip ps [0..]
+                pprTA ((mK,v),ind) = case mK of
+                    Just k -> text k <> text ": " <> text v
+                    Nothing -> text "Ind" <+> int ind <> text ": " <> text v
+            in hang (text "GTemplate" <+> text n) 2
+               $ vcat (map pprTA ps')
+instance Pretty QuoteLine where
+    pPrint t =
+        hang (text "QuoteLine" <+> desc) 2 $
+          vcat (mapMaybe ((\(k,v) -> (text k <> text ": " <> text v)) <$>) ms)
+      where
+        desc = text "Arch: " <> text (qlArchiveName t)
+            <> (if qlIsSeasonal t
+                  then text " (Seasonal)"
+                  else empty)
+        ms = [ ("Situation",) <$> qlSituation t
+             , ("JP",) <$> qlTextJP t
+             , ("SCN",) <$> qlTextSCN t
+             , ("SName",) <$> qlShipName t
+             , ("SLibId",) <$> qlShipId t
+             ]
