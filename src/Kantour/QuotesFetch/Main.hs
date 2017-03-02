@@ -5,9 +5,8 @@ import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Quotes
 
-import Kantour.QuotesFetch.Parser
 import Kantour.QuotesFetch.Types
-import Text.ParserCombinators.ReadP
+import Kantour.QuotesFetch.Template
 
 import qualified Kantour.QuotesFetch.QParser as QP
 import Text.Megaparsec
@@ -37,7 +36,7 @@ defaultMain = do
     content <- fetchWikiLink "大鲸"
     let Right result = parse QP.pScanAll "" content
         ppr dyn
-            | Just (a :: QP.Template) <- fromDynamic dyn = print a
+            | Just (a :: Template) <- fromDynamic dyn = print a
             | Just (a :: [TabberRow]) <- fromDynamic dyn = print a
             | Just (a :: QP.Header) <- fromDynamic dyn = print a
             | otherwise = putStrLn $ "Unknown: " ++ show dyn

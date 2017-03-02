@@ -5,6 +5,7 @@ import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
 import Kantour.QuotesFetch.QParser
+import Kantour.QuotesFetch.Template
 import Text.Heredoc
 
 {-# ANN module "HLint: ignore Redundant do" #-}
@@ -54,15 +55,15 @@ spec = do
         let parse' = parse pTemplate ""
         specify "parsing quote list begin" $ do
             parse' "{{台词翻译表/页头}}"
-                `shouldParse` TplQuoteListBegin []
+                `shouldParse` TplQuoteListBegin False
             parse' "{{台词翻译表/页头|type=seasonal}}"
-                `shouldParse` TplQuoteListBegin [(Just "type", "seasonal")]
+                `shouldParse` TplQuoteListBegin True
         specify "parsing list end" $
             parse' "{{页尾}}"
-                `shouldParse` TplEnd []
+                `shouldParse` TplEnd
         specify "parsing lang" $
             parse' "{{lang|foo|bar}}"
-                `shouldParse` TplLang [(Nothing,"foo"),(Nothing,"bar")]
+                `shouldParse` TplLang (Just "foo") (Just "bar")
         specify "parsing quotes" $ do
             parse'
                 [str|{{台词翻译表|type=seasonal

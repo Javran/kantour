@@ -2,20 +2,18 @@
 Module: Kantour.QuotesFetch.Template
 Description: Kcwiki templates
 
-Templates supported by kcwiki.
+Templates supported by Kcwiki.
 Note that the representation we use is by no means complete
 but is extended sufficient to serve the purpose.
 |-}
 {-# LANGUAGE TupleSections #-}
 module Kantour.QuotesFetch.Template
-  ( Template
-  , tIsSeasonal
-  , tLang, tContent
-  , tLibId
-  , tName, tArgs
+  ( Template(..)
 
   , TemplateArg
   , fromRawTemplate
+
+  , templateAsText
   ) where
 
 import Kantour.QuotesFetch.Types
@@ -23,6 +21,11 @@ import Data.Maybe
 import Data.Typeable
 import Control.Monad
 
+{-|
+  Kcwiki template.
+
+  __INVARIANT__: 'TplUnknown' should only be used when other constructors does not fit.
+-}
 data Template
   = TplQuote
     { tArgs :: [TemplateArg] }
@@ -60,6 +63,9 @@ type TemplateArg =
 tArgsToTable :: [TemplateArg] -> [(String,String)]
 tArgsToTable = concatMap (\(mk,v) -> maybeToList ((,v) <$> mk))
 
+{-|
+  smart 'Template' constructor.
+-}
 fromRawTemplate :: String -> [TemplateArg] -> Template
 fromRawTemplate tpName tpArgs = case tpName of
     "台词翻译表/页头" ->
@@ -78,3 +84,11 @@ fromRawTemplate tpName tpArgs = case tpName of
     safeInd i = do
         guard (i < l)
         pure (snd (tpArgs !! i))
+
+{-|
+  render template as text, only @lang@ template produces
+  non-empty result.
+-}
+templateAsText :: Template -> String
+templateAsText (TplLang _ (Just content)) = content
+templateAsText _ = ""

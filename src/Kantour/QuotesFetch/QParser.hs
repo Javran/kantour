@@ -10,6 +10,8 @@ import Data.Maybe
 import Data.Dynamic
 import Data.Functor
 import Kantour.QuotesFetch.Types
+import Kantour.QuotesFetch.Template
+
 {-
 this module aims at providing a more sophisticated quote parsing solution
 than just simply using ReadP.
@@ -17,29 +19,6 @@ than just simply using ReadP.
 we are not exactly parsing the whole MediaWiki format, but parsing
 just a small subset of it that has enough quote-related info that we want.
 -}
-
--- TODO: Template as a separated module
-
-data Template
-  = TplQuote
-  { tArgs :: [TemplateArg] }
-  | TplQuoteListBegin
-  { tArgs :: [TemplateArg] }
-  | TplEnd
-  { tArgs :: [TemplateArg] }
-  | TplLang
-  { tArgs :: [TemplateArg] }
-  | TplShipInfo
-  { tArgs :: [TemplateArg] }
-  | TplUnknown
-  { tName :: String
-  , tArgs :: [TemplateArg] }
-  deriving (Eq, Show, Typeable)
-
-type TemplateArg =
-  ( Maybe String -- optional key
-  , String -- value
-  )
 
 {-
 
@@ -128,18 +107,7 @@ pTemplate =
                       []
                       $ char '|' >> pArg `sepBy` (char '|' >> space)
           -- TODO: also normalize tpName!
-          pure $ case tpName of
-              "台词翻译表/页头" -> TplQuoteListBegin tpArgs
-              "台词翻译表" -> TplQuote tpArgs
-              "页尾" -> TplEnd tpArgs
-              "lang" -> TplLang tpArgs
-              "舰娘资料" -> TplShipInfo tpArgs
-              _ -> TplUnknown tpName tpArgs
-
-tplAsText :: Template -> String
--- {{lang|<language>|<content>}}
-tplAsText (TplLang [_,(Nothing,content)]) = content
-tplAsText _ = ""
+          pure $ fromRawTemplate tpName tpArgs
 
 {-
 TODO: do we get a speed boost, if dlist, rather than [Char] is used?
@@ -188,7 +156,7 @@ pElemAsText =
                 pure content2
             _ -> error "pText: pLink: unreachable"
     pTemplateAsText :: Parser String
-    pTemplateAsText = tplAsText <$> pTemplate
+    pTemplateAsText = templateAsText <$> pTemplate
 
 pTabber :: Parser [TabberRow]
 pTabber = between
@@ -199,11 +167,8 @@ pTabber = between
                 tmName <- some (satisfy (/= '='))
                 _ <- char '=' <* space
                 tTpl <- pTemplate
-                case tTpl of
-                    TplShipInfo pairs
-                        | tbl <- tArgsToTable pairs
-                        , Just nStr <- lookup "编号" tbl
-                          -> pure (tmName, nStr)
+                case tLibId tTpl of
+                    Just nStr -> pure (tmName, nStr)
                     _ -> fail "pTabber: unexpected template"
         space
         (item <* space) `sepBy1` (string "|-|" <* space)

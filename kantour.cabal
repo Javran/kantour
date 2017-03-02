@@ -25,6 +25,7 @@ library
                      , Kantour.MapTool.Types
                      , Kantour.MapTool.Draw
                      , Kantour.QuotesFetch.Types
+                     , Kantour.QuotesFetch.Template
                      , Kantour.QuotesFetch.ShipDatabase
                      , Kantour.QuotesFetch.Parser
                      , Kantour.QuotesFetch.QParser
