@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Kantour.Coded.Main where
+module Kantour.Coded.Main
+  ( defaultMain
+  ) where
 
 import System.Environment
 
@@ -9,9 +11,9 @@ import Control.Monad.State
 import Data.Monoid
 
 data BinData = BD
-  { bdFirst :: ByteString
-  , bdShuffled :: Maybe [ByteString] -- should always be of length 8
-  , bdLeftover :: ByteString
+  { _bdFirst :: ByteString
+  , _bdShuffled :: Maybe [ByteString] -- should always be of length 8
+  , _bdLeftover :: ByteString
   }
 
 {-
@@ -26,7 +28,7 @@ blockOrder :: [Int]
 blockOrder = [0, 7, 2, 5, 4, 3, 6, 1]
 
 unshuffle :: BinData -> BinData
-unshuffle bd@BD { bdShuffled = bdS } = bd { bdShuffled = bdS' }
+unshuffle bd@BD { _bdShuffled = bdS } = bd { _bdShuffled = bdS' }
   where
     bdS' = (\xs -> map (xs !!) blockOrder) <$> bdS
 
@@ -52,6 +54,8 @@ toBinData = evalState createBinData
 fromBinData :: BinData -> ByteString
 fromBinData (BD bdFst bdS bdL) = bdFst <> maybe mempty mconcat bdS <> bdL
 
+{-| default entry point for @coded@
+-}
 defaultMain :: IO ()
 defaultMain = do
     as <- getArgs
@@ -62,5 +66,5 @@ defaultMain = do
                  unshuffled = fromBinData unshuffledBD
              BS.writeFile dstFP unshuffled
              putStrLn $ "File size: " ++ show (BS.length raw)
-             putStrLn $ "Leftover size: " ++ show (BS.length . bdLeftover $ unshuffledBD)
+             putStrLn $ "Leftover size: " ++ show (BS.length . _bdLeftover $ unshuffledBD)
         _ -> putStrLn "<prog> <src file> <dst file>"
