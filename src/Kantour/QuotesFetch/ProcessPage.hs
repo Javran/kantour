@@ -19,21 +19,49 @@ fetchTabberRows = do
         (_:xs') -> put xs' >> fetchTabberRows
         [] -> error "fetchTabberRows: input exhausted"
 
-fetchQuoteList :: State [Component] [QuoteLine]
-fetchQuoteList = do
+nextHeader3 :: State [Component] (Maybe Header)
+nextHeader3 = do
     xs <- get
     case xs of
-        CTemplate TplQuoteListBegin {}:xs' -> do
-            put xs'
-            let isTplEnd (CTemplate TplEnd) = True
-                isTplEnd _ = False
-            ys <- state (break isTplEnd)
-            let cleanup :: [Component] -> [QuoteLine]
-                cleanup = concatMap (\c -> case c of
-                                         CTemplate (TplQuote ql) -> [ql]
-                                         _ -> [])
-            case ys of
-                CTemplate TplEnd:ys' -> put ys' >> pure (cleanup ys)
-                _ -> error "fetchQuoteList: parse error"
-        (_:xs') -> put xs' >> fetchQuoteList
-        [] -> error "fetchQuoteList: input exhausted"
+        CHeader h@(Header 3 _):xs' ->
+            put xs' >> pure (Just h)
+        _: xs' -> put xs' >> nextHeader3
+        [] -> pure Nothing
+
+getQuotes :: State [Component] [QuoteLine]
+getQuotes = do
+    xs <- get
+    case xs of
+        CHeader (Header 3 _):_ ->
+            pure []
+        CTemplate (TplQuote ql):xs' ->
+            put xs' >> (ql:) <$> getQuotes
+        _:xs' ->
+            put xs' >> getQuotes
+        [] -> pure []
+
+getQuoteSection :: State [Component] (Maybe (Header, [QuoteLine]))
+getQuoteSection = do
+    mHdr <- nextHeader3
+    case mHdr of
+        Just hdr -> do
+            qs <- getQuotes
+            pure (Just (hdr,qs))
+        Nothing -> pure Nothing
+
+processPage :: State [Component] (TabberRows,[(Header,[QuoteLine])])
+processPage = do
+    trs <- fetchTabberRows
+    qss <- fix $ \self -> do
+        mqs <- getQuoteSection
+        case mqs of
+            Nothing -> pure []
+            Just qs -> (qs:) <$> self
+    pure (trs, qss)
+
+processPage2 :: [Component] -> [QuoteLine]
+processPage2 = concatMap check
+  where
+    check c = case c of
+        CTemplate (TplQuote ql) -> pure ql
+        _ -> []
