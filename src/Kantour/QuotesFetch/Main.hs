@@ -24,8 +24,4 @@ defaultMain = do
     -- content <- fetchWikiLink "季节性/2017年情人节"
     content <- fetchWikiLink "大鲸"
     let Right result = parse QP.pScanAll "" content
-        ppr x = case x of
-            QP.PHeader h -> putStrLn (prettyShow h)
-            QP.PTabber tb -> putStrLn (prettyShow tb)
-            QP.PTemplate t -> putStrLn (prettyShow t)
-    mapM_ ppr result
+    putStrLn (prettyShow result)

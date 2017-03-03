@@ -20,6 +20,9 @@ module Kantour.QuotesFetch.Kcwiki
   , QuoteLine(..)
 
   , pprTabberRows
+
+  , Component(..)
+  , Page(..)
   ) where
 
 import Kantour.QuotesFetch.Types
@@ -175,3 +178,23 @@ instance Pretty QuoteLine where
              , ("SName",) <$> qlShipName t
              , ("SLibId",) <$> qlShipId t
              ]
+
+newtype Page = Page [Component]
+
+-- non-divisible components of a page
+data Component
+  = CHeader Header
+  | CTabber TabberRows
+  | CTemplate Template
+
+instance Pretty Page where
+    pPrint (Page cs) = vcat (map f cs)
+      where
+        f :: Component -> Doc
+        f c = case c of
+            CHeader x ->
+                hang (text "CHeader") 2 (pPrint x)
+            CTabber x ->
+                hang (text "CTabber") 2 (pPrint x)
+            CTemplate x ->
+                hang (text "CTemplate") 2 (pPrint x)

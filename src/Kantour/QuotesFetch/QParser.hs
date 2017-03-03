@@ -156,23 +156,18 @@ pTabber = between
         space
         TR <$> (item <* space) `sepBy1` (string "|-|" <* space)
 
-data Parsed
-  = PHeader Header
-  | PTabber TabberRows
-  | PTemplate Template
-
 -- scan and parse a document line-by-line
 -- and only retrieve things recognizable
 -- as we know headers and templates always begins
 -- without any padding, this should be a perfect method
 -- to reduce the amount of backtracking.
-pScanAll :: Parser [Parsed]
-pScanAll = catMaybes <$> manyTill pScan eof
+pScanAll :: Parser Page
+pScanAll = Page . catMaybes <$> manyTill pScan eof
   where
-    pScan :: Parser (Maybe Parsed)
+    pScan :: Parser (Maybe Component)
     pScan =
-            (Just . PHeader <$> pHeader <* untilEol)
-        <|> (Just . PTabber <$> pTabber <* untilEol)
-        <|> (Just . PTemplate <$> pTemplate <* untilEol)
+            (Just . CHeader <$> pHeader <* untilEol)
+        <|> (Just . CTabber <$> pTabber <* untilEol)
+        <|> (Just . CTemplate <$> pTemplate <* untilEol)
         <|> Nothing <$ untilEol
     untilEol = manyTill anyChar (void eol <|> eof)
