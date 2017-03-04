@@ -1,7 +1,10 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 module Kantour.QuotesFetch.Types where
 
 import Text.PrettyPrint.HughesPJClass
 import Data.Coerce
+import GHC.Generics
+import Control.DeepSeq
 
 {-
 a raw quote is a bunch of key-value pairs
@@ -29,7 +32,8 @@ represented as a list of TabberRows:
 
 -}
 type TabberRow = (String, String)
-newtype TabberRows = TR [TabberRow] deriving (Eq, Show)
+newtype TabberRows = TR [TabberRow] deriving (Eq, Show, Generic, NFData)
+
 type RawQSection = (SectionName, [RawQuote])
 type RawPage = ([TabberRow], [RawQSection])
 

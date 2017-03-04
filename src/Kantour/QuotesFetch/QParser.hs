@@ -133,8 +133,9 @@ pElemAsText =
           >> manyTill anyChar (string "</ref>"))
     pLink :: Parser String
     pLink = do
-        (endP,sepChar) <- ((string "]]",'|') <$ string "[[")
-                          <|> ((string "]",' ') <$ string "[")
+        (endP,sepChar) <-
+            ((string "]]",'|') <$ string "[[")
+            <|> ((string "]",' ') <$ string "[")
         linkContent <- manyTill anyChar endP
         let content1 = dropWhile (/= sepChar) linkContent
         case content1 of

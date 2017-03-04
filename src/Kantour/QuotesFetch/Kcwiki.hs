@@ -6,7 +6,7 @@ Kcwiki- or MediaWiki-related structures
 Note that all representations in this module are by no means complete
 but are extended sufficiently to serve the purpose.
 |-}
-{-# LANGUAGE TupleSections, GADTs #-}
+{-# LANGUAGE TupleSections, GADTs, DeriveGeneric, DeriveAnyClass #-}
 module Kantour.QuotesFetch.Kcwiki
   ( Template(..)
 
@@ -38,6 +38,8 @@ import Text.PrettyPrint.HughesPJClass hiding (char)
 import Kantour.QuotesFetch.Quotes (kcwikiTable)
 import Text.Megaparsec
 import Text.Megaparsec.String
+import GHC.Generics
+import Control.DeepSeq
 
 {-|
   Kcwiki template.
@@ -68,7 +70,7 @@ data Template
     { tName :: String
     , tArgs :: [TemplateArg]
     }
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Show, Typeable, Generic, NFData)
 
 type TemplateArg =
   ( Maybe String -- optional key
@@ -78,7 +80,7 @@ type TemplateArg =
 data Header = Header
   { hdLevel :: Int
   , hdContent :: String
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, NFData)
 
 data QuoteLine = QL
   { qlArchive :: QuoteArchive
@@ -89,7 +91,7 @@ data QuoteLine = QL
     -- followings are for seasonal only
   , qlShipName :: Maybe String
   , qlShipId :: Maybe LibraryId
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, NFData)
 
 data QuoteArchive
   = QANormal
@@ -101,7 +103,7 @@ data QuoteArchive
     -- or those that we fail to parse.
     -- we just keep the raw text
   | QARaw String
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
 
 {-|
   ignore 'Nothing's and convert rest of a template
@@ -208,6 +210,7 @@ data Component
   = CHeader Header
   | CTabber TabberRows
   | CTemplate Template
+    deriving (Generic, NFData)
 
 instance Pretty Page where
     pPrint (Page cs) = vcat (map f cs)
