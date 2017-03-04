@@ -76,17 +76,24 @@ pTemplate =
               -- have collapsed consecutive whitespaces into one
           tpName <- strip <$> some (satisfy notPCCB)
           let pArg = do
+                  -- raw1 could be key or value, depending on whether
+                  -- there is a following "=" sign
                   raw1 <- concat <$>
-                            some (pElemAsText
+                            many (pElemAsText
                                   <|> pure <$> satisfy notPCCBE)
                   raw2 <- option
                             Nothing
                             (Just . concat <$> (char '=' >>
-                                       some (pElemAsText
+                                       many (pElemAsText
                                              <|> pure <$> satisfy notPCCB)))
                   case raw2 of
-                      Nothing -> pure (Nothing, strip raw1)
-                      Just raw2' -> pure (Just (strip raw1), strip raw2')
+                      Nothing ->
+                          pure (Nothing, strip raw1)
+                      Just raw2' -> do
+                          let k = strip raw1
+                          when (null k)
+                            (fail "pTemplate: expecting non-empty key")
+                          pure (Just k, strip raw2')
           tpArgs <- option
                       []
                       $ char '|' >> pArg `sepBy` (char '|' >> space)

@@ -85,6 +85,14 @@ spec = do
                      , qlTextJP = Just "て・い・と・く♪ はい！ 大鯨からのチョコレート、どうか受け取って下さい。あ、ありがとうございます♪"
                      , qlTextSCN = Just "T·I·D·U♪来！请务必收下，这份大鲸的巧克力。谢，谢谢♪"
                      }
+        specify "template with empty parameters" $
+            parse' "{{tpl|||}}"
+                `shouldParse` TplUnknown "tpl" (replicate 3 (Nothing,""))
+        specify "not allowing empty key" $ do
+            parse' `shouldFailOn` "{{tpl|=||}}"
+            parse' `shouldFailOn` "{{tpl|=v||}}"
+        specify "allowing empty value" $
+            parse' `shouldSucceedOn` "{{tpl|k=||}}"
     describe "pTabber" $ do
         let parse' = parse pTabber ""
         specify "parsing normal tabber" $
