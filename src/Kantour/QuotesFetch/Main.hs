@@ -5,18 +5,13 @@ import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Quotes
 import Kantour.QuotesFetch.Kcwiki
-import qualified Kantour.QuotesFetch.ProcessPage as PP
+import Kantour.QuotesFetch.ComponentParser
 
 import Text.PrettyPrint.HughesPJClass
 
-import qualified Kantour.QuotesFetch.QParser as QP
+import qualified Kantour.QuotesFetch.PageParser as PP
 import Text.Megaparsec
-import Control.Monad.State
 import Data.Coerce
-import Data.List
-
-import System.IO
-import Control.DeepSeq
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -30,10 +25,10 @@ processRegularQuotes = do
 demoProcessRegularPage :: IO ()
 demoProcessRegularPage = do
     content <- fetchWikiLink "天津风"
-    case parse QP.pScanAll "" content of
+    case parse PP.pScanAll "" content of
         Left err -> print err
         Right (Page result) -> do
-            let Just (trs,xs) = evalState PP.processPage (coerce result)
+            let Just (trs,xs) = parseShipInfoPage (coerce result)
             putStrLn (prettyShow trs)
             let ppr (k,vs) = putStrLn (prettyShow k) >> putStrLn (prettyShow vs)
             mapM_ ppr xs
@@ -41,19 +36,19 @@ demoProcessRegularPage = do
 demoProcessSeasonalPage :: IO ()
 demoProcessSeasonalPage = do
     content <- fetchWikiLink "季节性/2017年节分季节"
-    let Right (Page result) = parse QP.pScanAll "" content
-        qs = qlArchive <$> PP.processPage2 result
+    let Right (Page result) = parse PP.pScanAll "" content
+        qs = qlArchive <$> parseSeasonalPage result
     mapM_ print qs
 
 dumpAllPages :: IO ()
 dumpAllPages = do
     result <- fetchWikiLink "Template:舰娘导航"
-    let (Right links) = parse QP.pCollectLinks "" result
+    let (Right links) = parse PP.pCollectLinks "" result
     contents <- unlines <$> mapM fetchWikiLink links
     writeFile "packed.raw" contents
 
 defaultMain :: IO ()
 defaultMain = do
     content <- readFile "packed.raw"
-    let Right (Page result) = parse QP.pScanAll "" content
-    print (length (force result))
+    let Right (Page result) = parse PP.pScanAll "" content
+    print (length result)

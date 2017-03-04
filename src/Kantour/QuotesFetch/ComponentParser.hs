@@ -1,16 +1,26 @@
-module Kantour.QuotesFetch.ProcessPage where
+module Kantour.QuotesFetch.ComponentParser
+  ( parseShipInfoPage
+  , parseSeasonalPage
+  ) where
 
 import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.Types
 
 import Control.Monad.State
 
-fetchTabberRows :: State [Component] (Maybe TabberRows)
-fetchTabberRows = do
+{-
+
+ComponentParser consumes a sequence of page components,
+"parses" it to produce more structured data ready to be processed
+
+-}
+
+getTabberRows :: State [Component] (Maybe TabberRows)
+getTabberRows = do
     xs <- get
     case xs of
         CHeader (Header 2 "舰娘属性"):CTabber tbs:_ -> pure (Just tbs)
-        (_:xs') -> put xs' >> fetchTabberRows
+        (_:xs') -> put xs' >> getTabberRows
         [] -> pure Nothing
 
 nextHeader3 :: State [Component] (Maybe Header)
@@ -43,9 +53,9 @@ getQuoteSection = do
             pure (Just (hdr,qs))
         Nothing -> pure Nothing
 
-processPage :: State [Component] (Maybe (TabberRows,[(Header,[QuoteLine])]))
-processPage = do
-    mtrs <- fetchTabberRows
+getShipInfoPage :: State [Component] (Maybe (TabberRows,[(Header,[QuoteLine])]))
+getShipInfoPage = do
+    mtrs <- getTabberRows
     case mtrs of
         Nothing -> pure Nothing
         Just trs -> do
@@ -56,8 +66,11 @@ processPage = do
                     Just qs -> (qs:) <$> self
             pure (Just (trs, qss))
 
-processPage2 :: [Component] -> [QuoteLine]
-processPage2 = concatMap check
+parseShipInfoPage :: [Component] -> Maybe (TabberRows,[(Header,[QuoteLine])])
+parseShipInfoPage = evalState getShipInfoPage
+
+parseSeasonalPage :: [Component] -> [QuoteLine]
+parseSeasonalPage = concatMap check
   where
     check c = case c of
         CTemplate (TplQuote ql) -> pure ql

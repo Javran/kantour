@@ -1,10 +1,10 @@
 {-# LANGUAGE QuasiQuotes #-}
-module Kantour.QuotesFetch.QParserSpec where
+module Kantour.QuotesFetch.PageParserSpec where
 
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
-import Kantour.QuotesFetch.QParser
+import Kantour.QuotesFetch.PageParser
 import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Kcwiki
 import Text.Heredoc

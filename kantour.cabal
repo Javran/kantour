@@ -28,8 +28,8 @@ library
                      , Kantour.QuotesFetch.Kcwiki
                      , Kantour.QuotesFetch.ShipDatabase
                      , Kantour.QuotesFetch.Parser
-                     , Kantour.QuotesFetch.QParser
-                     , Kantour.QuotesFetch.ProcessPage
+                     , Kantour.QuotesFetch.PageParser
+                     , Kantour.QuotesFetch.ComponentParser
                      , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.Main
@@ -62,6 +62,7 @@ library
                      , pretty
                      , megaparsec
                      , deepseq
+                     , monad-logger
   default-language:    Haskell2010
 
 executable dropcalc
@@ -110,7 +111,7 @@ test-suite spec
   hs-source-dirs:      test
   ghc-options:         -Wall
   other-modules:       Kantour.UtilsSpec
-                       Kantour.QuotesFetch.QParserSpec
+                       Kantour.QuotesFetch.PageParserSpec
   build-depends:       base
                      , kantour
                      , hspec

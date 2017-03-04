@@ -1,5 +1,5 @@
 {-# LANGUAGE TupleSections #-}
-module Kantour.QuotesFetch.QParser where
+module Kantour.QuotesFetch.PageParser where
 
 import Data.List
 
@@ -18,6 +18,9 @@ than just simply using ReadP.
 
 we are not exactly parsing the whole MediaWiki format, but parsing
 just a small subset of it that has enough quote-related info that we want.
+
+PageParser parses page content and break them into components.
+
 -}
 
 {-
