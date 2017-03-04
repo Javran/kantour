@@ -196,6 +196,7 @@ pCollectLinks =
     checkLink :: String -> Maybe String
     checkLink x = do
         guard (not (nonKanmusuLink x))
+        guard (x `notElem` knownShipTypeNames)
         pure x
 
     nonKanmusuLink :: String -> Bool
@@ -203,3 +204,27 @@ pCollectLinks =
            "File:" `isPrefixOf` xs
         || "template:" `isPrefixOf` xs
         || "分类:" `isPrefixOf` xs
+    knownShipTypeNames :: [String]
+    knownShipTypeNames =
+        [ "驅逐艦"
+        , "輕巡洋艦"
+        , "重雷装巡洋舰"
+        , "重巡洋艦"
+        , "航空巡洋艦"
+        , "戰艦"
+        , "航空戰艦"
+        , "輕空母"
+        , "正規空母"
+        , "裝甲空母"
+        , "潛水艇"
+        , "水上飞机母舰"
+        , "戰列艦"
+        , "航空戰列艦"
+        , "重巡洋艦"
+        , "航空巡洋艦"
+        , "正規空母"
+        , "輕空母"
+        , "輕巡洋艦"
+        , "驅逐艦"
+        , "潛水艇"
+        ]
