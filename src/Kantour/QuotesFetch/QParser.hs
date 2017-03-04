@@ -171,3 +171,17 @@ pScanAll = Page . catMaybes <$> manyTill pScan eof
         <|> (Just . CTemplate <$> pTemplate <* untilEol)
         <|> Nothing <$ untilEol
     untilEol = manyTill anyChar (void eol <|> eof)
+
+pCollectLinks :: Parser [String]
+pCollectLinks =
+    catMaybes <$> many ((Just <$> pLink)
+                        <|> (Nothing <$ anyChar)) <* eof
+  where
+    pLink :: Parser String
+    pLink = between
+        (string "[[")
+        (string "]]")
+        $ do
+            raw1 <- some (satisfy (\x -> x /= '|' && x /= ']'))
+            _ <- option Nothing (Just <$> (char '|' >> some (satisfy (/= ']'))))
+            pure raw1

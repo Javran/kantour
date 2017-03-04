@@ -42,4 +42,6 @@ demoProcessSeasonalPage = do
 
 defaultMain :: IO ()
 defaultMain = do
-    demoProcessRegularPage
+    result <- fetchWikiLink "Template:舰娘导航"
+    let (Right x) = parse QP.pCollectLinks "" result
+    mapM_ putStrLn x
