@@ -26,9 +26,12 @@ module Kantour.QuotesFetch.Kcwiki
 
   , QuoteArchive(..)
   , mkQuoteArchive
+  , qaIsNormalSeasonal
 
   , PageType(..)
   , PageContent
+
+  , ShipQuoteTable
   ) where
 
 import Kantour.QuotesFetch.Types
@@ -42,7 +45,7 @@ import Text.Megaparsec
 import Text.Megaparsec.String
 import GHC.Generics
 import Control.DeepSeq
-
+import qualified Data.IntMap as IM
 {-|
   Kcwiki template.
 
@@ -106,6 +109,10 @@ data QuoteArchive
     -- we just keep the raw text
   | QARaw String
     deriving (Eq, Show, Generic, NFData)
+
+qaIsNormalSeasonal :: QuoteArchive -> Bool
+qaIsNormalSeasonal (QANormal { qaExtra = e }) = not (null e)
+qaIsNormalSeasonal _ = False
 
 {-|
   ignore 'Nothing's and convert rest of a template
@@ -253,3 +260,6 @@ data PageType = ShipInfo | Seasonal
 type family PageContent a where
     PageContent 'ShipInfo = (TabberRows, [(Header,[QuoteLine])])
     PageContent 'Seasonal = [QuoteLine]
+
+-- key: MasterId, value: (key: situation code, value: QuoteLine)
+type ShipQuoteTable = IM.IntMap (IM.IntMap QuoteLine)

@@ -30,6 +30,7 @@ library
                      , Kantour.QuotesFetch.Parser
                      , Kantour.QuotesFetch.PageParser
                      , Kantour.QuotesFetch.ComponentParser
+                     , Kantour.QuotesFetch.PageProcessor
                      , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.Main

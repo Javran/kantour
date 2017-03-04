@@ -72,7 +72,7 @@ printKeys (TableConst xs) = mapM_ ppr xs
 printKeys _ = error "printKeys: not a table"
 -}
 
-findMasterId :: String -> ShipDatabase -> MasterId
+findMasterId :: LibraryId -> ShipDatabase -> MasterId
 findMasterId cid (ShipDb _ rTbl) = mstId
   where
     (mstId,_) = head . filter ((== cid) . snd) $ IM.toList rTbl

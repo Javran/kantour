@@ -13,6 +13,9 @@ import qualified Kantour.QuotesFetch.PageParser as PP
 import Text.Megaparsec
 import Data.Coerce
 import Data.Maybe
+import Kantour.QuotesFetch.PageProcessor
+import Control.Monad.Logger
+import qualified Data.Text as T
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -36,10 +39,12 @@ demoProcessRegularPage = do
 
 demoProcessSeasonalPage :: IO ()
 demoProcessSeasonalPage = do
+    sdb <- getDatabase <$> fetchRawDatabase
     content <- fetchWikiLink "季节性/2017年节分季节"
     let Right (Page result) = parse PP.pScanAll "" content
-        qs = qlArchive <$> fromJust (parseSeasonalPage result)
-    mapM_ print qs
+        pageContent = fromJust (parseSeasonalPage result)
+    tbl <- runStdoutLoggingT (processSeasonal (T.pack "main") sdb pageContent)
+    pure ()
 
 dumpAllPages :: IO ()
 dumpAllPages = do
@@ -50,6 +55,4 @@ dumpAllPages = do
 
 defaultMain :: IO ()
 defaultMain = do
-    content <- readFile "packed.raw"
-    let Right (Page result) = parse PP.pScanAll "" content
-    print (length result)
+    demoProcessSeasonalPage
