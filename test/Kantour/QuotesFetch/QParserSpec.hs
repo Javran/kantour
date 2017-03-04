@@ -80,7 +80,7 @@ spec = do
                `shouldParse` TplQuote
                    QL
                      { qlIsSeasonal = True
-                     , qlArchiveName = "184-Sec1Valentine2017"
+                     , qlArchive = QANormal "184" 2 "Valentine2017"
                      , qlSituation = Nothing
                      , qlShipId = Just "184"
                      , qlShipName = Just "大鲸"

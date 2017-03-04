@@ -6,7 +6,7 @@ Kcwiki- or MediaWiki-related structures
 Note that all representations in this module are by no means complete
 but are extended sufficiently to serve the purpose.
 |-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, GADTs #-}
 module Kantour.QuotesFetch.Kcwiki
   ( Template(..)
 
@@ -23,13 +23,21 @@ module Kantour.QuotesFetch.Kcwiki
 
   , Component(..)
   , Page(..)
+
+  , QuoteArchive(..)
+  , mkQuoteArchive
   ) where
 
 import Kantour.QuotesFetch.Types
 import Data.Maybe
 import Data.Typeable
+import Data.Char
+import Data.List
 import Control.Monad
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.HughesPJClass hiding (char)
+import Kantour.QuotesFetch.Quotes (kcwikiTable)
+import Text.Megaparsec
+import Text.Megaparsec.String
 
 {-|
   Kcwiki template.
@@ -73,7 +81,7 @@ data Header = Header
   } deriving (Eq, Show)
 
 data QuoteLine = QL
-  { qlArchiveName :: String
+  { qlArchive :: QuoteArchive
   , qlSituation :: Maybe String
   , qlTextJP :: Maybe String
   , qlTextSCN :: Maybe String
@@ -82,6 +90,18 @@ data QuoteLine = QL
   , qlShipName :: Maybe String
   , qlShipId :: Maybe LibraryId
   } deriving (Eq, Show)
+
+data QuoteArchive
+  = QANormal
+    { qaLibId :: LibraryId
+    , qaSituationId :: Int
+    , qaExtra :: String
+    }
+    -- for special archive names,
+    -- or those that we fail to parse.
+    -- we just keep the raw text
+  | QARaw String
+    deriving (Eq, Show)
 
 {-|
   ignore 'Nothing's and convert rest of a template
@@ -122,9 +142,10 @@ templateAsText _ = ""
 
 fromRawQuoteLine :: [(String, String)] -> QuoteLine
 fromRawQuoteLine xs = QL
-    { qlArchiveName =
-          fromMaybe
+    { qlArchive =
+          maybe
             (error "fromRawQuoteLine: missing archive name")
+            mkQuoteArchive
             (lkup "档名")
     , qlSituation = lkup "场合"
     , qlTextJP = lkup "日文台词"
@@ -168,7 +189,8 @@ instance Pretty QuoteLine where
         hang (text "QuoteLine" <+> desc) 2 $
           vcat (mapMaybe ((\(k,v) -> (text k <> text ": " <> text v)) <$>) ms)
       where
-        desc = text "Arch: " <> text (qlArchiveName t)
+        -- TODO: Pretty for Quote Archive
+        desc = text "Arch: " <> text (show (qlArchive t))
             <> (if qlIsSeasonal t
                   then text " (Seasonal)"
                   else empty)
@@ -198,3 +220,25 @@ instance Pretty Page where
                 hang (text "CTabber") 2 (pPrint x)
             CTemplate x ->
                 hang (text "CTemplate") 2 (pPrint x)
+
+mkQuoteArchive :: String -> QuoteArchive
+mkQuoteArchive raw = case parse (pArchive <* eof) "" raw of
+    Right x -> x
+    Left _ -> QARaw raw
+  where
+    validIdCh x =
+        isDigit x
+        || isAsciiUpper x
+        || isAsciiLower x
+    pLibId :: Parser LibraryId
+    pLibId = some (satisfy validIdCh)
+    pSituation :: Parser Int
+    pSituation = choice (f <$> kcwikiTable)
+      where
+        f (sStr, sCode) = sCode <$ string sStr
+    pArchive = do
+        libId <- pLibId
+        _ <- char '-'
+        sCode <- pSituation
+        extra <- many anyChar
+        pure (QANormal libId sCode extra)
