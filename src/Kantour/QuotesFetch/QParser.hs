@@ -11,7 +11,7 @@ import Kantour.QuotesFetch.Types
 import Kantour.QuotesFetch.Kcwiki
 
 import Kantour.Utils
-
+import Control.Monad
 {-
 this module aims at providing a more sophisticated quote parsing solution
 than just simply using ReadP.
@@ -174,7 +174,7 @@ pScanAll = Page . catMaybes <$> manyTill pScan eof
 
 pCollectLinks :: Parser [String]
 pCollectLinks =
-    catMaybes <$> many ((Just <$> pLink)
+    catMaybes <$> many ((checkLink <$> pLink)
                         <|> (Nothing <$ anyChar)) <* eof
   where
     pLink :: Parser String
@@ -185,3 +185,14 @@ pCollectLinks =
             raw1 <- some (satisfy (\x -> x /= '|' && x /= ']'))
             _ <- option Nothing (Just <$> (char '|' >> some (satisfy (/= ']'))))
             pure raw1
+
+    checkLink :: String -> Maybe String
+    checkLink x = do
+        guard (not (nonKanmusuLink x))
+        pure x
+
+    nonKanmusuLink :: String -> Bool
+    nonKanmusuLink xs =
+           "File:" `isPrefixOf` xs
+        || "template:" `isPrefixOf` xs
+        || "分类:" `isPrefixOf` xs
