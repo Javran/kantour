@@ -12,6 +12,7 @@ import Text.PrettyPrint.HughesPJClass
 import qualified Kantour.QuotesFetch.PageParser as PP
 import Text.Megaparsec
 import Data.Coerce
+import Data.Maybe
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
@@ -37,7 +38,7 @@ demoProcessSeasonalPage :: IO ()
 demoProcessSeasonalPage = do
     content <- fetchWikiLink "季节性/2017年节分季节"
     let Right (Page result) = parse PP.pScanAll "" content
-        qs = qlArchive <$> parseSeasonalPage result
+        qs = qlArchive <$> fromJust (parseSeasonalPage result)
     mapM_ print qs
 
 dumpAllPages :: IO ()

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds, ScopedTypeVariables, TypeFamilies #-}
 module Kantour.QuotesFetch.ComponentParser
   ( parseShipInfoPage
   , parseSeasonalPage
@@ -7,7 +8,6 @@ import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.Types
 
 import Control.Monad.State
-
 {-
 
 ComponentParser consumes a sequence of page components,
@@ -53,7 +53,7 @@ getQuoteSection = do
             pure (Just (hdr,qs))
         Nothing -> pure Nothing
 
-getShipInfoPage :: State [Component] (Maybe (TabberRows,[(Header,[QuoteLine])]))
+getShipInfoPage :: State [Component] (Maybe (PageContent 'ShipInfo))
 getShipInfoPage = do
     mtrs <- getTabberRows
     case mtrs of
@@ -66,11 +66,11 @@ getShipInfoPage = do
                     Just qs -> (qs:) <$> self
             pure (Just (trs, qss))
 
-parseShipInfoPage :: [Component] -> Maybe (TabberRows,[(Header,[QuoteLine])])
+parseShipInfoPage :: [Component] -> Maybe (PageContent 'ShipInfo)
 parseShipInfoPage = evalState getShipInfoPage
 
-parseSeasonalPage :: [Component] -> [QuoteLine]
-parseSeasonalPage = concatMap check
+parseSeasonalPage :: [Component] -> Maybe (PageContent 'Seasonal)
+parseSeasonalPage = Just . concatMap check
   where
     check c = case c of
         CTemplate (TplQuote ql) -> pure ql

@@ -6,7 +6,7 @@ Kcwiki- or MediaWiki-related structures
 Note that all representations in this module are by no means complete
 but are extended sufficiently to serve the purpose.
 |-}
-{-# LANGUAGE TupleSections, GADTs, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE TupleSections, GADTs, DeriveGeneric, DeriveAnyClass, DataKinds, TypeFamilies #-}
 module Kantour.QuotesFetch.Kcwiki
   ( Template(..)
 
@@ -26,13 +26,15 @@ module Kantour.QuotesFetch.Kcwiki
 
   , QuoteArchive(..)
   , mkQuoteArchive
+
+  , PageType(..)
+  , PageContent
   ) where
 
 import Kantour.QuotesFetch.Types
 import Data.Maybe
 import Data.Typeable
 import Data.Char
-import Data.List
 import Control.Monad
 import Text.PrettyPrint.HughesPJClass hiding (char)
 import Kantour.QuotesFetch.Quotes (kcwikiTable)
@@ -245,3 +247,9 @@ mkQuoteArchive raw = case parse (pArchive <* eof) "" raw of
         sCode <- pSituation
         extra <- many anyChar
         pure (QANormal libId sCode extra)
+
+data PageType = ShipInfo | Seasonal
+
+type family PageContent a where
+    PageContent 'ShipInfo = (TabberRows, [(Header,[QuoteLine])])
+    PageContent 'Seasonal = [QuoteLine]
