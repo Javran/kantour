@@ -24,6 +24,8 @@ spec = do
             parse' "==h2==" `shouldParse` Header 2 "h2"
         specify "header lvl 3" $
             parse' "===h3===" `shouldParse` Header 3 "h3"
+        specify "header content stripped" $
+            parse' "===      ss     ===" `shouldParse` Header 3 "ss"
         specify "fail on empty input" $
             parse' `shouldFailOn` ""
     describe "pElemAsText" $ do

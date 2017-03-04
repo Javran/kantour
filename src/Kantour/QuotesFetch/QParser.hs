@@ -59,7 +59,7 @@ pHeader = do
     eqSigns <- some (char '=')
     content <- some (satisfy (/= '='))
     _ <- string eqSigns
-    pure (Header (length eqSigns) content)
+    pure (Header (length eqSigns) (strip content))
 
 pTemplate :: Parser Template
 pTemplate =
