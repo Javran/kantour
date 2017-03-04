@@ -1,23 +1,17 @@
 module Kantour.QuotesFetch.ProcessPage where
 
-import Kantour.QuotesFetch.Fetch
-import Kantour.QuotesFetch.ShipDatabase
-
-import Text.PrettyPrint.HughesPJClass
-
-import Kantour.QuotesFetch.QParser
 import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.Types
 
 import Control.Monad.State
 
-fetchTabberRows :: State [Component] TabberRows
+fetchTabberRows :: State [Component] (Maybe TabberRows)
 fetchTabberRows = do
     xs <- get
     case xs of
-        CHeader (Header 2 "舰娘属性"):CTabber tbs:_ -> pure tbs
+        CHeader (Header 2 "舰娘属性"):CTabber tbs:_ -> pure (Just tbs)
         (_:xs') -> put xs' >> fetchTabberRows
-        [] -> error "fetchTabberRows: input exhausted"
+        [] -> pure Nothing
 
 nextHeader3 :: State [Component] (Maybe Header)
 nextHeader3 = do
@@ -49,15 +43,18 @@ getQuoteSection = do
             pure (Just (hdr,qs))
         Nothing -> pure Nothing
 
-processPage :: State [Component] (TabberRows,[(Header,[QuoteLine])])
+processPage :: State [Component] (Maybe (TabberRows,[(Header,[QuoteLine])]))
 processPage = do
-    trs <- fetchTabberRows
-    qss <- fix $ \self -> do
-        mqs <- getQuoteSection
-        case mqs of
-            Nothing -> pure []
-            Just qs -> (qs:) <$> self
-    pure (trs, qss)
+    mtrs <- fetchTabberRows
+    case mtrs of
+        Nothing -> pure Nothing
+        Just trs -> do
+            qss <- fix $ \self -> do
+                mqs <- getQuoteSection
+                case mqs of
+                    Nothing -> pure []
+                    Just qs -> (qs:) <$> self
+            pure (Just (trs, qss))
 
 processPage2 :: [Component] -> [QuoteLine]
 processPage2 = concatMap check
