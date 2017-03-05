@@ -1,9 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Kantour.QuotesFetch.Quotes
-  (
-    kc3Table
+  ( kc3Table
+  , toKC3Key
   , kcwikiTable
   ) where
+
+import qualified Data.IntMap as IM
+import Data.Tuple
+import Data.Maybe
 
 kc3Table :: [(String, Int)]
 kc3Table =
@@ -23,6 +27,11 @@ kc3Table =
     , ("H1600",46), ("H1700",47), ("H1800",48), ("H1900",49)
     , ("H2000",50), ("H2100",51), ("H2200",52), ("H2300",53)
     ]
+
+toKC3Key :: Int -> String
+toKC3Key sId = fromMaybe (show sId) (IM.lookup sId revTbl)
+  where
+    revTbl = IM.fromList (map swap kc3Table)
 
 kcwikiTable :: [(String,Int)]
 kcwikiTable =
