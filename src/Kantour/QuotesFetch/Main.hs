@@ -23,9 +23,11 @@ import Control.Monad.Logger
 processAndCombine :: IO ()
 processAndCombine = do
     sdb <- shipDatabaseFromString True =<< fetchRawDatabase
-    result <- fetchWikiLink "Template:舰娘导航"
-    let (Right links) = parse pCollectLinks "" result
+    let links = map (\mstId -> snd {- both "fst" (jp) and "snd" (scn) should work fine -}
+                               (findShipName sdb mstId))
+              $ getOrigins sdb
         processLink link = do
+            liftIO $ putStrLn $ "link: " ++ link
             content <- liftIO $ fetchWikiLink link
             case parse pScanAll "" content of
                 Left err -> liftIO $ print err >> undefined
@@ -44,5 +46,4 @@ processAndCombine = do
     print (IM.size fin)
 
 defaultMain :: IO ()
-defaultMain = do
-    processAndCombine
+defaultMain = processAndCombine

@@ -7,6 +7,7 @@ module Kantour.QuotesFetch.InterpShipDatabase
   , getOrigins
 
   , shipDatabaseFromString
+  , findShipName
   ) where
 
 import Data.Function
@@ -180,5 +181,5 @@ findShipName sdb mstId = (sdNameJP sd , sdNameSCN sd)
   where
     sd = findByMstId sdb mstId
 
-getOrigins :: ShipDatabase -> IS.IntSet
-getOrigins = sdbOrigins
+getOrigins :: ShipDatabase -> [MasterId]
+getOrigins = IS.toAscList . sdbOrigins
