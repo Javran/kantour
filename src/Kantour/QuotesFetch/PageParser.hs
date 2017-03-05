@@ -25,15 +25,6 @@ PageParser parses page content and break them into components.
 
 {-
 
-TODO:
-
-- <br /> as space.
-- support {{ruby-zh}}
-
--}
-
-{-
-
 things we might be interested in parsing:
 
 - Links. but this might not be necessary if we use ship database as

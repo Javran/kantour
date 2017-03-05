@@ -70,6 +70,11 @@ data Template
     -- https://zh.kcwiki.moe/wiki/Template:%E8%88%B0%E5%A8%98%E8%B5%84%E6%96%99
     { tLibId :: Maybe LibraryId
     }
+  | TplRubyZh
+    -- https://zh.kcwiki.moe/wiki/Template:Ruby-zh
+    { tContent :: Maybe String
+    , tPhonetic :: Maybe String
+    }
   | TplUnknown
     -- general representation of not yet recognized templates
     { tName :: String
@@ -111,7 +116,7 @@ data QuoteArchive
     deriving (Eq, Show, Generic, NFData)
 
 qaIsNormalSeasonal :: QuoteArchive -> Bool
-qaIsNormalSeasonal (QANormal { qaExtra = e }) = not (null e)
+qaIsNormalSeasonal QANormal { qaExtra = e } = not (null e)
 qaIsNormalSeasonal _ = False
 
 {-|
@@ -132,6 +137,7 @@ fromRawTemplate tpName tpArgs = case tpName of
     "页尾" -> TplEnd
     "lang" -> TplLang (safeInd 0) (safeInd 1)
     "舰娘资料" -> TplShipInfo (lkup "编号")
+    "ruby-zh" -> TplRubyZh (safeInd 0) (safeInd 1)
     _ -> TplUnknown tpName tpArgs
   where
     tArgTbl = tArgsToTable tpArgs
@@ -149,7 +155,20 @@ fromRawTemplate tpName tpArgs = case tpName of
 -}
 templateAsText :: Template -> String
 templateAsText (TplLang _ (Just content)) = content
+templateAsText t@TplRubyZh {} = tplRubyZhToText t
 templateAsText _ = ""
+
+tplRubyZhToText :: Template -> String
+tplRubyZhToText (TplRubyZh mc mp) = fromMaybe "" $ do
+    let norm Nothing = Nothing
+        norm (Just []) = Nothing
+        norm x = x
+    c <- norm mc
+    pure (maybe
+          c
+          (\p -> c ++ "(" ++ p ++ ")")
+          (norm mp))
+tplRubyZhToText _ = error "tplRubyZhToText: expecting ruby-zh template"
 
 fromRawQuoteLine :: [(String, String)] -> QuoteLine
 fromRawQuoteLine xs = QL
@@ -159,14 +178,19 @@ fromRawQuoteLine xs = QL
             mkQuoteArchive
             (lkup "档名")
     , qlSituation = lkup "场合"
-    , qlTextJP = lkup "日文台词"
-    , qlTextSCN = lkup "中文译文"
+    , qlTextJP = normSpace <$> lkup "日文台词"
+    , qlTextSCN = normSpace <$> lkup "中文译文"
     , qlIsSeasonal = lkup "type" == Just "seasonal"
     , qlShipName = lkup "舰娘名字"
     , qlShipId = lkup "编号"
     }
   where
     lkup k = lookup k xs
+    -- turning newlines and other spaces (might never happen though) into just spaces.
+    -- this is for obtaining a more compact text representation for quotes
+    normSpace = map f
+      where
+        f c = if isSpace c then ' ' else c
 
 instance Pretty Header where
     pPrint h =
@@ -188,6 +212,9 @@ instance Pretty Template where
         TplShipInfo m ->
             hang (text "ShipInfo") 2
             $ maybe empty (\x -> text "Id:" <+> text x) m
+        TplRubyZh {} ->
+            hang (text "RubyZh") 2
+            $ text (tplRubyZhToText t)
         TplUnknown n ps ->
             let ps' = zip ps [0..]
                 pprTA ((mK,v),ind) = case mK of

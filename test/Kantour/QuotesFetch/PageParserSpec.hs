@@ -53,6 +53,15 @@ spec = do
                 `shouldParse` "大白兔是人类的好朋友"
             parse' "{{lang|zh-cn|[[@upsuper|大白兔]]是人类的好朋友}}"
                 `shouldParse` "大白兔是人类的好朋友"
+        specify "parsing templates (ruby-zh)" $ do
+            parse' "{{ruby-zh|这不是演习|This is not a drill}}"
+                `shouldParse` "这不是演习(This is not a drill)"
+            parse' "{{ruby-zh||}}"
+                `shouldParse` ""
+            parse' "{{ruby-zh||nothing to be marked at all}}"
+                `shouldParse` ""
+            parse' "{{ruby-zh|without phonetic|}}"
+                `shouldParse` "without phonetic"
     describe "pTemplate" $ do
         let parse' = parse pTemplate ""
         specify "parsing quote list begin" $ do
