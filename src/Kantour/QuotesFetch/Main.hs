@@ -18,6 +18,8 @@ import Control.Monad.IO.Class
 import Control.Monad
 import Control.Monad.Logger
 
+import Control.Concurrent.ParallelIO
+
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
 processAndCombine :: IO ()
@@ -34,10 +36,9 @@ processAndCombine = do
                 Right (Page pgResult) -> do
                     let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
                     processRegular (T.pack link) sdb (trs,xs)
-    regulars <- runStdoutLoggingT $ do
-        tqss <- mapM processLink links
+    tqss <- parallel (map (runStdoutLoggingT . processLink) links)
+    regulars <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "N/A" acc (IM.toList i)) IM.empty tqss
-
     content' <- fetchWikiLink "季节性/2017年节分季节"
     let Right (Page result') = parse pScanAll "" content'
         pageContent = fromJust (parseSeasonalPage result')
@@ -46,4 +47,6 @@ processAndCombine = do
     print (IM.size fin)
 
 defaultMain :: IO ()
-defaultMain = processAndCombine
+defaultMain = do
+    processAndCombine
+    stopGlobalPool
