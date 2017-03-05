@@ -27,7 +27,6 @@ library
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.Kcwiki
                      , Kantour.QuotesFetch.ShipDatabase
-                     , Kantour.QuotesFetch.Parser
                      , Kantour.QuotesFetch.PageParser
                      , Kantour.QuotesFetch.ComponentParser
                      , Kantour.QuotesFetch.PageProcessor
