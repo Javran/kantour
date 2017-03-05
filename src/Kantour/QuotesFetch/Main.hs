@@ -2,7 +2,6 @@
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
-import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.InterpShipDatabase
 import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.PageProcessor
@@ -23,7 +22,7 @@ import Control.Monad.Logger
 
 processAndCombine :: IO ()
 processAndCombine = do
-    sdb <- getDatabase <$> fetchRawDatabase
+    sdb <- shipDatabaseFromString True =<< fetchRawDatabase
     result <- fetchWikiLink "Template:舰娘导航"
     let (Right links) = parse pCollectLinks "" result
         processLink link = do
@@ -46,8 +45,4 @@ processAndCombine = do
 
 defaultMain :: IO ()
 defaultMain = do
-    content <- readFile "shipinfo.lua"
-    xs <- interpShipDataList content
-    let sdb = mkShipDatabase xs
-    checkShipDatabase sdb
-    pure ()
+    processAndCombine

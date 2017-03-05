@@ -5,7 +5,7 @@ import Control.Monad.Logger
 import qualified Data.IntMap as IM
 import Control.Monad
 import Kantour.QuotesFetch.Kcwiki
-import Kantour.QuotesFetch.ShipDatabase
+import Kantour.QuotesFetch.InterpShipDatabase
 import Kantour.QuotesFetch.Types
 import Control.Arrow
 import Data.Maybe
@@ -60,7 +60,7 @@ indexedQuoteLine sdb = findMst &&& (findSituation &&& id)
 
 qlFindMasterId :: ShipDatabase -> QuoteArchive -> MasterId
 qlFindMasterId _ QARaw{} = error "qlFindMasterId: unexpected QARaw"
-qlFindMasterId sdb (QANormal lId _ _) = findMasterId lId sdb
+qlFindMasterId sdb (QANormal lId _ _) = libIdToMasterId sdb lId
 
 processRegular ::
     forall m. MonadLogger m
@@ -70,7 +70,7 @@ processRegular src sdb (TR tbs,sectionsRaw) = do
     let sections = filter valid sectionsRaw
           where
             valid (Header _ secName,xs) = not (null xs) && secName /= "语音存档"
-        mstIdTable = (map . second) (\lId -> findMasterId lId sdb) tbs
+        mstIdTable = (map . second) (libIdToMasterId sdb) tbs
         processSection :: (Header, [QuoteLine]) -> m [(MasterId,(Int,QuoteLine))]
         processSection (Header _ secName, qls) = do
             when (secName `notElem` ["报时","时报"]) $ do

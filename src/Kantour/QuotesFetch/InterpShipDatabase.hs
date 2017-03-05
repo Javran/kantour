@@ -1,4 +1,13 @@
-module Kantour.QuotesFetch.InterpShipDatabase where
+module Kantour.QuotesFetch.InterpShipDatabase
+  ( ShipDatabase
+  , ShipData(..)
+
+  , libIdToMasterId
+  , masterIdToLibId
+  , getOrigins
+
+  , shipDatabaseFromString
+  ) where
 
 import Data.Function
 import qualified Data.Text as T
@@ -46,6 +55,12 @@ instance Pretty ShipData where
       where
         title = int (sdMasterId sd) <+> parens (text (sdLibraryId sd))
 
+shipDatabaseFromString :: Bool -> String -> IO ShipDatabase
+shipDatabaseFromString needVerify raw = do
+    sdb <- mkShipDatabase <$> interpShipDataList raw
+    when needVerify (checkShipDatabase sdb)
+    pure sdb
+
 interpShipDataList :: String -> IO [ShipData]
 interpShipDataList src = do
     l <- Lua.newstate
@@ -79,13 +94,6 @@ getIntField l fldName = do
     Lua.pop l 1
     pure x
 
-getNumField :: Lua.LuaState -> String -> IO (Maybe Lua.LuaNumber)
-getNumField l fldName = do
-    Lua.getfield l (-1) fldName
-    x <- getNum l (-1)
-    Lua.pop l 1
-    pure x
-
 getStrField :: Lua.LuaState -> String -> IO (Maybe String)
 getStrField l fldName = do
     Lua.getfield l (-1) fldName
@@ -98,13 +106,6 @@ getStr l ind = do
     kt <- Lua.ltype l ind
     if kt == Lua.TSTRING
       then Just . T.unpack . decodeUtf8 <$> Lua.tostring l ind
-      else pure Nothing
-
-getNum :: Lua.LuaState -> Int -> IO (Maybe Lua.LuaNumber)
-getNum l ind = do
-    kt <- Lua.ltype l ind
-    if kt == Lua.TNUMBER
-      then Just <$> Lua.tonumber l ind
       else pure Nothing
 
 getInt :: Lua.LuaState -> Int -> IO (Maybe Lua.LuaInteger)
@@ -140,12 +141,12 @@ mkShipDatabase xs = ShipDatabase msts libs origins
         . filter (isNothing . sdRemodelBefore)
         $ xs
 
-sdbMasterIdToLibId :: ShipDatabase -> MasterId -> LibraryId
-sdbMasterIdToLibId sdb mstId =
+masterIdToLibId :: ShipDatabase -> MasterId -> LibraryId
+masterIdToLibId sdb mstId =
     sdLibraryId (findByMstId sdb mstId)
 
-sdbLibIdToMasterId :: ShipDatabase -> LibraryId -> MasterId
-sdbLibIdToMasterId sdb libId =
+libIdToMasterId :: ShipDatabase -> LibraryId -> MasterId
+libIdToMasterId sdb libId =
     sdMasterId (findByLibId sdb libId)
 
 findByMstId :: ShipDatabase -> MasterId -> ShipData
@@ -159,7 +160,7 @@ checkShipDatabase sdb = do
     let collectRemodelChain cur mstSet =
             case sdRemodelAfter (findByMstId sdb cur) of
                 Nothing -> set'
-                Just next | nextMst <- sdbLibIdToMasterId sdb next ->
+                Just next | nextMst <- libIdToMasterId sdb next ->
                     if nextMst `IS.member` set'
                       then set'
                       else collectRemodelChain nextMst set'
@@ -173,3 +174,11 @@ checkShipDatabase sdb = do
         missingSet = IM.keysSet (sdbMstTable sdb) `IS.difference` coveredSet
     when (not (IS.null missingSet)) $
         putStrLn $ "MasterIds not in any remodel chain: " ++ show missingSet
+
+findShipName :: ShipDatabase -> MasterId -> (String, String)
+findShipName sdb mstId = (sdNameJP sd , sdNameSCN sd)
+  where
+    sd = findByMstId sdb mstId
+
+getOrigins :: ShipDatabase -> IS.IntSet
+getOrigins = sdbOrigins
