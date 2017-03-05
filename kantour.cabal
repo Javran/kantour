@@ -32,6 +32,7 @@ library
                      , Kantour.QuotesFetch.PageProcessor
                      , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
+                     , Kantour.QuotesFetch.JsonMerge
                      , Kantour.QuotesFetch.Main
                      , Kantour.Utils
   build-depends:       base
@@ -65,6 +66,7 @@ library
                      , deepseq
                      , monad-logger
                      , aeson
+                     , unordered-containers
   default-language:    Haskell2010
 
 executable dropcalc
