@@ -41,12 +41,15 @@ processAndCombine = do
                     let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
                     processRegular (T.pack link) sdb (trs,xs)
     tqss <- parallel (map (runStdoutLoggingT . processLink) links)
-    regulars <- runStdoutLoggingT $
+    regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "N/A" acc (IM.toList i)) IM.empty tqss
+    let regulars = reapplyQuoteLines sdb regulars1
     content' <- fetchWikiLink "季节性/2017年女儿节"
     let Right (Page result') = parse pScanAll "" content'
         pageContent = fromJust (parseSeasonalPage result')
-    seasonals <- runStdoutLoggingT (processSeasonal "main" sdb pageContent)
+    seasonals <-
+        reapplyQuoteLines sdb
+        <$> runStdoutLoggingT (processSeasonal "main" sdb pageContent)
     runStdoutLoggingT (loggedSQTUnion "N/A" regulars (IM.toList seasonals))
 
 defaultMain :: IO ()

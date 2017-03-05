@@ -8,6 +8,7 @@ module Kantour.QuotesFetch.ShipDatabase
 
   , shipDatabaseFromString
   , findShipName
+  , nextRemodel
   ) where
 
 import Data.Function
@@ -183,3 +184,8 @@ findShipName sdb mstId = (sdNameJP sd , sdNameSCN sd)
 
 getOrigins :: ShipDatabase -> [MasterId]
 getOrigins = IS.toAscList . sdbOrigins
+
+nextRemodel :: ShipDatabase -> MasterId -> Maybe MasterId
+nextRemodel sdb mstId = libIdToMasterId sdb <$> sdRemodelAfter si
+  where
+    si = findByMstId sdb mstId

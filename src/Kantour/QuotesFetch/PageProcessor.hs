@@ -10,6 +10,7 @@ import Kantour.QuotesFetch.Types
 import Control.Arrow
 import Data.Maybe
 import qualified Data.Text as T
+import Data.Foldable
 import Data.Monoid
 
 {-# ANN module ("HLint: ignore Eta reduce" :: String) #-}
@@ -128,3 +129,27 @@ quoteLineReplacingLog src mstId sId (Just oldQl) newQl = log' src msg
     log' = if not (isSeasonal oldQl) && isSeasonal newQl
              then logInfoNS else logWarnNS
     getDesc x =  if isSeasonal x then "seasonal" else "normal"
+
+reapplyQuoteLines :: ShipDatabase -> ShipQuoteTable -> ShipQuoteTable
+reapplyQuoteLines sdb srcSQT = foldl' go IM.empty origins
+  where
+    origins = getOrigins sdb
+    go :: ShipQuoteTable -> MasterId -> ShipQuoteTable
+    go initSQT originMstId = applyAlongChain originMstId IM.empty initSQT
+      where
+        applyAlongChain curMstId prevQls prevSQT = case mNextMstId of
+            Nothing -> curSQT
+            Just nextMstId ->
+                maybe
+                  -- continue if not found
+                  (applyAlongChain nextMstId curQls curSQT)
+                  -- stop if found
+                  (const curSQT)
+                  (IM.lookup nextMstId curSQT)
+          where
+            mNextMstId = nextRemodel sdb curMstId
+            curSQT = IM.insert curMstId curQls prevSQT
+            curQls = maybe
+                prevQls
+                (\nowQls -> IM.union nowQls prevQls)
+                (IM.lookup curMstId srcSQT)
