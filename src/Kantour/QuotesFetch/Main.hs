@@ -56,12 +56,12 @@ defaultMain :: IO ()
 defaultMain = do
     sqt <- processAndCombine
     stopGlobalPool
-    let kc3qt = toKC3QuoteTable sqt
-    LBS.writeFile "quotes.json" (encode kc3qt)
+    let kc3qt = toKcwikiQuoteTable sqt
+    LBS.writeFile "kcwiki.json" (encode kc3qt)
 
+{-
 type KC3QuoteTable = M.Map String (M.Map String String)
 
--- TODO: need to apply seasonals along remodel chain.
 toKC3QuoteTable :: ShipQuoteTable -> KC3QuoteTable
 toKC3QuoteTable = M.fromList . map f . IM.toList
   where
@@ -75,4 +75,19 @@ toKC3QuoteTable = M.fromList . map f . IM.toList
     convertPair :: (Int, QuoteLine) -> Maybe (String, String)
     convertPair (sId, ql) = do
         scn <- qlTextSCN ql
-        pure (toKC3Key sId, scn)
+        pure (toKC3Key sId, scn) -}
+
+toKcwikiQuoteTable :: ShipQuoteTable -> M.Map String (M.Map String String)
+toKcwikiQuoteTable = M.fromList . map f . IM.toList
+  where
+    f :: (Int, IM.IntMap QuoteLine) -> (String, M.Map String String)
+    f = show *** convert
+    convert :: IM.IntMap QuoteLine -> M.Map String String
+    convert =
+          M.fromList
+        . mapMaybe convertPair
+        . IM.toList
+    convertPair :: (Int, QuoteLine) -> Maybe (String, String)
+    convertPair (sId, ql) = do
+        scn <- qlTextSCN ql
+        pure (show sId, scn)
