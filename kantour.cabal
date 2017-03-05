@@ -55,7 +55,6 @@ library
                      , lens
                      , containers
                      , json
-                     , language-lua
                      , hslua
                      , http-client
                      , http-client-tls
