@@ -5,7 +5,7 @@ import Control.Monad.Logger
 import qualified Data.IntMap as IM
 import Control.Monad
 import Kantour.QuotesFetch.Kcwiki
-import Kantour.QuotesFetch.InterpShipDatabase
+import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Types
 import Control.Arrow
 import Data.Maybe

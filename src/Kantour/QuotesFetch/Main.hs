@@ -2,7 +2,7 @@
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
-import Kantour.QuotesFetch.InterpShipDatabase
+import Kantour.QuotesFetch.ShipDatabase
 import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.PageProcessor
 import Kantour.QuotesFetch.ComponentParser
