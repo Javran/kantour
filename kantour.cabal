@@ -27,6 +27,7 @@ library
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.Kcwiki
                      , Kantour.QuotesFetch.ShipDatabase
+                     , Kantour.QuotesFetch.InterpShipDatabase
                      , Kantour.QuotesFetch.Parser
                      , Kantour.QuotesFetch.PageParser
                      , Kantour.QuotesFetch.ComponentParser
@@ -44,6 +45,7 @@ library
                      , math-functions
                      , bytestring
                      , mtl
+                     , transformers
                      , text
                      , attoparsec
                      , diagrams
@@ -56,6 +58,7 @@ library
                      , containers
                      , json
                      , language-lua
+                     , hslua
                      , http-client
                      , http-client-tls
                      , http-types

@@ -3,6 +3,7 @@ module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
 import Kantour.QuotesFetch.ShipDatabase
+import Kantour.QuotesFetch.InterpShipDatabase
 import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.PageProcessor
 import Kantour.QuotesFetch.ComponentParser
@@ -13,6 +14,7 @@ import Data.Coerce
 import Data.Maybe
 
 import qualified Data.Text as T
+import Text.PrettyPrint.HughesPJClass
 import qualified Data.IntMap as IM
 import Control.Monad.IO.Class
 import Control.Monad
@@ -44,4 +46,7 @@ processAndCombine = do
     print (IM.size fin)
 
 defaultMain :: IO ()
-defaultMain = pure ()
+defaultMain = do
+    content <- readFile "shipinfo.lua"
+    interpreted content >>= putStrLn . prettyShow
+    pure ()
