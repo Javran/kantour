@@ -14,7 +14,6 @@ import Data.Coerce
 import Data.Maybe
 
 import qualified Data.Text as T
-import Text.PrettyPrint.HughesPJClass
 import qualified Data.IntMap as IM
 import Control.Monad.IO.Class
 import Control.Monad
@@ -48,5 +47,7 @@ processAndCombine = do
 defaultMain :: IO ()
 defaultMain = do
     content <- readFile "shipinfo.lua"
-    interpreted content >>= putStrLn . prettyShow
+    xs <- interpShipDataList content
+    let sdb = mkShipDatabase xs
+    checkShipDatabase sdb
     pure ()

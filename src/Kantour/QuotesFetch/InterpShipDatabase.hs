@@ -3,6 +3,7 @@ module Kantour.QuotesFetch.InterpShipDatabase where
 import Data.Function
 import qualified Data.Text as T
 import Data.Text.Encoding
+import Data.Foldable
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Maybe
@@ -12,28 +13,41 @@ import Kantour.QuotesFetch.Types
 import Data.Maybe
 import Text.PrettyPrint.HughesPJClass
 
-data ShipInfo = ShipInfo
-  { siLibraryId :: LibraryId
-  , siMasterId :: MasterId
-  , siNameJP :: String
-  , siNameSCN :: String
-  , siRemodelBefore :: Maybe LibraryId
-  , siRemodelAfter :: Maybe LibraryId
+import qualified Data.IntMap as IM
+import qualified Data.Map.Strict as M
+import qualified Data.IntSet as IS
+
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+{-# ANN module "HLint: ignore Use unless" #-}
+
+data ShipData = ShipData
+  { sdLibraryId :: LibraryId
+  , sdMasterId :: MasterId
+  , sdNameJP :: String
+  , sdNameSCN :: String
+  , sdRemodelBefore :: Maybe LibraryId
+  , sdRemodelAfter :: Maybe LibraryId
   } deriving Show
 
-instance Pretty ShipInfo where
-    pPrint si =
+data ShipDatabase = ShipDatabase
+  { sdbMstTable :: IM.IntMap ShipData
+  , sdbLibTable :: M.Map LibraryId ShipData
+  , sdbOrigins :: IS.IntSet -- MasterId for ships that does not have "remodelBefore"
+  }
+
+instance Pretty ShipData where
+    pPrint sd =
         hang title 2
-        $ vcat [ text "Name (JP):" <+> text (siNameJP si)
-               , text "Name (SCN):" <+> text (siNameSCN si)
-               , text "Before:" <+> maybe (text "-") text (siRemodelBefore si)
-               , text "After:" <+> maybe (text "-") text (siRemodelAfter si)
+        $ vcat [ text "Name (JP):" <+> text (sdNameJP sd)
+               , text "Name (SCN):" <+> text (sdNameSCN sd)
+               , text "Before:" <+> maybe (text "-") text (sdRemodelBefore sd)
+               , text "After:" <+> maybe (text "-") text (sdRemodelAfter sd)
                ]
       where
-        title = int (siMasterId si) <+> parens (text (siLibraryId si))
+        title = int (sdMasterId sd) <+> parens (text (sdLibraryId sd))
 
-interpShipInfoList :: String -> IO [ShipInfo]
-interpShipInfoList src = do
+interpShipDataList :: String -> IO [ShipData]
+interpShipDataList src = do
     l <- Lua.newstate
     Lua.openlibs l
     eCod <- Lua.loadstring l src "shipinfo"
@@ -53,7 +67,7 @@ interpShipInfoList src = do
             pure ((,) <$> mRemodelBefore <*> mRemodelAfter)
         let toLibId "-1" = Nothing
             toLibId x = Just x
-        pure (ShipInfo libId (fromIntegral mstId) jpName scnName
+        pure (ShipData libId (fromIntegral mstId) jpName scnName
               (toLibId remodelBefore) (toLibId remodelAfter)))
     Lua.close l
     pure (catMaybes xs)
@@ -114,3 +128,48 @@ enumTable l action = do
             xs <- self
             pure (x : xs)
           else pure []
+
+mkShipDatabase :: [ShipData] -> ShipDatabase
+mkShipDatabase xs = ShipDatabase msts libs origins
+  where
+    msts = IM.fromList (map (\x -> (sdMasterId x, x)) xs)
+    libs = M.fromList (map (\x -> (sdLibraryId x, x)) xs)
+    origins =
+        IS.fromList
+        . map sdMasterId
+        . filter (isNothing . sdRemodelBefore)
+        $ xs
+
+sdbMasterIdToLibId :: ShipDatabase -> MasterId -> LibraryId
+sdbMasterIdToLibId sdb mstId =
+    sdLibraryId (findByMstId sdb mstId)
+
+sdbLibIdToMasterId :: ShipDatabase -> LibraryId -> MasterId
+sdbLibIdToMasterId sdb libId =
+    sdMasterId (findByLibId sdb libId)
+
+findByMstId :: ShipDatabase -> MasterId -> ShipData
+findByMstId sdb mstId = fromJust (IM.lookup mstId (sdbMstTable sdb))
+
+findByLibId :: ShipDatabase -> LibraryId -> ShipData
+findByLibId sdb libId = fromJust (M.lookup libId (sdbLibTable sdb))
+
+checkShipDatabase :: ShipDatabase -> IO ()
+checkShipDatabase sdb = do
+    let collectRemodelChain cur mstSet =
+            case sdRemodelAfter (findByMstId sdb cur) of
+                Nothing -> set'
+                Just next | nextMst <- sdbLibIdToMasterId sdb next ->
+                    if nextMst `IS.member` set'
+                      then set'
+                      else collectRemodelChain nextMst set'
+          where
+            set' = IS.insert cur mstSet
+        coveredSet =
+              foldl' IS.union IS.empty
+            . map (\x -> collectRemodelChain x IS.empty)
+            . IS.toList
+            $ sdbOrigins sdb
+        missingSet = IM.keysSet (sdbMstTable sdb) `IS.difference` coveredSet
+    when (not (IS.null missingSet)) $
+        putStrLn $ "MasterIds not in any remodel chain: " ++ show missingSet
