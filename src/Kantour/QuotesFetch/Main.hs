@@ -23,6 +23,7 @@ import Control.Arrow
 import Control.Concurrent.ParallelIO
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
+import GHC.Conc.Sync
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
@@ -33,18 +34,21 @@ processAndCombine = do
                                (findShipName sdb mstId))
               $ getOrigins sdb
         processLink link = do
-            liftIO $ putStrLn $ "link: " ++ link
+            liftIO $ putStr "."
             content <- liftIO $ fetchWikiLink link
             case parse pScanAll "" content of
                 Left err -> liftIO $ print err >> undefined
                 Right (Page pgResult) -> do
                     let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
                     processRegular (T.pack link) sdb (trs,xs)
-    tqss <- parallel (map (runStdoutLoggingT . processLink) links)
+    cn <- getNumCapabilities
+    putStrLn $ "# of capabilities: " ++ show cn
+    tqss <- parallelInterleaved (map (runStdoutLoggingT . processLink) links)
+    putStrLn "" >> putStrLn "Parallel fetch completed."
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "N/A" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1
-    content' <- fetchWikiLink "季节性/2017年女儿节"
+    content' <- fetchWikiLink "季节性/2017年情人节"
     let Right (Page result') = parse pScanAll "" content'
         pageContent = fromJust (parseSeasonalPage result')
     seasonals <-
