@@ -46,7 +46,6 @@ spec = do
         specify "parsing mediawiki links" $ do
             parse' "[[Link!]]" `shouldParse` "Link!"
             parse' "[[foo   |only this part]]" `shouldParse` "only this part"
-            parse' "[foo only this part]" `shouldParse` "only this part"
         specify "parsing templates" $ do
             parse' "{{ignored}}" `shouldParse` ""
             parse' "{{台词翻译表|a=b|c=d}}" `shouldParse` ""

@@ -25,6 +25,15 @@ PageParser parses page content and break them into components.
 
 {-
 
+TODO:
+
+- <br /> as space.
+- support {{ruby-zh}}
+
+-}
+
+{-
+
 things we might be interested in parsing:
 
 - Links. but this might not be necessary if we use ship database as
@@ -136,9 +145,8 @@ pElemAsText =
           >> manyTill anyChar (string "</ref>"))
     pLink :: Parser String
     pLink = do
-        (endP,sepChar) <-
-            ((string "]]",'|') <$ string "[[")
-            <|> ((string "]",' ') <$ string "[")
+        _ <- string "[["
+        let (endP,sepChar) = (string "]]",'|')
         linkContent <- manyTill anyChar endP
         let content1 = dropWhile (/= sepChar) linkContent
         case content1 of
