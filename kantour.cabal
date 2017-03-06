@@ -33,6 +33,7 @@ library
                      , Kantour.QuotesFetch.Quotes
                      , Kantour.QuotesFetch.Fetch
                      , Kantour.QuotesFetch.JsonMerge
+                     , Kantour.QuotesFetch.SimpleLogger
                      , Kantour.QuotesFetch.Main
                      , Kantour.Utils
   build-depends:       base
