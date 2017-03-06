@@ -27,6 +27,7 @@ module Kantour.QuotesFetch.Kcwiki
   , QuoteArchive(..)
   , mkQuoteArchive
   , qaIsNormalSeasonal
+  , qlGetExtraIndex
 
   , PageType(..)
   , PageContent
@@ -46,6 +47,10 @@ import Text.Megaparsec.String
 import GHC.Generics
 import Control.DeepSeq
 import qualified Data.IntMap as IM
+import Data.List
+
+{-# ANN module "HLint: ignore Use fromMaybe" #-}
+
 {-|
   Kcwiki template.
 
@@ -118,6 +123,47 @@ data QuoteArchive
 qaIsNormalSeasonal :: QuoteArchive -> Bool
 qaIsNormalSeasonal QANormal { qaExtra = e } = not (null e)
 qaIsNormalSeasonal _ = False
+
+qlGetExtraIndex :: QuoteLine -> Maybe Int
+qlGetExtraIndex ql
+    | qaIsNormalSeasonal (qlArchive ql) =
+        let extra = qaExtra (qlArchive ql) in Just (findExtra extra)
+    | otherwise = Nothing
+  where
+    -- top one is the latest
+    knownExtras =
+        [ "WhiteDay2017"
+        , "Hinamaturi2017"
+        , "Hinamatsuri2017"
+        , "Valentine2017"
+        , "Setubunn2017"
+        , "Winter2017"
+        , "NewYear2017"
+        , "Shinnen2017"
+
+        , "Nenmatsu2016"
+        , "Christmas2016"
+
+        , "WhiteDay2016"
+        , "Hinamaturi2016"
+        , "Valentine2016"
+        , "Setubunn2016"
+        , "Shinnen2016"
+
+        , "Nenmatsu2015"
+        , "Christmas2015"
+
+        , "WhiteDay2015"
+        , "Valentine2015"
+        , "Setubunn2015"
+        , "Shinnen2015"
+
+        , "Christmas2014"
+        ]
+
+    findExtra e = case elemIndex e knownExtras of
+        Nothing -> error $ "unknown extra: " ++ e
+        Just x -> x
 
 {-|
   ignore 'Nothing's and convert rest of a template
@@ -227,7 +273,6 @@ instance Pretty QuoteLine where
         hang (text "QuoteLine" <+> desc) 2 $
           vcat (mapMaybe ((\(k,v) -> (text k <> text ": " <> text v)) <$>) ms)
       where
-        -- TODO: Pretty for Quote Archive
         desc = text "Arch: " <> text (show (qlArchive t))
             <> (if qlIsSeasonal t
                   then text " (Seasonal)"

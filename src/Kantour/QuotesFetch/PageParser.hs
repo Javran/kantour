@@ -103,8 +103,6 @@ pTemplate =
           pure $ fromRawTemplate tpName tpArgs
 
 {-
-TODO: do we get a speed boost, if dlist, rather than [Char] is used?
-
 parsing some special elements as text
 -}
 pElemAsText :: Parser String

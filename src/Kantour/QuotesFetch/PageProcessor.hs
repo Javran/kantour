@@ -12,20 +12,48 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Foldable
 import Data.Monoid
+import Data.List
+import Data.Char
 
 {-# ANN module ("HLint: ignore Eta reduce" :: String) #-}
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 {-# ANN module ("HLint: ignore Use unless" :: String) #-}
 
 modifyWithLog ::
-    Monad m
+    (Monad m, Eq v)
     => (Int -> Maybe v -> v -> m ())
     -> IM.IntMap v -> Int -> (Maybe v -> m v) -> m (IM.IntMap v)
 modifyWithLog doLog ms k modifyM = do
     let mOldV = IM.lookup k ms
     newV <- modifyM mOldV
-    doLog k mOldV newV
+    case mOldV of
+        Nothing ->
+            doLog k mOldV newV
+        Just oldV ->
+            if oldV == newV
+              then pure ()
+              else doLog k mOldV newV
     pure (IM.insert k newV ms)
+
+removeEmptyQuoteLines :: MonadLogger m => [QuoteLine] -> m [QuoteLine]
+removeEmptyQuoteLines xs = do
+    mapM_ doLog xsEmpty
+    pure xsGood
+  where
+    (xsGood, xsEmpty) = partition notEmpty xs
+    notEmpty ql = case qlTextSCN ql of
+        Nothing -> False
+        Just "" -> False
+        Just content@(_:_) -> not (all isSpace content)
+
+    doLog ql = logWarnNS "removeEmptyQuoteLines" desc
+      where
+        desc = case qlArchive ql of
+          QANormal lId sId extra ->
+              "LibId: " <> T.pack lId
+               <> ", SituationId: " <> T.pack (show sId)
+               <> if extra == "" then "" else ", Extra: " <> T.pack extra
+          QARaw r -> "Raw: " <> T.pack (show r)
 
 -- SQT: ShipQuoteTable
 loggedSQTInsert ::
@@ -42,10 +70,29 @@ loggedSQTInsert src initSqt xs = foldM go initSqt xs
             -- logInfoNS src $ "created: " <> T.pack (show mstId)
 
         modifyQuoteTable :: Maybe (IM.IntMap QuoteLine) -> m (IM.IntMap QuoteLine)
-        modifyQuoteTable mOldTbl = modifyWithLog doLog2 curTbl sId (const (pure ql))
+        modifyQuoteTable mOldTbl = modifyWithLog doLog2 curTbl sId compareAndUpdate
           where
             doLog2 = quoteLineReplacingLog src mstId
             curTbl = fromMaybe IM.empty mOldTbl
+
+            compareAndUpdate :: Maybe QuoteLine -> m QuoteLine
+            compareAndUpdate Nothing = pure ql
+            compareAndUpdate (Just oldQl) =
+                case (qlGetExtraIndex oldQl, qlGetExtraIndex ql) of
+                    (Just oldInd, Just newInd) ->
+                        let l = logInfoNS "compareAndUpdate"
+                        in if newInd <= oldInd
+                             then do
+                               l "replacing tgt with src"
+                               l $ "src: " <> T.pack (show (qlArchive ql))
+                               l $ "tgt: " <> T.pack (show (qlArchive oldQl))
+                               pure ql
+                             else do
+                               l "update skipped because tgt is newer"
+                               l $ "src: " <> T.pack (show (qlArchive ql))
+                               l $ "tgt: " <> T.pack (show (qlArchive oldQl))
+                               pure oldQl
+                    _ -> pure ql
 
 processSeasonal ::
     forall m. MonadLogger m

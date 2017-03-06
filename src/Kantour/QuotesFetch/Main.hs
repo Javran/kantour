@@ -34,27 +34,30 @@ processAndCombine = do
                                (findShipName sdb mstId))
               $ getOrigins sdb
         processLink link = do
-            liftIO $ putStr "."
             content <- liftIO $ fetchWikiLink link
             case parse pScanAll "" content of
                 Left err -> liftIO $ print err >> undefined
                 Right (Page pgResult) -> do
                     let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
-                    processRegular (T.pack link) sdb (trs,xs)
+                    xs' <- mapM (\(h,qls) ->
+                                 removeEmptyQuoteLines qls
+                                 >>= \qls' -> pure (h,qls')) xs
+                    processRegular (T.pack link) sdb (trs,xs')
     cn <- getNumCapabilities
     putStrLn $ "# of capabilities: " ++ show cn
     tqss <- parallelInterleaved (map (runStdoutLoggingT . processLink) links)
     putStrLn "" >> putStrLn "Parallel fetch completed."
     regulars1 <- runStdoutLoggingT $
-        foldM (\acc i -> loggedSQTUnion "N/A" acc (IM.toList i)) IM.empty tqss
+        foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1
-    content' <- fetchWikiLink "季节性/2017年情人节"
+    content' <- fetchWikiLink "季节性/2017年白色情人节"
     let Right (Page result') = parse pScanAll "" content'
         pageContent = fromJust (parseSeasonalPage result')
+    pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
     seasonals <-
         reapplyQuoteLines sdb
-        <$> runStdoutLoggingT (processSeasonal "main" sdb pageContent)
-    runStdoutLoggingT (loggedSQTUnion "N/A" regulars (IM.toList seasonals))
+        <$> runStdoutLoggingT (processSeasonal "mergeSeasonals" sdb pageContent')
+    runStdoutLoggingT (loggedSQTUnion "finalCombine" regulars (IM.toList seasonals))
 
 defaultMain :: IO ()
 defaultMain = do
@@ -62,24 +65,6 @@ defaultMain = do
     stopGlobalPool
     let kc3qt = toKcwikiQuoteTable sqt
     LBS.writeFile "kcwiki.json" (encode kc3qt)
-
-{-
-type KC3QuoteTable = M.Map String (M.Map String String)
-
-toKC3QuoteTable :: ShipQuoteTable -> KC3QuoteTable
-toKC3QuoteTable = M.fromList . map f . IM.toList
-  where
-    f :: (Int, IM.IntMap QuoteLine) -> (String, M.Map String String)
-    f = show *** convert
-    convert :: IM.IntMap QuoteLine -> M.Map String String
-    convert =
-          M.fromList
-        . mapMaybe convertPair
-        . IM.toList
-    convertPair :: (Int, QuoteLine) -> Maybe (String, String)
-    convertPair (sId, ql) = do
-        scn <- qlTextSCN ql
-        pure (toKC3Key sId, scn) -}
 
 toKcwikiQuoteTable :: ShipQuoteTable -> M.Map String (M.Map String String)
 toKcwikiQuoteTable = M.fromList . map f . IM.toList
