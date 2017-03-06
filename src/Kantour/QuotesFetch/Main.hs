@@ -7,7 +7,6 @@ import Kantour.QuotesFetch.Kcwiki
 import Kantour.QuotesFetch.PageProcessor
 import Kantour.QuotesFetch.ComponentParser
 import Kantour.QuotesFetch.PageParser
-import Kantour.QuotesFetch.Quotes
 
 import Text.Megaparsec
 import Data.Coerce
@@ -24,11 +23,11 @@ import Control.Concurrent.ParallelIO
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import GHC.Conc.Sync
-
+import System.Environment
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
-processAndCombine :: IO ShipQuoteTable
-processAndCombine = do
+processAndCombine :: String -> IO ShipQuoteTable
+processAndCombine seasonalLink = do
     sdb <- shipDatabaseFromString True =<< fetchRawDatabase
     let links = map (\mstId -> snd {- both "fst" (jp) and "snd" (scn) should work fine -}
                                (findShipName sdb mstId))
@@ -50,7 +49,7 @@ processAndCombine = do
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1
-    content' <- fetchWikiLink "季节性/2017年白色情人节"
+    content' <- fetchWikiLink seasonalLink
     let Right (Page result') = parse pScanAll "" content'
         pageContent = fromJust (parseSeasonalPage result')
     pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
@@ -61,7 +60,15 @@ processAndCombine = do
 
 defaultMain :: IO ()
 defaultMain = do
-    sqt <- processAndCombine
+    --
+    as <- getArgs
+    seasonalLink <- case as of
+        [s] -> pure s
+        _ -> do
+            let defLink = "季节性/2017年白色情人节"
+            putStrLn "argument not recognized, falling back to use default link"
+            pure defLink
+    sqt <- processAndCombine seasonalLink
     stopGlobalPool
     let kc3qt = toKcwikiQuoteTable sqt
     LBS.writeFile "kcwiki.json" (encode kc3qt)
