@@ -24,7 +24,10 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import GHC.Conc.Sync
 import System.Environment
+import Kantour.QuotesFetch.SimpleLogger
+
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
+
 
 processAndCombine :: String -> IO ShipQuoteTable
 processAndCombine seasonalLink = do
@@ -32,20 +35,28 @@ processAndCombine seasonalLink = do
     let links = map (\mstId -> snd {- both "fst" (jp) and "snd" (scn) should work fine -}
                                (findShipName sdb mstId))
               $ getOrigins sdb
+        processLink :: String -> IO (ShipQuoteTable, [LogMessage])
         processLink link = do
-            content <- liftIO $ fetchWikiLink link
+            content <- fetchWikiLink link
             case parse pScanAll "" content of
-                Left err -> liftIO $ print err >> undefined
+                Left err -> print err >> undefined
                 Right (Page pgResult) -> do
                     let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
-                    xs' <- mapM (\(h,qls) ->
-                                 removeEmptyQuoteLines qls
-                                 >>= \qls' -> pure (h,qls')) xs
-                    processRegular (T.pack link) sdb (trs,xs')
+                        (result, msg) = runSimpleLogger $ do
+                            xs' <- mapM (\(h,qls) ->
+                                         removeEmptyQuoteLines qls
+                                         >>= \qls' -> pure (h,qls')) xs
+                            processRegular (T.pack link) sdb (trs,xs')
+                    pure (result,msg)
     cn <- getNumCapabilities
     putStrLn $ "# of capabilities: " ++ show cn
-    tqss <- parallelInterleaved (map (runStdoutLoggingT . processLink) links)
+    tqss1 <- parallelInterleaved (map processLink links)
+    let tqss = fst <$> tqss1
+        logs = concat $ snd <$> tqss1
     putStrLn "" >> putStrLn "Parallel fetch completed."
+    putStrLn "=== Fetch log begin"
+    mapM_ (putStrLn . logMessageToStr) logs
+    putStrLn "=== Fetch log end"
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1

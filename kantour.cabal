@@ -66,6 +66,7 @@ library
                      , megaparsec
                      , deepseq
                      , monad-logger
+                     , fast-logger
                      , aeson
                      , unordered-containers
   default-language:    Haskell2010

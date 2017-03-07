@@ -4,6 +4,9 @@ module Kantour.QuotesFetch.SimpleLogger where
 import Control.Monad.Logger
 import Control.Monad.State
 import Control.Arrow
+import System.Log.FastLogger
+import qualified Data.Text as T
+import Data.Text.Encoding
 
 data LogMessage = LogMessage Loc LogSource LogLevel LogStr
 
@@ -19,4 +22,20 @@ runSimpleLogger :: SimpleLogger a -> (a, [LogMessage])
 runSimpleLogger (SimpleLogger m) =
     second reverse $ runState m []
 
+runSimpleLoggerWithFilter ::
+    SimpleLogger a ->
+    (LogMessage -> Bool) ->
+    (a, [LogMessage])
+runSimpleLoggerWithFilter m f =
+    second (filter f) (runSimpleLogger m)
+
 -- TODO: try use this in place of stdout logger
+
+logMessageToStr :: LogMessage -> String
+logMessageToStr (LogMessage lc ls ll content) =
+      T.unpack
+    . decodeUtf8
+    . fromLogStr
+    $ logStrContent
+  where
+    logStrContent = defaultLogStr lc ls ll content
