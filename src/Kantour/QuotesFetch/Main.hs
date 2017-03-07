@@ -15,7 +15,6 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.IntMap as IM
 import qualified Data.Map.Strict as M
-import Control.Monad.IO.Class
 import Control.Monad
 import Control.Monad.Logger
 import Control.Arrow
@@ -26,9 +25,11 @@ import GHC.Conc.Sync
 import System.Environment
 import Kantour.QuotesFetch.SimpleLogger
 import Data.Typeable
+import Data.Either
 import Control.Exception
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
+{-# ANN module ("HLint: ignore Use unless" :: String) #-}
 
 data QuoteFetchException =
     -- QFE <source> <message>
@@ -47,7 +48,7 @@ processAndCombine seasonalLink = do
               $ getOrigins sdb
         processLink :: String -> IO (ShipQuoteTable, [LogMessage])
         processLink link = do
-            content <- fetchWikiLink link
+            content <- fetchWikiLink (link ++ "deadlinktest")
             let errSrc = "Link:" ++ link
             case parse pScanAll "" content of
                 Left err ->
@@ -64,13 +65,21 @@ processAndCombine seasonalLink = do
     cn <- getNumCapabilities
     putStrLn $ "# of capabilities: " ++ show cn
     -- TODO: explicit exception
-    tqss1 <- parallelInterleaved (map processLink links)
-    let tqss = fst <$> tqss1
+    tqss1E <- parallelInterleavedE (map processLink links)
+    let (tqssErrs,tqss1) = partitionEithers tqss1E
+        tqss = fst <$> tqss1
         logs = concat $ snd <$> tqss1
     putStrLn "" >> putStrLn "Parallel fetch completed."
     putStrLn "=== Fetch log begin"
     mapM_ (putStrLn . logMessageToStr) logs
     putStrLn "=== Fetch log end"
+    when (not (null tqssErrs)) $ do
+        putStrLn "Some tasks failed:"
+        mapM_ (\e -> case fromException e of
+                   Just (QuoteFetchException src msg) -> do
+                       putStrLn $ "  Src: " ++ src
+                       putStrLn $ "  Msg:" ++ msg
+                   Nothing -> print e) tqssErrs
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1
