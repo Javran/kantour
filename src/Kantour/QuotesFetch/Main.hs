@@ -25,9 +25,19 @@ import qualified Data.ByteString.Lazy as LBS
 import GHC.Conc.Sync
 import System.Environment
 import Kantour.QuotesFetch.SimpleLogger
+import Data.Typeable
+import Control.Exception
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
+data QuoteFetchException =
+    -- QFE <source> <message>
+    QuoteFetchException
+    { qfeSource :: String
+    , qfeMessage :: String
+    } deriving (Show, Typeable)
+
+instance Exception QuoteFetchException
 
 processAndCombine :: String -> IO ShipQuoteTable
 processAndCombine seasonalLink = do
@@ -38,18 +48,22 @@ processAndCombine seasonalLink = do
         processLink :: String -> IO (ShipQuoteTable, [LogMessage])
         processLink link = do
             content <- fetchWikiLink link
+            let errSrc = "Link:" ++ link
             case parse pScanAll "" content of
-                Left err -> print err >> undefined
-                Right (Page pgResult) -> do
-                    let Just (trs,xs) = parseShipInfoPage (coerce pgResult)
-                        (result, msg) = runSimpleLogger $ do
+                Left err ->
+                    let msg = "PageParsing failed: " ++ show err
+                    in throw (QuoteFetchException errSrc msg)
+                Right (Page pgResult) -> case parseShipInfoPage (coerce pgResult) of
+                    Just (trs,xs) -> pure $ runSimpleLogger $ do
                             xs' <- mapM (\(h,qls) ->
                                          removeEmptyQuoteLines qls
                                          >>= \qls' -> pure (h,qls')) xs
                             processRegular (T.pack link) sdb (trs,xs')
-                    pure (result,msg)
+                    Nothing ->
+                        throw (QuoteFetchException errSrc "ComponentParsing failed")
     cn <- getNumCapabilities
     putStrLn $ "# of capabilities: " ++ show cn
+    -- TODO: explicit exception
     tqss1 <- parallelInterleaved (map processLink links)
     let tqss = fst <$> tqss1
         logs = concat $ snd <$> tqss1
