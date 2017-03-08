@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs #-}
 module Kantour.QuotesFetch.PageProcessor where
 
 import Control.Monad.Logger
@@ -109,6 +109,19 @@ indexedQuoteLine sdb = findMst &&& (findSituation &&& id)
 qlFindMasterId :: ShipDatabase -> QuoteArchive -> MasterId
 qlFindMasterId _ QARaw{} = error "qlFindMasterId: unexpected QARaw"
 qlFindMasterId sdb (QANormal lId _ _) = libIdToMasterId sdb lId
+
+-- this function is just for showing it is possible to unify regular processing
+-- and seasonal processing into one function, but this isn't really useful,
+-- because through the process we are doing modifications to some of the output
+-- making re-wraping data using a proper type an unnecessary task.
+processPage ::
+    forall m (k :: PageType) . MonadLogger m
+    => T.Text -> ShipDatabase -> PageContent k -> m ShipQuoteTable
+processPage src sdb pc = case pc of
+    PgShipInfo trs secs ->
+        processRegular src sdb (trs,secs)
+    PgSeasonal qs ->
+        processSeasonal src sdb qs
 
 processRegular ::
     forall m. MonadLogger m

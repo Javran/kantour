@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, GADTs #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, GADTs, DataKinds #-}
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
@@ -88,7 +88,7 @@ processAndCombine seasonalLink = do
     pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
     seasonals <-
         reapplyQuoteLines sdb
-        <$> runStdoutLoggingT (processSeasonal "mergeSeasonals" sdb pageContent')
+        <$> runStdoutLoggingT (processPage "mergeSeasonals" sdb (PgSeasonal pageContent'))
     runStdoutLoggingT (loggedSQTUnion "finalCombine" regulars (IM.toList seasonals))
 
 defaultMain :: IO ()
