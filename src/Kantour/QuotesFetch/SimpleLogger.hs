@@ -29,8 +29,6 @@ runSimpleLoggerWithFilter ::
 runSimpleLoggerWithFilter m f =
     second (filter f) (runSimpleLogger m)
 
--- TODO: try use this in place of stdout logger
-
 logMessageToStr :: LogMessage -> String
 logMessageToStr (LogMessage lc ls ll content) =
       T.unpack

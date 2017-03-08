@@ -64,7 +64,6 @@ processAndCombine seasonalLink = do
                         throw (QuoteFetchException errSrc "ComponentParsing failed")
     cn <- getNumCapabilities
     putStrLn $ "# of capabilities: " ++ show cn
-    -- TODO: explicit exception
     tqss1E <- parallelInterleavedE (map processLink links)
     let (tqssErrs,tqss1) = partitionEithers tqss1E
         tqss = fst <$> tqss1
@@ -78,7 +77,7 @@ processAndCombine seasonalLink = do
         mapM_ (\e -> case fromException e of
                    Just (QuoteFetchException src msg) -> do
                        putStrLn $ "  Src: " ++ src
-                       putStrLn $ "  Msg:" ++ msg
+                       putStrLn $ "  Msg: " ++ msg
                    Nothing -> print e) tqssErrs
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
@@ -94,7 +93,6 @@ processAndCombine seasonalLink = do
 
 defaultMain :: IO ()
 defaultMain = do
-    --
     as <- getArgs
     seasonalLink <- case as of
         [s] -> pure s
