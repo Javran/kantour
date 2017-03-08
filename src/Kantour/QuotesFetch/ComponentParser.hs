@@ -64,13 +64,13 @@ getShipInfoPage = do
                 case mqs of
                     Nothing -> pure []
                     Just qs -> (qs:) <$> self
-            pure (Just (trs, qss))
+            pure (Just (PgShipInfo trs qss))
 
 parseShipInfoPage :: [Component] -> Maybe (PageContent 'ShipInfo)
 parseShipInfoPage = evalState getShipInfoPage
 
 parseSeasonalPage :: [Component] -> Maybe (PageContent 'Seasonal)
-parseSeasonalPage = Just . concatMap check
+parseSeasonalPage = Just . PgSeasonal . concatMap check
   where
     check c = case c of
         CTemplate (TplQuote ql) -> pure ql

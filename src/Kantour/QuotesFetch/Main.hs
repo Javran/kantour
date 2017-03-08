@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, GADTs #-}
 module Kantour.QuotesFetch.Main where
 
 import Kantour.QuotesFetch.Fetch
@@ -55,7 +55,7 @@ processAndCombine seasonalLink = do
                     let msg = "PageParsing failed: " ++ show err
                     in throw (QuoteFetchException errSrc msg)
                 Right (Page pgResult) -> case parseShipInfoPage (coerce pgResult) of
-                    Just (trs,xs) -> pure $ runSimpleLogger $ do
+                    Just (PgShipInfo trs xs) -> pure $ runSimpleLogger $ do
                             xs' <- mapM (\(h,qls) ->
                                          removeEmptyQuoteLines qls
                                          >>= \qls' -> pure (h,qls')) xs
@@ -84,7 +84,7 @@ processAndCombine seasonalLink = do
     let regulars = reapplyQuoteLines sdb regulars1
     content' <- fetchWikiLink seasonalLink
     let Right (Page result') = parse pScanAll "" content'
-        pageContent = fromJust (parseSeasonalPage result')
+        PgSeasonal pageContent = fromJust (parseSeasonalPage result')
     pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
     seasonals <-
         reapplyQuoteLines sdb

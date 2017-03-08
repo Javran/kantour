@@ -30,7 +30,7 @@ module Kantour.QuotesFetch.Kcwiki
   , qlGetExtraIndex
 
   , PageType(..)
-  , PageContent
+  , PageContent(..)
 
   , ShipQuoteTable
   ) where
@@ -329,9 +329,9 @@ mkQuoteArchive raw = case parse (pArchive <* eof) "" raw of
 
 data PageType = ShipInfo | Seasonal
 
-type family PageContent a where
-    PageContent 'ShipInfo = (TabberRows, [(Header,[QuoteLine])])
-    PageContent 'Seasonal = [QuoteLine]
+data PageContent a where
+    PgShipInfo :: TabberRows -> [(Header,[QuoteLine])] -> PageContent 'ShipInfo
+    PgSeasonal :: [QuoteLine] -> PageContent 'Seasonal
 
 -- key: MasterId, value: (key: situation code, value: QuoteLine)
 type ShipQuoteTable = IM.IntMap (IM.IntMap QuoteLine)

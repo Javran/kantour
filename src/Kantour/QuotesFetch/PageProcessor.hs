@@ -96,7 +96,7 @@ loggedSQTInsert src initSqt xs = foldM go initSqt xs
 
 processSeasonal ::
     forall m. MonadLogger m
-    => T.Text -> ShipDatabase -> PageContent 'Seasonal -> m ShipQuoteTable
+    => T.Text -> ShipDatabase -> [QuoteLine] -> m ShipQuoteTable
 processSeasonal src sdb qs =
     loggedSQTInsert src IM.empty (indexedQuoteLine sdb <$> qs)
 
@@ -112,7 +112,7 @@ qlFindMasterId sdb (QANormal lId _ _) = libIdToMasterId sdb lId
 
 processRegular ::
     forall m. MonadLogger m
-    => T.Text -> ShipDatabase -> PageContent 'ShipInfo -> m ShipQuoteTable
+    => T.Text -> ShipDatabase -> (TabberRows,[(Header,[QuoteLine])]) -> m ShipQuoteTable
 processRegular src sdb (TR tbs,sectionsRaw) = do
     -- select section that has contents in it
     let sections = filter valid sectionsRaw
