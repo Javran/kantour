@@ -160,6 +160,11 @@ defaultMain = do
             putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
             exitFailure
         Just ((srcFP, mExtraFP), mDiagramArgs) -> do
+            -- pretty printing arguments
+            putStrLn $ "main xml: " ++ srcFP
+            putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mExtraFP
+            putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
+
             mDoc <- runX (readDocument [] srcFP)
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
             [((results,results2),beginNodes)] <- runWithDoc_
