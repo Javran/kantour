@@ -152,6 +152,31 @@ getMapBeginNode = proc doc -> do
     this -< ptEnd
 
 
+getMapBeginNode2 :: String -> IOSArrow XmlTree (V2 Int)
+getMapBeginNode2 mapSpriteId = proc doc -> do
+    -- load line info
+    (ptEnd,spriteId) <-
+        findSprite mapSpriteId
+        >>> getChild
+        >>> hasAttrValue "name" ("line" `isPrefixOf`)
+        >>> loadSubMatrixAndId -< doc
+    -- select lines whose childrens are without ids
+    findSprite spriteId
+        >>> ((this /> hasName "subTags")
+             `notContaining`
+             (this /> hasAttr "characterId")) -<< doc
+    this -< ptEnd
+
+getRoute2 :: String -> IOSArrow XmlTree MyLine
+getRoute2 mapSpriteId = proc doc -> do
+    (lineName,(ptEnd,lineId)) <-
+        findSprite mapSpriteId
+        >>> getChild
+        >>> hasAttrValue "name" ("line" `isPrefixOf`)
+        >>> getAttrValue "name" &&& loadSubMatrixAndId -< doc
+    (sb,sh) <- findLineShapeInfo lineId -<< doc
+    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
+
 exploreExtraXml :: String -> IO ()
 exploreExtraXml fp = do
     mDoc <- runX (readDocument [] fp)
@@ -175,8 +200,10 @@ exploreExtraXml fp = do
     case find isExtraRoot tagNamePairs of
        Nothing -> putStrLn "extra root not found"
        Just (spriteId,_) -> do
-           sRoot <- runWithDoc_ (findSprite spriteId) doc
-           print sRoot
+           extraBeginPts <- runWithDoc_ (getMapBeginNode2 spriteId) doc
+           mapM_ print extraBeginPts
+           routes <- runWithDoc_ (getRoute2 spriteId) doc
+           mapM_ print routes
            pure ()
 
 defaultMain :: IO ()
