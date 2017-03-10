@@ -150,6 +150,18 @@ getMapBeginNode = proc doc -> do
              (this /> hasAttr "characterId")) -<< doc
     this -< ptEnd
 
+
+exploreExtraXml :: String -> IO ()
+exploreExtraXml fp = do
+    mDoc <- runX (readDocument [] fp)
+    let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
+    result <- runWithDoc_
+              (deep (hasName "item"
+                     >>> hasAttrValue "type"
+                     (== "SymbolClassTag"))) doc
+    print result
+    pure ()
+
 defaultMain :: IO ()
 defaultMain = do
     mArgs <- sepArgs <$> getArgs
@@ -164,6 +176,11 @@ defaultMain = do
             putStrLn $ "main xml: " ++ srcFP
             putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mExtraFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
+
+            let Just extraFP = mExtraFP
+            exploreExtraXml extraFP
+            -- TODO: shortcutting for exploring extra xml file
+            exitSuccess
 
             mDoc <- runX (readDocument [] srcFP)
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
