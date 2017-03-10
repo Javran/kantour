@@ -15,6 +15,7 @@ import Data.Maybe
 import Control.Monad
 import Text.XML.HXT.Core hiding (when)
 import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
+import Data.Tree.NTree.TypeDefs
 import Linear
 import Control.Lens hiding (deep)
 import Linear.Affine
@@ -155,12 +156,28 @@ exploreExtraXml :: String -> IO ()
 exploreExtraXml fp = do
     mDoc <- runX (readDocument [] fp)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-    result <- runWithDoc_
-              (deep (hasName "item"
+        getItem = hasName "item" /> getText
+    tagsRaw <- runWithDoc_
+               (deep (hasName "item"
                      >>> hasAttrValue "type"
-                     (== "SymbolClassTag"))) doc
-    print result
-    pure ()
+                     (== "SymbolClassTag")) />
+               (hasName "tags" /> getItem)) doc
+    namesRaw <- runWithDoc_
+               (deep (hasName "item"
+                     >>> hasAttrValue "type"
+                     (== "SymbolClassTag")) />
+               (hasName "names" /> getItem)) doc
+    let tagNamePairs = zip tagsRaw namesRaw
+    when (length tagNamePairs /= length tagsRaw
+          || length tagNamePairs /= length namesRaw)
+        $ putStrLn "warning: tag & name element count differs"
+    let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
+    case find isExtraRoot tagNamePairs of
+       Nothing -> putStrLn "extra root not found"
+       Just (spriteId,_) -> do
+           sRoot <- runWithDoc_ (findSprite spriteId) doc
+           print sRoot
+           pure ()
 
 defaultMain :: IO ()
 defaultMain = do
