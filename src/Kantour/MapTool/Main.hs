@@ -12,6 +12,7 @@ module Kantour.MapTool.Main where
 import System.Environment
 import Data.List
 import Data.Maybe
+import Control.Monad
 import Text.XML.HXT.Core hiding (when)
 import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
 import Linear
@@ -22,6 +23,7 @@ import Text.JSON
 import Data.Monoid
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
+import System.Exit
 
 import Kantour.MapTool.Types
 import Kantour.MapTool.Draw
@@ -150,21 +152,51 @@ getMapBeginNode = proc doc -> do
 
 defaultMain :: IO ()
 defaultMain = do
-    srcFP : remained <- getArgs
-    mDoc <- runX (readDocument [] srcFP)
-    let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-    [((results,results2),beginNodes)] <- runWithDoc_
-        ((listA getRoute &&& listA getExtraRoute) &&& listA getMapBeginNode)
-        doc
-    putStrLn "====="
-    -- the coordinates look like large numbers because SWF uses twip as basic unit
-    -- (most of the time) divide them by 20 to get pixels
-    let adjusted = adjustLines beginNodes (results ++ results2)
-        pointMap = mkPointMap beginNodes adjusted
-        mapInfo = MapInfo adjusted (S.fromList beginNodes) pointMap
-    withArgs remained $ draw mapInfo
-    putStrLn "=== JSON encoding ==="
-    putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
+    mArgs <- sepArgs <$> getArgs
+    case mArgs of
+        Nothing -> do
+            putStrLn "invalid arguments"
+            putStrLn "usage: maptool <main xml> [extra xml] [-- diagrams args]"
+            putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
+            exitFailure
+        Just ((srcFP, mExtraFP), mDiagramArgs) -> do
+            mDoc <- runX (readDocument [] srcFP)
+            let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
+            [((results,results2),beginNodes)] <- runWithDoc_
+                ((listA getRoute &&& listA getExtraRoute) &&& listA getMapBeginNode)
+                doc
+            putStrLn "====="
+            -- the coordinates look like large numbers because SWF uses twip as basic unit
+            -- (most of the time) divide them by 20 to get pixels
+            let adjusted = adjustLines beginNodes (results ++ results2)
+                pointMap = mkPointMap beginNodes adjusted
+                mapInfo = MapInfo adjusted (S.fromList beginNodes) pointMap
+            case mDiagramArgs of
+                Nothing -> pure ()
+                Just diagramArgs ->
+                    withArgs diagramArgs $ draw mapInfo
+            putStrLn "=== JSON encoding ==="
+            putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
+
+-- separate argument list into maptool arguments and those meant for diagrams:
+-- arg list: <main xml> [extra xml] [-- <diagram args>]
+-- where <main xml> is the map xml file, [extra xml] is an optional part.
+-- additionally, if "--" exists and <diagram args> is not empty, diagram will be called
+-- to draw a picture.
+sepArgs :: [String] -> Maybe ((String, Maybe String), Maybe [String])
+sepArgs as = do
+    let (ls,rs') = break (== "--") as
+    lVal <- case ls of
+        [] -> Nothing
+        mainXmlFP : ls' -> case ls' of
+            [] -> pure (mainXmlFP, Nothing)
+            [extraXmlFP] -> pure (mainXmlFP, Just extraXmlFP)
+            _ -> Nothing
+    let rVal = case rs' of
+            [] -> Nothing
+            -- the "_" part as to be "--" as it's the result from "break"
+            _:xs -> guard (not (null xs)) >> pure xs
+    pure (lVal, rVal)
 
 runWithDoc_ :: IOSLA (XIOState ()) XmlTree a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
