@@ -15,7 +15,6 @@ import Data.Maybe
 import Control.Monad
 import Text.XML.HXT.Core hiding (when)
 import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
-import Data.Tree.NTree.TypeDefs
 import Linear
 import Control.Lens hiding (deep)
 import Linear.Affine
@@ -177,8 +176,8 @@ getRoute2 mapSpriteId = proc doc -> do
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
-exploreExtraXml :: String -> IO ()
-exploreExtraXml fp = do
+getFromExtraXml :: String -> IO ([MyLine],[V2 Int])
+getFromExtraXml fp = do
     mDoc <- runX (readDocument [] fp)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
         getItem = hasName "item" /> getText
@@ -197,14 +196,12 @@ exploreExtraXml fp = do
           || length tagNamePairs /= length namesRaw)
         $ putStrLn "warning: tag & name element count differs"
     let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
-    case find isExtraRoot tagNamePairs of
-       Nothing -> putStrLn "extra root not found"
-       Just (spriteId,_) -> do
-           extraBeginPts <- runWithDoc_ (getMapBeginNode2 spriteId) doc
-           mapM_ print extraBeginPts
-           routes <- runWithDoc_ (getRoute2 spriteId) doc
-           mapM_ print routes
-           pure ()
+        Just (spriteId,_) = find isExtraRoot tagNamePairs
+    extraBeginPts <- runWithDoc_ (getMapBeginNode2 spriteId) doc
+    mapM_ print extraBeginPts
+    routes <- runWithDoc_ (getRoute2 spriteId) doc
+    mapM_ print routes
+    pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
 defaultMain = do
@@ -220,21 +217,20 @@ defaultMain = do
             putStrLn $ "main xml: " ++ srcFP
             putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mExtraFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
-
-            let Just extraFP = mExtraFP
-            exploreExtraXml extraFP
-            -- TODO: shortcutting for exploring extra xml file
-            exitSuccess
-
             mDoc <- runX (readDocument [] srcFP)
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-            [((results,results2),beginNodes)] <- runWithDoc_
+            [((results,results2),beginNodes')] <- runWithDoc_
                 ((listA getRoute &&& listA getExtraRoute) &&& listA getMapBeginNode)
                 doc
+
+            (extraRoutes, extraBeginNodes) <- case mExtraFP of
+                Just extraFP -> getFromExtraXml extraFP
+                Nothing -> pure ([],[])
             putStrLn "====="
             -- the coordinates look like large numbers because SWF uses twip as basic unit
             -- (most of the time) divide them by 20 to get pixels
-            let adjusted = adjustLines beginNodes (results ++ results2)
+            let beginNodes = beginNodes' ++ extraBeginNodes
+                adjusted = adjustLines beginNodes (results ++ results2 ++ extraRoutes)
                 pointMap = mkPointMap beginNodes adjusted
                 mapInfo = MapInfo adjusted (S.fromList beginNodes) pointMap
             case mDiagramArgs of
