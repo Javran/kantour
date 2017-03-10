@@ -48,7 +48,7 @@ processAndCombine seasonalLink = do
               $ getOrigins sdb
         processLink :: String -> IO (ShipQuoteTable, [LogMessage])
         processLink link = do
-            content <- fetchWikiLink (link ++ "deadlinktest")
+            content <- fetchWikiLink link
             let errSrc = "Link:" ++ link
             case parse pScanAll "" content of
                 Left err ->
