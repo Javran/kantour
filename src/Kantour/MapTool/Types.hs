@@ -7,6 +7,8 @@ module Kantour.MapTool.Types
   , MapInfo(..)
   , getNodeName
   , miLines, miNodeNames, miStarts -- TODO: this might be overkill...
+
+  , ShapeBounds
   ) where
 
 import Linear
@@ -41,3 +43,8 @@ getNodeName :: V2 Int -> MapInfo -> String
 getNodeName p MapInfo { _miNodeNames=mn }
     | Just n <- M.lookup p mn = n
     | otherwise = error $ "missing node name for " ++ show p
+
+type ShapeBounds =
+    ( (Int, Int) -- x max, min
+    , (Int, Int) -- y max, min
+    )

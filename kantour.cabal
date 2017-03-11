@@ -23,6 +23,7 @@ library
                      , Kantour.MiniJson.Parser
                      , Kantour.MapTool.Main
                      , Kantour.MapTool.Types
+                     , Kantour.MapTool.Xml
                      , Kantour.MapTool.Draw
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.Kcwiki

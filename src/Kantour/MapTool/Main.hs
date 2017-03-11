@@ -2,8 +2,7 @@
     -fwarn-partial-type-signatures
   #-}
 {-# LANGUAGE
-    Arrows
-  , PartialTypeSignatures
+    PartialTypeSignatures
   , ScopedTypeVariables
   , NoMonomorphismRestriction
   #-}
@@ -16,7 +15,6 @@ import Control.Monad
 import Text.XML.HXT.Core hiding (when)
 import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
 import Linear
-import Control.Lens hiding (deep)
 import Linear.Affine
 import Data.Function
 import Text.JSON
@@ -27,11 +25,8 @@ import System.Exit
 
 import Kantour.MapTool.Types
 import Kantour.MapTool.Draw
+import Kantour.MapTool.Xml
 
-type ShapeBounds =
-    ( (Int, Int) -- x max, min
-    , (Int, Int) -- y max, min
-    )
 {-
 
 implementation of:
@@ -49,124 +44,6 @@ an explanation can be found at:
 http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
-
-getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
-getIntPair fstName sndName resultF =
-    (   (getAttrValue fstName >>> arr read)
-    &&& (getAttrValue sndName >>> arr read)
-    ) >>> arr (uncurry resultF)
-
-loadSubMatrixAndId :: ArrowXml arr => arr XmlTree (V2 Int, String)
-loadSubMatrixAndId = proc tree -> do
-    pt <- loadSubMatrix -< tree
-    charId <- getAttrValue "characterId" -< tree
-    this -< (pt,charId)
-  where
-    loadSubMatrix :: ArrowXml arr => arr XmlTree (V2 Int)
-    loadSubMatrix = this
-        /> hasName "matrix"
-        >>> getIntPair "translateX" "translateY" V2
-
-findShapeBounds :: ArrowXml arr => String -> arr XmlTree ShapeBounds
-findShapeBounds shapeId = proc doc -> do
-    shape <- deep (hasName "item" >>>
-                   hasAttrValue "shapeId" (== shapeId) />
-                   hasName "shapeBounds")
-             -<< doc
-    xMaxMin <- getIntPair "Xmax" "Xmin" (,) -< shape
-    yMaxMin <- getIntPair "Ymax" "Ymin" (,) -< shape
-    this -< (xMaxMin, yMaxMin)
-
-guessStartPoint :: V2 Int -> V2 Int -> ShapeBounds -> V2 Int
-guessStartPoint ptEnd sh ((xMax,xMin),(yMax,yMin)) = ptEnd + V2 dx dy
-  where
-    dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
-    dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
-
-findSprite :: ArrowXml arr => String -> arr XmlTree XmlTree
-findSprite spriteId =
-    deep (hasName "item" >>>
-          hasAttrValue "spriteId" (== spriteId))
-
-findMapSpriteId :: ArrowXml arr => arr XmlTree String
-findMapSpriteId =
-    deep (hasName "item"
-         >>> hasAttrValue "name" (== "map")
-         >>> getAttrValue "characterId")
-
-findLineShapeInfo :: ArrowXml arr => String -> arr XmlTree (ShapeBounds,V2 Int)
-findLineShapeInfo lineId = proc doc -> do
-    sprite <- findSprite lineId -<< doc
-    -- shape should be a child of sprite (the line)
-    shapeRef <- getChild >>> hasAttr "characterId" -< sprite
-    (sh,shapeId) <- loadSubMatrixAndId -< shapeRef
-    sb <- findShapeBounds shapeId -<< doc
-    this -< (sb,sh)
-
-getChild :: ArrowXml arr => arr XmlTree XmlTree
-getChild = this /> hasName "subTags" /> hasName "item"
-
-{-
--- desugared form, less readable:
-findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
-findMapSprite =
-    (findMapSpriteId >>> arr findSprite) &&& returnA >>> app
--}
-
-findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
-findMapSprite = proc doc -> do
-    mapId <- findMapSpriteId -< doc
-    findSprite mapId -<< doc
-
-getRoute :: IOSArrow XmlTree MyLine
-getRoute = proc doc -> do
-    mapSpriteId <- findMapSpriteId -< doc
-    getRoute2 mapSpriteId -<< doc
-
-getMapBeginNode :: IOSArrow XmlTree (V2 Int)
-getMapBeginNode = proc doc -> do
-    mapSpriteId <- findMapSpriteId -< doc
-    getMapBeginNode2 mapSpriteId -<< doc
-
-getExtraRoute :: IOSArrow XmlTree MyLine
-getExtraRoute = proc doc -> do
-    (ptExEnd,extraId) <-
-        findMapSprite
-        >>> getChild
-        >>> loadSubMatrixAndId -< doc
-    (lineName, (ptEnd',spriteId)) <-
-        findSprite extraId
-        >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -<< doc
-    let ptEnd = ptEnd' ^+^ ptExEnd
-    (sb,sh) <- findLineShapeInfo spriteId -<< doc
-    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
-
-getMapBeginNode2 :: String -> IOSArrow XmlTree (V2 Int)
-getMapBeginNode2 mapSpriteId = proc doc -> do
-    -- load line info
-    (ptEnd,spriteId) <-
-        findSprite mapSpriteId
-        >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< doc
-    -- select lines whose childrens are without ids
-    findSprite spriteId
-        >>> ((this /> hasName "subTags")
-             `notContaining`
-             (this /> hasAttr "characterId")) -<< doc
-    this -< ptEnd
-
-getRoute2 :: String -> IOSArrow XmlTree MyLine
-getRoute2 mapSpriteId = proc doc -> do
-    (lineName,(ptEnd,lineId)) <-
-        findSprite mapSpriteId
-        >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -< doc
-    (sb,sh) <- findLineShapeInfo lineId -<< doc
-    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 getFromExtraXml :: String -> IO ([MyLine],[V2 Int])
 getFromExtraXml fp = do
@@ -189,8 +66,8 @@ getFromExtraXml fp = do
         $ putStrLn "warning: tag & name element count differs"
     let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
         Just (spriteId,_) = find isExtraRoot tagNamePairs
-    extraBeginPts <- runWithDoc_ (getMapBeginNode2 spriteId) doc
-    routes <- runWithDoc_ (getRoute2 spriteId) doc
+    extraBeginPts <- runWithDoc_ (getMapBeginNode spriteId) doc
+    routes <- runWithDoc_ (getRoute spriteId) doc
     pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
@@ -210,7 +87,8 @@ defaultMain = do
             mDoc <- runX (readDocument [] srcFP)
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
             [((results,results2),beginNodes')] <- runWithDoc_
-                ((listA getRoute &&& listA getExtraRoute) &&& listA getMapBeginNode)
+                ((listA (withMainSprite getRoute) &&& listA getExtraRoute)
+                 &&& listA (withMainSprite getMapBeginNode))
                 doc
 
             (extraRoutes, extraBeginNodes) <- case mExtraFP of
