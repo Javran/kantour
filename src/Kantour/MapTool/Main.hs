@@ -52,11 +52,9 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
 getIntPair fstName sndName resultF =
-    (   (getAttrValue fstName >>> asInt)
-    &&& (getAttrValue sndName >>> asInt)
+    (   (getAttrValue fstName >>> arr read)
+    &&& (getAttrValue sndName >>> arr read)
     ) >>> arr (uncurry resultF)
-  where
-    asInt = arr (read :: String -> Int)
 
 loadSubMatrixAndId :: ArrowXml arr => arr XmlTree (V2 Int, String)
 loadSubMatrixAndId = proc tree -> do
@@ -90,13 +88,11 @@ findSprite spriteId =
     deep (hasName "item" >>>
           hasAttrValue "spriteId" (== spriteId))
 
-findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
-findMapSprite = proc doc -> do
-    mapId <- deep
-        (hasName "item"
+findMapSpriteId :: ArrowXml arr => arr XmlTree String
+findMapSpriteId =
+    deep (hasName "item"
          >>> hasAttrValue "name" (== "map")
-         >>> getAttrValue "characterId") -< doc
-    findSprite mapId -<< doc
+         >>> getAttrValue "characterId")
 
 findLineShapeInfo :: ArrowXml arr => String -> arr XmlTree (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
@@ -110,15 +106,27 @@ findLineShapeInfo lineId = proc doc -> do
 getChild :: ArrowXml arr => arr XmlTree XmlTree
 getChild = this /> hasName "subTags" /> hasName "item"
 
+{-
+-- desugared form, less readable:
+findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
+findMapSprite =
+    (findMapSpriteId >>> arr findSprite) &&& returnA >>> app
+-}
+
+findMapSprite :: ArrowXml arr => arr XmlTree XmlTree
+findMapSprite = proc doc -> do
+    mapId <- findMapSpriteId -< doc
+    findSprite mapId -<< doc
+
 getRoute :: IOSArrow XmlTree MyLine
 getRoute = proc doc -> do
-    (lineName,(ptEnd,lineId)) <-
-        findMapSprite
-        >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -< doc
-    (sb,sh) <- findLineShapeInfo lineId -<< doc
-    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
+    mapSpriteId <- findMapSpriteId -< doc
+    getRoute2 mapSpriteId -<< doc
+
+getMapBeginNode :: IOSArrow XmlTree (V2 Int)
+getMapBeginNode = proc doc -> do
+    mapSpriteId <- findMapSpriteId -< doc
+    getMapBeginNode2 mapSpriteId -<< doc
 
 getExtraRoute :: IOSArrow XmlTree MyLine
 getExtraRoute = proc doc -> do
@@ -134,22 +142,6 @@ getExtraRoute = proc doc -> do
     let ptEnd = ptEnd' ^+^ ptExEnd
     (sb,sh) <- findLineShapeInfo spriteId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
-
-getMapBeginNode :: IOSArrow XmlTree (V2 Int)
-getMapBeginNode = proc doc -> do
-    -- load line info
-    (ptEnd,spriteId) <-
-        findMapSprite
-        >>> getChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< doc
-    -- select lines whose childrens are without ids
-    findSprite spriteId
-        >>> ((this /> hasName "subTags")
-             `notContaining`
-             (this /> hasAttr "characterId")) -<< doc
-    this -< ptEnd
-
 
 getMapBeginNode2 :: String -> IOSArrow XmlTree (V2 Int)
 getMapBeginNode2 mapSpriteId = proc doc -> do
@@ -198,9 +190,7 @@ getFromExtraXml fp = do
     let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
         Just (spriteId,_) = find isExtraRoot tagNamePairs
     extraBeginPts <- runWithDoc_ (getMapBeginNode2 spriteId) doc
-    mapM_ print extraBeginPts
     routes <- runWithDoc_ (getRoute2 spriteId) doc
-    mapM_ print routes
     pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
