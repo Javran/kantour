@@ -5,7 +5,6 @@
     PartialTypeSignatures
   , ScopedTypeVariables
   , NoMonomorphismRestriction
-  , Arrows
   #-}
 module Kantour.MapTool.Main where
 
@@ -13,8 +12,7 @@ import System.Environment
 import Data.List
 import Data.Maybe
 import Control.Monad
-import Text.XML.HXT.Core hiding (when)
-import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
+
 import Linear
 import Linear.Affine
 import Data.Function
@@ -48,39 +46,13 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 {-
 
-TODO: now that time to make terms consistent: (pick the most precise term on conflict)
+terms: (pick the most precise term on conflict)
 
 - "main" for things that can be tracked back to sprite with name "map"
 - "extra" for things that can be tracked back to a sprite with name prefixed "extra"
 - "hidden" for things that come from the separated encoded binary file.
 
 -}
-
-getFromExtraXml :: String -> IO ([MyLine],[V2 Int])
-getFromExtraXml fp = do
-    mDoc <- runX (readDocument [] fp)
-    let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-        getItem = hasName "item" /> getText
-    tagsRaw <- runWithDoc_
-               (docDeep (hasName "item"
-                     >>> hasAttrValue "type"
-                     (== "SymbolClassTag")) />
-               (hasName "tags" /> getItem)) doc
-    namesRaw <- runWithDoc_
-               (docDeep (hasName "item"
-                     >>> hasAttrValue "type"
-                     (== "SymbolClassTag")) />
-               (hasName "names" /> getItem)) doc
-    let tagNamePairs = zip tagsRaw namesRaw
-    when (length tagNamePairs /= length tagsRaw
-          || length tagNamePairs /= length namesRaw)
-        $ putStrLn "warning: tag & name element count differs"
-    let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
-        Just (spriteId,_) = find isExtraRoot tagNamePairs
-    [(routes, extraBeginPts)] <- runWithDoc_ (proc doc' -> do
-        extraSprite <- findSprite spriteId -< doc'
-        listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc')) doc
-    pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
 defaultMain = do
@@ -91,35 +63,28 @@ defaultMain = do
             putStrLn "usage: maptool <main xml> [extra xml] [-- diagrams args]"
             putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
             exitFailure
-        Just ((srcFP, mExtraFP), mDiagramArgs) -> do
+        Just ((srcFP, mHiddenFP), mDiagramArgs) -> do
             -- pretty printing arguments
             putStrLn $ "main xml: " ++ srcFP
-            putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mExtraFP
+            putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mHiddenFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
-            mDoc <- runX (readDocument [] srcFP)
-            let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-            [((results,results2),beginNodes')] <- runWithDoc_ (proc doc' -> do
-                mainSprite <- getMainSprite -< doc'
-                (r1,r3) <- listA getRoute &&& listA getMapBeginNode -< (mainSprite, doc')
-                r2 <- listA getExtraRoute -< doc'
-                returnA -< ((r1,r2),r3))
-                doc
-            (extraRoutes, extraBeginNodes) <- case mExtraFP of
-                Just extraFP -> getFromExtraXml extraFP
-                Nothing -> pure ([],[])
+            (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
+            (hiddenRoutes, hiddenBeginNodes) <-
+                case mHiddenFP of
+                    Just hiddenFP -> safeParseXmlDoc extractFromHidden hiddenFP
+                    Nothing -> pure ([], [])
             putStrLn "====="
             -- the coordinates look like large numbers because SWF uses twip as basic unit
             -- (most of the time) divide them by 20 to get pixels
-            let beginNodes = beginNodes' ++ extraBeginNodes
-                adjusted = adjustLines beginNodes (results ++ results2 ++ extraRoutes)
-                pointMap = mkPointMap beginNodes adjusted
-                mapInfo = MapInfo adjusted (S.fromList beginNodes) pointMap
+            let beginNodes = mainBeginNodes ++ hiddenBeginNodes
+                adjustedRoutes = adjustLines beginNodes (mainRoutes ++ hiddenRoutes)
+                pointMap = mkPointMap beginNodes adjustedRoutes
+                mapInfo = MapInfo adjustedRoutes (S.fromList beginNodes) pointMap
             case mDiagramArgs of
                 Nothing -> pure ()
-                Just diagramArgs ->
-                    withArgs diagramArgs $ draw mapInfo
+                Just diagramArgs -> withArgs diagramArgs $ draw mapInfo
             putStrLn "=== JSON encoding ==="
-            putStrLn (encodeStrict (linesToJSValue adjusted pointMap))
+            putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
 
 -- separate argument list into maptool arguments and those meant for diagrams:
 -- arg list: <main xml> [extra xml] [-- <diagram args>]
@@ -140,9 +105,6 @@ sepArgs as = do
             -- the "_" part as to be "--" as it's the result from "break"
             _:xs -> guard (not (null xs)) >> pure xs
     pure (lVal, rVal)
-
-runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
-runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)
 
 {-
 begin point of each edge is estimated from end point and the shape info of the line

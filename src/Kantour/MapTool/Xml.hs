@@ -5,13 +5,15 @@
   #-}
 module Kantour.MapTool.Xml where
 
-import Data.List
-import Text.XML.HXT.Core hiding (when)
-import Linear
 import Control.Lens hiding (deep)
 import Data.Coerce
-
+import Data.List
+import Text.XML.HXT.Core hiding (when)
+import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
+import Linear
 import Kantour.MapTool.Types
+import Kantour.Utils
+import Control.Exception
 
 -- type for the full document
 newtype XmlDoc = XmlDoc XmlTree
@@ -62,6 +64,24 @@ findMapSpriteId =
          >>> hasAttrValue "name" (== "map")
          >>> getAttrValue "characterId")
 
+findHiddenSpriteId :: ArrowXml arr => arr XmlDoc String
+findHiddenSpriteId =
+    docDeep (hasName "item"
+             >>> hasAttrValue "type" (== "SymbolClassTag"))
+    >>> (listA (this /> (hasName "tags" /> getItem)) &&&
+         listA (this /> (hasName "names" /> getItem)))
+    >>> arr (uncurry findHiddenRoot)
+  where
+    getItem = hasName "item" /> getText
+    findHiddenRoot :: [String] -> [String] -> String
+    findHiddenRoot tags names
+        | equalLength tags names =
+            let isExtraRoot (_, s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
+            in case find isExtraRoot (zip tags names) of
+                   Just (spriteId, _) -> spriteId
+                   Nothing -> error "cell root not found"
+        | otherwise = error "tags & names length differs"
+
 findLineShapeInfo :: ArrowXml arr => String -> arr XmlDoc (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
     sprite <- findSprite lineId -<< doc
@@ -85,13 +105,12 @@ getMainSprite = proc doc -> do
     mapSpriteId <- findMapSpriteId -< doc
     findSprite mapSpriteId -<< doc
 
-getExtraRoute :: forall arr. ArrowXml arr => arr XmlDoc MyLine
-getExtraRoute = proc doc -> do
+getExtraRoute :: forall arr. ArrowXml arr => arr (XmlSprite, XmlDoc) MyLine
+getExtraRoute = proc (spriteRoot, doc) -> do
     (ptExEnd,extraId) <-
-        getMainSprite
-        >>> getSpriteChild
+            getSpriteChild
         >>> hasAttrValue "name" ("extra" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< doc
+        >>> loadSubMatrixAndId -< spriteRoot
     (lineName, (ptEnd',spriteId)) <-
         findSprite extraId
         >>> getSpriteChild
@@ -124,3 +143,48 @@ getRoute = proc (spriteRoot, doc) -> do
         >>> getAttrValue "name" &&& loadSubMatrixAndId -< spriteRoot
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
+
+extractFromMain :: ArrowXml arr => arr XmlDoc ([MyLine], [V2 Int])
+extractFromMain = proc doc -> do
+    mainSprite <- getMainSprite -< doc
+    let d' = (mainSprite, doc)
+    rs <- listA getRoute -< d'
+    extraRs <- listA getExtraRoute -< d'
+    begins <- listA getMapBeginNode -< d'
+    this -< (rs ++ extraRs, begins)
+
+extractFromHidden :: ArrowXml arr => arr XmlDoc ([MyLine], [V2 Int])
+extractFromHidden = proc doc -> do
+    spriteId <- findHiddenSpriteId -< doc
+    extraSprite <- findSprite spriteId -<< doc
+    listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc)
+
+parseXmlDoc
+    :: IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int])
+    -> String
+    -> IO (Either String ([MyLine], [V2 Int]))
+parseXmlDoc arrExtract fp = do
+    lDoc <- runX (readDocument [] fp)
+    case lDoc of
+        [doc] ->
+            (do [(routes, extraBeginPts)] <- runWithDoc_ arrExtract doc
+                pure (Right (routes, extraBeginPts))) `catches`
+            [ Handler (\(e :: IOException) -> pure (Left (show e)))
+            , Handler (\(e :: ErrorCall) -> pure (Left (show e)))
+            ]
+        _ -> pure $ Left $ "error when parsing: " ++ fp
+
+safeParseXmlDoc
+    :: IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int])
+    -> String
+    -> IO ([MyLine], [V2 Int])
+safeParseXmlDoc arrExtract fp = do
+    parsed <- parseXmlDoc arrExtract fp
+    case parsed of
+        Left errMsg -> do
+            putStrLn $ "Parse error: " ++ errMsg
+            pure ([], [])
+        Right v -> pure v
+
+runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
+runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)

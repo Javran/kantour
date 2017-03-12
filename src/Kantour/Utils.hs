@@ -54,3 +54,15 @@ strip =
     -- stripL first so we can leave
     -- the longest non-space leading chunk to stripR
     stripR . stripL
+
+-- from GHC Util.hs
+equalLength :: [a] -> [b] -> Bool
+equalLength [] [] = True
+equalLength (_:xs) (_:ys) = equalLength xs ys
+equalLength _ _ = False
+
+compareLength :: [a] -> [b] -> Ordering
+compareLength [] [] = EQ
+compareLength (_:xs) (_:ys) = compareLength xs ys
+compareLength [] _ = LT
+compareLength _ [] = GT
