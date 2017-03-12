@@ -20,7 +20,6 @@ import Linear.Affine
 import Data.Function
 import Text.JSON
 import Data.Monoid
-import Data.Coerce
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import System.Exit
@@ -47,18 +46,28 @@ http://blog.dazzyd.org/blog/how-to-draw-a-kancolle-map/
 
 -}
 
+{-
+
+TODO: now that time to make terms consistent: (pick the most precise term on conflict)
+
+- "main" for things that can be tracked back to sprite with name "map"
+- "extra" for things that can be tracked back to a sprite with name prefixed "extra"
+- "hidden" for things that come from the separated encoded binary file.
+
+-}
+
 getFromExtraXml :: String -> IO ([MyLine],[V2 Int])
 getFromExtraXml fp = do
     mDoc <- runX (readDocument [] fp)
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
         getItem = hasName "item" /> getText
     tagsRaw <- runWithDoc_
-               (arr coerce >>> deep (hasName "item"
+               (docDeep (hasName "item"
                      >>> hasAttrValue "type"
                      (== "SymbolClassTag")) />
                (hasName "tags" /> getItem)) doc
     namesRaw <- runWithDoc_
-               (arr coerce >>> deep (hasName "item"
+               (docDeep (hasName "item"
                      >>> hasAttrValue "type"
                      (== "SymbolClassTag")) />
                (hasName "names" /> getItem)) doc
@@ -68,12 +77,9 @@ getFromExtraXml fp = do
         $ putStrLn "warning: tag & name element count differs"
     let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
         Just (spriteId,_) = find isExtraRoot tagNamePairs
-    extraBeginPts <- runWithDoc_ (proc doc' -> do
+    [(routes, extraBeginPts)] <- runWithDoc_ (proc doc' -> do
         extraSprite <- findSprite spriteId -< doc'
-        getMapBeginNode -< (extraSprite, doc') ) doc
-    routes <- runWithDoc_(proc doc' -> do
-        extraSprite <- findSprite spriteId -< doc'
-        getRoute -< (extraSprite, doc') ) doc
+        listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc')) doc
     pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
@@ -94,9 +100,8 @@ defaultMain = do
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
             [((results,results2),beginNodes')] <- runWithDoc_ (proc doc' -> do
                 mainSprite <- getMainSprite -< doc'
-                r1 <- listA getRoute -< (mainSprite, doc')
+                (r1,r3) <- listA getRoute &&& listA getMapBeginNode -< (mainSprite, doc')
                 r2 <- listA getExtraRoute -< doc'
-                r3 <- listA getMapBeginNode -< (mainSprite, doc')
                 returnA -< ((r1,r2),r3))
                 doc
             (extraRoutes, extraBeginNodes) <- case mExtraFP of
