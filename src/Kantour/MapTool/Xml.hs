@@ -36,11 +36,13 @@ loadSubMatrixAndId = proc tree -> do
         /> hasName "matrix"
         >>> getIntPair "translateX" "translateY" V2
 
+docDeep :: ArrowXml arr => arr XmlTree a -> arr XmlDoc a
+docDeep f = arr coerce >>> deep f
+
 findShapeBounds :: ArrowXml arr => String -> arr XmlDoc ShapeBounds
 findShapeBounds shapeId = proc doc -> do
     shape <-
-        arr coerce >>>
-        deep (hasName "item" >>>
+        docDeep (hasName "item" >>>
                    hasAttrValue "shapeId" (== shapeId) />
                    hasName "shapeBounds")
              -< doc
@@ -50,14 +52,12 @@ findShapeBounds shapeId = proc doc -> do
 
 findSprite :: ArrowXml arr => String -> arr XmlDoc XmlSprite
 findSprite spriteId =
-    arr coerce
-    >>> deep (hasName "item" >>> hasAttrValue "spriteId" (== spriteId))
-    >>> arr coerce
+    docDeep (hasName "item" >>> hasAttrValue "spriteId" (== spriteId))
+    >>> arr XmlSprite
 
 findMapSpriteId :: ArrowXml arr => arr XmlDoc String
 findMapSpriteId =
-    arr coerce
-    >>> deep
+    docDeep
         (hasName "item"
          >>> hasAttrValue "name" (== "map")
          >>> getAttrValue "characterId")
@@ -90,6 +90,7 @@ getExtraRoute = proc doc -> do
     (ptExEnd,extraId) <-
         getMainSprite
         >>> getSpriteChild
+        >>> hasAttrValue "name" ("extra" `isPrefixOf`)
         >>> loadSubMatrixAndId -< doc
     (lineName, (ptEnd',spriteId)) <-
         findSprite extraId
