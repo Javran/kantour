@@ -9,8 +9,15 @@ import Data.List
 import Text.XML.HXT.Core hiding (when)
 import Linear
 import Control.Lens hiding (deep)
+import Data.Coerce
 
 import Kantour.MapTool.Types
+
+-- type for the full document
+newtype XmlDoc = XmlDoc XmlTree
+
+-- type for sprites
+newtype XmlSprite = XmlSprite XmlTree
 
 getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
 getIntPair fstName sndName resultF =
@@ -29,9 +36,11 @@ loadSubMatrixAndId = proc tree -> do
         /> hasName "matrix"
         >>> getIntPair "translateX" "translateY" V2
 
-findShapeBounds :: ArrowXml arr => String -> arr XmlTree ShapeBounds
+findShapeBounds :: ArrowXml arr => String -> arr XmlDoc ShapeBounds
 findShapeBounds shapeId = proc doc -> do
-    shape <- deep (hasName "item" >>>
+    shape <-
+        arr coerce >>>
+        deep (hasName "item" >>>
                    hasAttrValue "shapeId" (== shapeId) />
                    hasName "shapeBounds")
              -< doc
@@ -39,76 +48,78 @@ findShapeBounds shapeId = proc doc -> do
     yMaxMin <- getIntPair "Ymax" "Ymin" (,) -< shape
     this -< (xMaxMin, yMaxMin)
 
-findSprite :: ArrowXml arr => String -> arr XmlTree XmlTree
+findSprite :: ArrowXml arr => String -> arr XmlDoc XmlSprite
 findSprite spriteId =
-    deep (hasName "item" >>>
-          hasAttrValue "spriteId" (== spriteId))
+    arr coerce
+    >>> deep (hasName "item" >>> hasAttrValue "spriteId" (== spriteId))
+    >>> arr coerce
 
-findMapSpriteId :: ArrowXml arr => arr XmlTree String
+findMapSpriteId :: ArrowXml arr => arr XmlDoc String
 findMapSpriteId =
-    deep (hasName "item"
+    arr coerce
+    >>> deep
+        (hasName "item"
          >>> hasAttrValue "name" (== "map")
          >>> getAttrValue "characterId")
 
-findLineShapeInfo :: ArrowXml arr => String -> arr XmlTree (ShapeBounds,V2 Int)
+findLineShapeInfo :: ArrowXml arr => String -> arr XmlDoc (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
     sprite <- findSprite lineId -<< doc
     -- shape should be a child of sprite (the line)
-    shapeRef <- getChild >>> hasAttr "characterId" -< sprite
+    shapeRef <- getSpriteChild >>> hasAttr "characterId" -< sprite
     (sh,shapeId) <- loadSubMatrixAndId -< shapeRef
     sb <- findShapeBounds shapeId -<< doc
     this -< (sb,sh)
 
-getChild :: ArrowXml arr => arr XmlTree XmlTree
-getChild = this /> hasName "subTags" /> hasName "item"
+getSpriteChild :: ArrowXml arr => arr XmlSprite XmlTree
+getSpriteChild = arr coerce /> hasName "subTags" /> hasName "item"
 
 guessStartPoint :: V2 Int -> V2 Int -> ShapeBounds -> V2 Int
-guessStartPoint ptEnd sh ((xMax,xMin),(yMax,yMin)) = ptEnd + V2 dx dy
+guessStartPoint ptEnd sh ((xMax, xMin), (yMax, yMin)) = ptEnd + V2 dx dy
   where
     dx = (view _x sh + ((xMax + xMin) `div` 2)) * 2
     dy = (view _y sh + ((yMax + yMin) `div` 2)) * 2
 
-withMainSprite :: ArrowXml arr => (String -> arr XmlTree a) -> arr XmlTree a
-withMainSprite k = proc doc -> do
+getMainSprite :: ArrowXml arr => arr XmlDoc XmlSprite
+getMainSprite = proc doc -> do
     mapSpriteId <- findMapSpriteId -< doc
-    k mapSpriteId -<< doc
+    findSprite mapSpriteId -<< doc
 
-getExtraRoute :: ArrowXml arr => arr XmlTree MyLine
+getExtraRoute :: forall arr. ArrowXml arr => arr XmlDoc MyLine
 getExtraRoute = proc doc -> do
     (ptExEnd,extraId) <-
-        withMainSprite findSprite
-        >>> getChild
+        getMainSprite
+        >>> getSpriteChild
         >>> loadSubMatrixAndId -< doc
     (lineName, (ptEnd',spriteId)) <-
         findSprite extraId
-        >>> getChild
+        >>> getSpriteChild
         >>> hasAttrValue "name" ("line" `isPrefixOf`)
         >>> getAttrValue "name" &&& loadSubMatrixAndId -<< doc
     let ptEnd = ptEnd' ^+^ ptExEnd
     (sb,sh) <- findLineShapeInfo spriteId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
-getMapBeginNode :: ArrowXml arr => String -> arr XmlTree (V2 Int)
-getMapBeginNode mapSpriteId = proc doc -> do
+getMapBeginNode :: ArrowXml arr => arr (XmlSprite, XmlDoc) (V2 Int)
+getMapBeginNode = proc (spriteRoot, doc) -> do
     -- load line info
     (ptEnd,spriteId) <-
-        findSprite mapSpriteId
-        >>> getChild
+            getSpriteChild
         >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< doc
+        >>> loadSubMatrixAndId -< spriteRoot
     -- select lines whose childrens are without ids
     findSprite spriteId
+        >>> arr coerce
         >>> ((this /> hasName "subTags")
              `notContaining`
              (this /> hasAttr "characterId")) -<< doc
     this -< ptEnd
 
-getRoute :: ArrowXml arr => String -> arr XmlTree MyLine
-getRoute mapSpriteId = proc doc -> do
+getRoute :: ArrowXml arr => arr (XmlSprite, XmlDoc) MyLine
+getRoute = proc (spriteRoot, doc) -> do
     (lineName,(ptEnd,lineId)) <-
-        findSprite mapSpriteId
-        >>> getChild
+        getSpriteChild
         >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -< doc
+        >>> getAttrValue "name" &&& loadSubMatrixAndId -< spriteRoot
     (sb,sh) <- findLineShapeInfo lineId -<< doc
     this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd

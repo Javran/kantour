@@ -5,6 +5,7 @@
     PartialTypeSignatures
   , ScopedTypeVariables
   , NoMonomorphismRestriction
+  , Arrows
   #-}
 module Kantour.MapTool.Main where
 
@@ -19,6 +20,7 @@ import Linear.Affine
 import Data.Function
 import Text.JSON
 import Data.Monoid
+import Data.Coerce
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import System.Exit
@@ -51,12 +53,12 @@ getFromExtraXml fp = do
     let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
         getItem = hasName "item" /> getText
     tagsRaw <- runWithDoc_
-               (deep (hasName "item"
+               (arr coerce >>> deep (hasName "item"
                      >>> hasAttrValue "type"
                      (== "SymbolClassTag")) />
                (hasName "tags" /> getItem)) doc
     namesRaw <- runWithDoc_
-               (deep (hasName "item"
+               (arr coerce >>> deep (hasName "item"
                      >>> hasAttrValue "type"
                      (== "SymbolClassTag")) />
                (hasName "names" /> getItem)) doc
@@ -66,8 +68,12 @@ getFromExtraXml fp = do
         $ putStrLn "warning: tag & name element count differs"
     let isExtraRoot (_,s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
         Just (spriteId,_) = find isExtraRoot tagNamePairs
-    extraBeginPts <- runWithDoc_ (getMapBeginNode spriteId) doc
-    routes <- runWithDoc_ (getRoute spriteId) doc
+    extraBeginPts <- runWithDoc_ (proc doc' -> do
+        extraSprite <- findSprite spriteId -< doc'
+        getMapBeginNode -< (extraSprite, doc') ) doc
+    routes <- runWithDoc_(proc doc' -> do
+        extraSprite <- findSprite spriteId -< doc'
+        getRoute -< (extraSprite, doc') ) doc
     pure (routes, extraBeginPts)
 
 defaultMain :: IO ()
@@ -86,11 +92,13 @@ defaultMain = do
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
             mDoc <- runX (readDocument [] srcFP)
             let doc = fromMaybe (error "source document parsing error") $ listToMaybe mDoc
-            [((results,results2),beginNodes')] <- runWithDoc_
-                ((listA (withMainSprite getRoute) &&& listA getExtraRoute)
-                 &&& listA (withMainSprite getMapBeginNode))
+            [((results,results2),beginNodes')] <- runWithDoc_ (proc doc' -> do
+                mainSprite <- getMainSprite -< doc'
+                r1 <- listA getRoute -< (mainSprite, doc')
+                r2 <- listA getExtraRoute -< doc'
+                r3 <- listA getMapBeginNode -< (mainSprite, doc')
+                returnA -< ((r1,r2),r3))
                 doc
-
             (extraRoutes, extraBeginNodes) <- case mExtraFP of
                 Just extraFP -> getFromExtraXml extraFP
                 Nothing -> pure ([],[])
@@ -128,8 +136,8 @@ sepArgs as = do
             _:xs -> guard (not (null xs)) >> pure xs
     pure (lVal, rVal)
 
-runWithDoc_ :: IOSLA (XIOState ()) XmlTree a -> XmlTree -> IO [a]
-runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) doc
+runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
+runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)
 
 {-
 begin point of each edge is estimated from end point and the shape info of the line
