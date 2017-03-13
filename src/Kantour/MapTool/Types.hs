@@ -34,7 +34,7 @@ simpleLName l = case splitAt 4 n of
 data MapInfo = MapInfo
   { _miLines :: [MyLine]
   , _miStarts :: S.Set (V2 Int)
-  , _miNodeNames :: M.Map (V2 Int) String -- ^ INVARIANT: all nodes have a name in it
+  , _miNodeNames :: M.Map (V2 Int) String -- ^ INVARIANT: all nodes have a unique name in it
   }
 
 makeLenses ''MapInfo

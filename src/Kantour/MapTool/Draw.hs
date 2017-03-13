@@ -9,36 +9,42 @@ import Diagrams.Prelude
 import Diagrams.Backend.SVG.CmdLine
 import Data.Coerce
 
+import qualified Data.Set as S
+import qualified Data.Map.Strict as M
+
 import Kantour.MapTool.Types
+
+{-# ANN module "Hlint: ignore Avoid lambda" #-}
 
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 
-
 drawKCMap :: MapInfo
           -> Diagram B
-drawKCMap mi@MapInfo {_miLines=xs} = ((endPoints <> startPoints)
-                   # applyAll
-                     (map (\l ->
-                           connectOutside' arrowOpts (lineStartName l) (lineEndName l))
-                      xs))
-                  `atop`
-                  position (zip (lineMid <$> xs) arrLbls)
+drawKCMap mi@MapInfo {_miLines = xs} =
+    (allPoints # applyAll routeConnections) `atop` arrTextLayer
   where
-    circle' color txt = text txt # fontSizeL 10 # fc black <> circle 10 # fc color
-    mkPoints getter color lineName =
-        atPoints
-          (fmap (convertPt . getter) xs)
-          (map (\l ->
-                circle' color (getNodeName (getter l) mi)
-                # named (lineName l)) xs)
-    endPoints = mkPoints _lEnd green lineEndName
-    startPoints = mkPoints _lStart red lineStartName
     arrowOpts = with & gaps .~ small & headLength .~ 22
-    arrLbls = map (\l -> text (simpleLName l) # fc blue # fontSizeL 16) xs
-    lineStartName = (++ "r") . _lName
-    lineEndName = (++ "g") . _lName
-
+    circle' color txt =
+        text txt # fontSizeL 10 # fc black <> circle 10 # fc color
+    allPoints :: Diagram B
+    allPoints = position (renderPoint <$> (M.keys . _miNodeNames $ mi))
+      where
+        renderPoint p = (convertPt p, circle' color nodeName # named nodeName)
+          where
+            color =
+                if p `S.member` _miStarts mi
+                    then red
+                    else green
+            nodeName = getNodeName p mi
+    routeConnections =
+        map (connectOutside' arrowOpts <$> lineStartName <*> lineEndName) xs
+    arrTextLayer = position (zip (lineMid <$> xs) arrLbls)
+      where
+        arrLbls = map (\l -> text (simpleLName l) # fc blue # fontSizeL 16) xs
+    lineStartName :: MyLine -> String
+    lineStartName = (\pt -> getNodeName pt mi) . _lStart
+    lineEndName = (\pt -> getNodeName pt mi) . _lEnd
 
 draw :: MapInfo -> IO ()
 draw = mainWith . drawKCMap

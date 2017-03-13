@@ -125,7 +125,8 @@ adjustLines startPts ls = adjustLine <$> ls
 {-
 guess names for each node:
 
-- begin nodes are name "<n>" where n is a number,
+- begin nodes are named "<n>" where n is a number.
+  However just keep that in mind that
   in KC3Kai edges.json file, there's no distinction between begin nodes and all are called just "Start".
 
 - for all the other nodes, the name of a node depends on the name of edges pointing to it.
