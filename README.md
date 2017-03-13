@@ -47,7 +47,6 @@ Usage: `quotefetch <optinal link>`.
     - `quotefetch '季节性/2017年女儿节'`
     - `quotefetch '季节性/2017年白色情人节'`
 
-
 ## dropcalc
 
 For computing statistics according to a drop rate.

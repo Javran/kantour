@@ -27,6 +27,7 @@ import Kantour.QuotesFetch.SimpleLogger
 import Data.Typeable
 import Data.Either
 import Control.Exception
+import Kantour.Utils
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 {-# ANN module ("HLint: ignore Use unless" :: String) #-}
@@ -40,8 +41,8 @@ data QuoteFetchException =
 
 instance Exception QuoteFetchException
 
-processAndCombine :: String -> IO ShipQuoteTable
-processAndCombine seasonalLink = do
+processAndCombine :: Maybe String -> IO ShipQuoteTable
+processAndCombine mSeasonalLink = do
     sdb <- shipDatabaseFromString True =<< fetchRawDatabase
     let links = map (\mstId -> snd {- both "fst" (jp) and "snd" (scn) should work fine -}
                                (findShipName sdb mstId))
@@ -82,25 +83,24 @@ processAndCombine seasonalLink = do
     regulars1 <- runStdoutLoggingT $
         foldM (\acc i -> loggedSQTUnion "mergeRegulars" acc (IM.toList i)) IM.empty tqss
     let regulars = reapplyQuoteLines sdb regulars1
-    content' <- fetchWikiLink seasonalLink
-    let Right (Page result') = parse pScanAll "" content'
-        PgSeasonal pageContent = fromJust (parseSeasonalPage result')
-    pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
-    seasonals <-
-        reapplyQuoteLines sdb
-        <$> runStdoutLoggingT (processPage "mergeSeasonals" sdb (PgSeasonal pageContent'))
+    seasonals <- case mSeasonalLink of
+        Just seasonalLink -> do
+            content' <- fetchWikiLink seasonalLink
+            let Right (Page result') = parse pScanAll "" content'
+                PgSeasonal pageContent = fromJust (parseSeasonalPage result')
+            pageContent' <- runStdoutLoggingT (removeEmptyQuoteLines pageContent)
+            reapplyQuoteLines sdb
+                <$> runStdoutLoggingT (processPage "mergeSeasonals" sdb (PgSeasonal pageContent'))
+        Nothing ->
+            putStrLn "no seasonal link specified, using empty table instead."
+            >> pure IM.empty
     runStdoutLoggingT (loggedSQTUnion "finalCombine" regulars (IM.toList seasonals))
 
 defaultMain :: IO ()
 defaultMain = do
     as <- getArgs
-    seasonalLink <- case as of
-        [s] -> pure s
-        _ -> do
-            let defLink = "季节性/2017年白色情人节"
-            putStrLn "argument not recognized, falling back to use default link"
-            pure defLink
-    sqt <- processAndCombine seasonalLink
+    let mSeasonalLink = exactlyOne as
+    sqt <- processAndCombine mSeasonalLink
     stopGlobalPool
     let kc3qt = toKcwikiQuoteTable sqt
     LBS.writeFile "kcwiki.json" (encode kc3qt)

@@ -66,3 +66,7 @@ compareLength [] [] = EQ
 compareLength (_:xs) (_:ys) = compareLength xs ys
 compareLength [] _ = LT
 compareLength _ [] = GT
+
+exactlyOne :: [a] -> Maybe a
+exactlyOne [x] = Just x
+exactlyOne _ = Nothing
