@@ -3,6 +3,7 @@ module Kantour.MiniJson.Types where
 import qualified Data.Text as T
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
+import Data.Char
 
 -- INVARIANT: all appearance of Integer below should all be non-negative
 data JValue
@@ -22,7 +23,14 @@ data JValue
 instance Pretty JValue where
     pPrint JNull = text "null"
     pPrint (JBool b) = text $ if b then "true" else "false"
-    pPrint (JText t) = text $ T.unpack t
+    pPrint (JText t) = -- TODO: handle escaping?
+        let escaped :: Char -> Doc
+            escaped '\\' = text "\\\\"
+            escaped '"' = text "\\\""
+            escaped c
+                | isControl c = error "control chars are not yet handled"
+                | otherwise = text [c]
+        in char '"' <> foldMap escaped (T.unpack t) <> char '"'
     pPrint (JArray xs) = brackets . fsep . punctuate comma . map pPrint $ xs
     pPrint (JNum n bd mad mes) = pNeg <> pBefore <> pAfter <> pEs
       where
