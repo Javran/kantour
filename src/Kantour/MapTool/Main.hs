@@ -54,6 +54,19 @@ terms: (pick the most precise term on conflict)
 
 -}
 
+{-
+
+TODO:
+
+- allow gradual correction of node names
+
+    - add ".nodes.json" to main map file to produce the node name mapping.
+      e.g. if main map file is "37_01.xml", mapping file will be called "37_01.xml.nodes.json"
+
+- none-overlapping of edges...
+
+-}
+
 defaultMain :: IO ()
 defaultMain = do
     mArgs <- sepArgs <$> getArgs
