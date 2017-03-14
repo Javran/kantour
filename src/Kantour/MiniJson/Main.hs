@@ -4,6 +4,8 @@ import Prelude hiding (takeWhile)
 import qualified Data.Text.IO as T
 import Data.Attoparsec.Text
 import System.Environment
+import Text.PrettyPrint.HughesPJClass
+import System.Exit
 
 import Kantour.MiniJson.Parser
 
@@ -16,4 +18,7 @@ defaultMain = do
     [srcFP] <- getArgs
     content <- T.readFile srcFP
     let parsed = parseOnly (skipSpace >> pValue) content
-    print parsed
+    case parsed of
+        Right json ->
+            putStrLn (prettyShow json)
+        Left _ -> exitFailure

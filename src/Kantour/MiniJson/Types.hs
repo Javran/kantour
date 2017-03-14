@@ -40,7 +40,7 @@ instance Pretty JValue where
         pEs = maybe empty (\(eNeg,ePart) ->
                            let pN' = if eNeg then char '-' else empty
                            in text "e" <> pN' <> integer ePart) mes
-    pPrint (JObject xs) = brackets . fsep . punctuate comma . map pPair $ xs
+    pPrint (JObject xs) = braces . fsep . punctuate comma . map pPair $ xs
       where
         pPair :: (T.Text, JValue) -> Doc
-        pPair (k,v) = parens (text (T.unpack k) <> comma <> pPrint v)
+        pPair (k,v) = pPrint (JText k) <> char ':' <> pPrint v
