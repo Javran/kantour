@@ -36,6 +36,7 @@ library
                      , Kantour.QuotesFetch.JsonMerge
                      , Kantour.QuotesFetch.SimpleLogger
                      , Kantour.QuotesFetch.Main
+                     , Kantour.WhoCallsTheFleet.Main
                      , Kantour.Utils
   build-depends:       base
                      , mwc-random
@@ -106,6 +107,14 @@ executable maptool
 
 executable quotesfetch
   hs-source-dirs:      mains/quotesfetch
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , kantour
+  default-language:    Haskell2010
+
+executable wctf
+  hs-source-dirs:      mains/wctf
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
