@@ -28,4 +28,24 @@ fetchItemsRaw :: IO String
 fetchItemsRaw = fetchURL (repoBase ++ "items.json")
 
 defaultMain :: IO ()
-defaultMain = fetchItemsRaw >>= putStrLn
+defaultMain = fetchShipsRaw >>= putStrLn
+
+data Equipment = Equipment
+  { eqpId :: Int
+  , eqpRarity :: Int
+  , eqpType :: Int
+  , eqpName :: () -- TODO
+  , eqpStat :: ()
+  , eqpDismantle :: ()
+  , eqpCraftable :: Bool
+  , eqpImprovable :: Bool
+  , eqpRankUpgradable :: Bool
+  }
+
+data Ship = Ship
+  { shipId :: Int
+  , shipName :: ()
+  , shipStat :: ()
+  , shipConsumption :: ()
+  , shipSlots :: ()
+  }
