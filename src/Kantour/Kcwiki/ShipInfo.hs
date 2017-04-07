@@ -6,7 +6,7 @@ module Kantour.Kcwiki.ShipInfo where
 
 data ShipInfo = ShipInfo
   { kcwikiId :: String
-    -- "图鉴号" -- ?
+  , sortId :: Int
   , masterId :: Int
   , nameJP :: String
   , kana :: String
