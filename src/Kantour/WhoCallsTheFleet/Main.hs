@@ -42,8 +42,12 @@ parseShip xs = decode (fromString xs)
 
 defaultMain :: IO ()
 defaultMain = do
-    raw <- fetchShipsRaw
-    print (splitLines raw)
+    raws <- splitLines <$> fetchShipsRaw
+    let process :: LBS.ByteString -> IO ()
+        process raw = do
+            print (decode raw :: Maybe Value)
+            pure ()
+    mapM_ process raws
 
 data Equipment = Equipment
   { eqpId :: Int
