@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 module Kantour.WhoCallsTheFleet.Main where
 
 import qualified Data.Text as T
@@ -7,6 +7,9 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
+import Data.Aeson
+
+import GHC.Generics
 
 repoBase :: String
 repoBase = "https://raw.githubusercontent.com/Diablohu/WhoCallsTheFleet/master/app-db/"
@@ -44,8 +47,8 @@ data Equipment = Equipment
 
 data Ship = Ship
   { shipId :: Int
-  , shipName :: ()
-  , shipStat :: ()
-  , shipConsumption :: ()
-  , shipSlots :: ()
-  }
+  } deriving Generic
+
+instance FromJSON Ship where
+    parseJSON = withObject "Ship" $ \v -> Ship
+        <$> v .: "id"
