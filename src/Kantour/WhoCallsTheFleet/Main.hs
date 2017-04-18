@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric, TypeFamilies #-}
 module Kantour.WhoCallsTheFleet.Main where
 
 import qualified Data.Text as T
@@ -37,7 +37,7 @@ fetchURL url = do
 splitLines :: LBS.ByteString -> [BS.ByteString]
 splitLines = filter nonEmptyLine . BSC.split '\n' . LBS.toStrict
   where
-    nonEmptyLine xs = BS.length xs > 0 || oall (isSpace . w2c) xs
+    nonEmptyLine xs = oany (not . isSpace . w2c) xs
 
 fetchShipsRaw :: IO LBS.ByteString
 fetchShipsRaw = fetchURL (repoBase ++ "ships.json")
@@ -50,7 +50,8 @@ defaultMain = do
     raws <- splitLines <$> fetchShipsRaw
     let process :: BSC.ByteString -> IO ()
         process raw = do
-            print (decodeStrict' raw :: Maybe Value)
+            BS.putStrLn raw
+            print (decodeStrict' raw :: Maybe Ship)
             putStrLn "===="
             pure ()
     mapM_ process raws
