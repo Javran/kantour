@@ -17,6 +17,7 @@ import GHC.Generics
 import Data.String
 import Control.Monad
 import Data.Word
+import Data.Monoid
 
 w2c :: Word8 -> Char
 w2c = chr . fromIntegral
@@ -71,6 +72,7 @@ data Equipment = Equipment
 data Ship = Ship
   { masterId :: Int
   , name :: ShipName
+  , stat :: ShipStat
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -80,10 +82,31 @@ data ShipName = ShipName
   , zhCN :: T.Text
   } deriving (Generic, Show)
 
+data ShipStat = ShipStat
+  { fire :: ShipStatRange Int
+  , torpedo :: ShipStatRange Int
+  , antiAir :: ShipStatRange Int
+  , antiSub :: ShipStatRange Int
+  , hp :: ShipStatRange Int
+  , armor :: ShipStatRange Int
+  , evasion :: ShipStatRange Int
+  , lineOfSight :: ShipStatRange Int
+  , luck :: ShipStatRange Int
+  , carry :: Int
+  , speed :: Int
+  , range :: Int
+  } deriving (Generic, Show)
+
+data ShipStatRange a = ShipStatRange
+  { base :: a
+  , max :: a
+  } deriving (Generic, Show)
+
 instance FromJSON Ship where
     parseJSON = withObject "Ship" $ \v -> Ship
         <$> v .: "id"
         <*> v .: "name"
+        <*> v .: "stat"
 
 instance FromJSON ShipName where
     parseJSON = withObject "ShipName" $ \v -> ShipName
@@ -91,3 +114,25 @@ instance FromJSON ShipName where
         <*> v .: "ja_kana"
         <*> v .: "ja_romaji"
         <*> v .: "zh_cn"
+
+instance FromJSON ShipStat where
+    parseJSON = withObject "ShipStat" $ \v ->
+        ShipStat
+        <$> parseRange "fire" v
+        <*> parseRange "torpedo" v
+        <*> parseRange "aa" v
+        <*> parseRange "asw" v
+        <*> parseRange "hp" v
+        <*> parseRange "armor" v
+        <*> parseRange "evasion" v
+        <*> parseRange "los" v
+        <*> parseRange "luck" v
+        <*> v .: "carry"
+        <*> v .: "speed"
+        <*> v .: "range"
+      where
+        parseRange fieldName v = ShipStatRange
+            <$> v .: fieldName
+            <*> v .: fieldNameMax
+          where
+            fieldNameMax = fieldName <> "_max"
