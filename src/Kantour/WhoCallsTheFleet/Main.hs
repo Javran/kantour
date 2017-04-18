@@ -11,9 +11,15 @@ import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 import Data.Aeson
 import Data.Char
+import Data.MonoTraversable
 
 import GHC.Generics
 import Data.String
+import Control.Monad
+import Data.Word
+
+w2c :: Word8 -> Char
+w2c = chr . fromIntegral
 
 repoBase :: String
 repoBase = "https://raw.githubusercontent.com/Diablohu/WhoCallsTheFleet/master/app-db/"
@@ -29,7 +35,9 @@ fetchURL url = do
         else fail $ "error with status code: " ++ show (statusCode st)
 
 splitLines :: LBS.ByteString -> [BS.ByteString]
-splitLines = BSC.split '\n' . LBS.toStrict
+splitLines = filter nonEmptyLine . BSC.split '\n' . LBS.toStrict
+  where
+    nonEmptyLine xs = BS.length xs > 0 || oall (isSpace . w2c) xs
 
 fetchShipsRaw :: IO LBS.ByteString
 fetchShipsRaw = fetchURL (repoBase ++ "ships.json")
@@ -40,7 +48,7 @@ parseShip xs = decode (fromString xs)
 defaultMain :: IO ()
 defaultMain = do
     raws <- splitLines <$> fetchShipsRaw
-    let process :: BS.ByteString -> IO ()
+    let process :: BSC.ByteString -> IO ()
         process raw = do
             print (decodeStrict' raw :: Maybe Value)
             putStrLn "===="

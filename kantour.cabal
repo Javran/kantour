@@ -70,6 +70,7 @@ library
                      , deepseq
                      , monad-logger
                      , fast-logger
+                     , mono-traversable
                      , aeson
                      , unordered-containers
   default-language:    Haskell2010
