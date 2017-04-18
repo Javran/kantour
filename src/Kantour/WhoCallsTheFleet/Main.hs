@@ -5,10 +5,12 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 import Data.Aeson
+import Data.Char
 
 import GHC.Generics
 import Data.String
@@ -26,16 +28,11 @@ fetchURL url = do
         then pure (responseBody resp)
         else fail $ "error with status code: " ++ show (statusCode st)
 
-splitLines :: LBS.ByteString -> [LBS.ByteString]
-splitLines xs
-    | LBS.null xs = []
-    | (y,ys) <- LBS.span (/= '\n') xs = y : splitLines (LBS.drop 1 ys)
+splitLines :: LBS.ByteString -> [BS.ByteString]
+splitLines = BSC.split '\n' . LBS.toStrict
 
 fetchShipsRaw :: IO LBS.ByteString
 fetchShipsRaw = fetchURL (repoBase ++ "ships.json")
-{-
-fetchItemsRaw :: IO String
-fetchItemsRaw = fetchURL (repoBase ++ "items.json") -}
 
 parseShip :: String -> Maybe Ship
 parseShip xs = decode (fromString xs)
@@ -43,9 +40,10 @@ parseShip xs = decode (fromString xs)
 defaultMain :: IO ()
 defaultMain = do
     raws <- splitLines <$> fetchShipsRaw
-    let process :: LBS.ByteString -> IO ()
+    let process :: BS.ByteString -> IO ()
         process raw = do
-            print (decode raw :: Maybe Value)
+            print (decodeStrict' raw :: Maybe Value)
+            putStrLn "===="
             pure ()
     mapM_ process raws
 
