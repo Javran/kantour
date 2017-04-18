@@ -10,6 +10,8 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 import Data.Aeson
+import Data.Aeson.Types
+
 import Data.Char
 import Data.MonoTraversable
 
@@ -102,6 +104,13 @@ data ShipStatRange a = ShipStatRange
   , max :: a
   } deriving (Generic, Show)
 
+parseRange :: FromJSON a => T.Text -> Object -> Parser (ShipStatRange a)
+parseRange fieldName v = ShipStatRange
+    <$> v .: fieldName
+    <*> v .: fieldNameMax
+  where
+    fieldNameMax = fieldName <> "_max"
+
 instance FromJSON Ship where
     parseJSON = withObject "Ship" $ \v -> Ship
         <$> v .: "id"
@@ -116,8 +125,7 @@ instance FromJSON ShipName where
         <*> v .: "zh_cn"
 
 instance FromJSON ShipStat where
-    parseJSON = withObject "ShipStat" $ \v ->
-        ShipStat
+    parseJSON = withObject "ShipStat" $ \v -> ShipStat
         <$> parseRange "fire" v
         <*> parseRange "torpedo" v
         <*> parseRange "aa" v
@@ -130,9 +138,3 @@ instance FromJSON ShipStat where
         <*> v .: "carry"
         <*> v .: "speed"
         <*> v .: "range"
-      where
-        parseRange fieldName v = ShipStatRange
-            <$> v .: fieldName
-            <*> v .: fieldNameMax
-          where
-            fieldNameMax = fieldName <> "_max"
