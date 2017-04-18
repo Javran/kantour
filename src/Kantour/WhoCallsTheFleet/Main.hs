@@ -70,8 +70,24 @@ data Equipment = Equipment
 
 data Ship = Ship
   { masterId :: Int
+  , name :: ShipName
+  } deriving (Generic, Show)
+
+data ShipName = ShipName
+  { jaJP :: T.Text
+  , jaKana :: T.Text
+  , jaRomaji :: T.Text
+  , zhCN :: T.Text
   } deriving (Generic, Show)
 
 instance FromJSON Ship where
     parseJSON = withObject "Ship" $ \v -> Ship
         <$> v .: "id"
+        <*> v .: "name"
+
+instance FromJSON ShipName where
+    parseJSON = withObject "ShipName" $ \v -> ShipName
+        <$> v .: "ja_jp"
+        <*> v .: "ja_kana"
+        <*> v .: "ja_romaji"
+        <*> v .: "zh_cn"
