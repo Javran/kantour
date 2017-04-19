@@ -11,7 +11,7 @@ import Data.Aeson
 
 import Data.Char
 import Data.MonoTraversable
-
+import Data.Semigroup
 import Data.String
 import Data.Word
 
@@ -49,11 +49,11 @@ defaultMain = do
     raws <- splitLines <$> fetchShipsRaw
     let process :: BSC.ByteString -> IO ()
         process raw = do
-            let result = decodeStrict' raw :: Maybe Ship
+            let result = eitherDecodeStrict' raw :: Either String Ship
             case result of
-                Just m -> pure ()
-                Nothing -> do
-                    putStrLn "parsing failed."
+                Right m -> pure ()
+                Left msg -> do
+                    putStrLn $ "parsing failed: " <> msg
                     BSC.putStrLn raw
             pure ()
     mapM_ process raws
