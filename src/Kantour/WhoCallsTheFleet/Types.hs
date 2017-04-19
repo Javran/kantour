@@ -24,6 +24,14 @@ data Ship = Ship
   , stat :: ShipStat
   , remodel :: Maybe RemodelInfo
   , scrap :: Maybe Scrap
+  , shipTypeId :: Int
+  , classId :: Value
+  , classDesination :: Maybe Int
+  , seriesId :: Maybe Int
+  , baseLevel :: Int
+  , buildTime :: Maybe Int
+  , rarity :: Maybe Int
+  , consumption :: Consumption
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -47,6 +55,7 @@ data ShipStat = ShipStat
   , carry :: Int
   , speed :: Int
   , range :: Int
+
   } deriving (Generic, Show)
 
 data StatRange a = StatRange
@@ -68,7 +77,42 @@ data Scrap = Scrap
   , bauxite :: Int
   } deriving (Generic, Show)
 
+data Consumption = Consumption
+  { fuel :: Int
+  , ammo :: Int
+  } deriving (Generic, Show)
 
+{-
+
+TODO
+
+* `slot` 装备格 & 每格搭载
+  * 元素数量表示有多少装备格
+  * 每个数字表示该格搭载量
+
+* `equip` 默认装备
+  * 对应装备格
+
+* `lines` 台词
+  * `start` 入手台词
+
+* `modernization` 近代化改修（合成）所得属性
+  * 按顺序资源为：火力、雷装、对空、装甲、运
+
+* `remodel_cost` 改装消耗
+  * `ammo` 弹耗
+  * `steel` 钢耗
+
+* `additional_item_types` 额外可装备类型ID -> `item_types.json`
+
+* `rels` 相关信息
+  * `cv` 声优ID -> `entities.json`
+  * `illustrator` 画师ID -> `entities.json`
+
+* `links` 相关链接
+  * `name` 链接名
+  * `url` 链接地址
+  -}
 
 parseRange :: FromJSON a => T.Text -> Object -> Parser (StatRange a)
 parseRange fieldName v = StatRange
@@ -85,6 +129,14 @@ instance FromJSON Ship where
         <*> v .: "stat"
         <*> v .:? "remodel"
         <*> v .:? "scrap"
+        <*> v .: "type"
+        <*> v .: "class"
+        <*> v .:? "class_no"
+        <*> v .:? "series"
+        <*> v .: "base_lvl"
+        <*> v .:? "buildtime"
+        <*> v .:? "rare"
+        <*> v .: "consum"
 
 instance FromJSON ShipName where
     parseJSON = withObject "ShipName" $ \v -> ShipName
@@ -124,3 +176,8 @@ instance FromJSON Scrap where
             <*> parseJSON (arr V.! 1)
             <*> parseJSON (arr V.! 2)
             <*> parseJSON (arr V.! 3)
+
+instance FromJSON Consumption where
+    parseJSON = withObject "Consumption" $ \v -> Consumption
+        <$> v .: "fuel"
+        <*> v .: "ammo"
