@@ -1,8 +1,6 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric, TypeFamilies, DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings, TypeFamilies, DuplicateRecordFields #-}
 module Kantour.WhoCallsTheFleet.Main where
 
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -10,16 +8,14 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 import Data.Aeson
-import Data.Aeson.Types
 
 import Data.Char
 import Data.MonoTraversable
 
-import GHC.Generics
 import Data.String
-import Control.Monad
 import Data.Word
-import Data.Monoid
+
+import Kantour.WhoCallsTheFleet.Types
 
 w2c :: Word8 -> Char
 w2c = chr . fromIntegral
@@ -53,9 +49,12 @@ defaultMain = do
     raws <- splitLines <$> fetchShipsRaw
     let process :: BSC.ByteString -> IO ()
         process raw = do
-            BSC.putStrLn raw
-            print (decodeStrict' raw :: Maybe Ship)
-            putStrLn "===="
+            let result = decodeStrict' raw :: Maybe Ship
+            case result of
+                Just m -> pure ()
+                Nothing -> do
+                    putStrLn "parsing failed."
+                    BSC.putStrLn raw
             pure ()
     mapM_ process raws
 
@@ -71,70 +70,3 @@ data Equipment = Equipment
   , eqpRankUpgradable :: Bool
   }
 
-data Ship = Ship
-  { masterId :: Int
-  , name :: ShipName
-  , stat :: ShipStat
-  } deriving (Generic, Show)
-
-data ShipName = ShipName
-  { jaJP :: T.Text
-  , jaKana :: T.Text
-  , jaRomaji :: T.Text
-  , zhCN :: T.Text
-  } deriving (Generic, Show)
-
-data ShipStat = ShipStat
-  { fire :: ShipStatRange Int
-  , torpedo :: ShipStatRange Int
-  , antiAir :: ShipStatRange Int
-  , antiSub :: ShipStatRange Int
-  , hp :: ShipStatRange Int
-  , armor :: ShipStatRange Int
-  , evasion :: ShipStatRange Int
-  , lineOfSight :: ShipStatRange Int
-  , luck :: ShipStatRange Int
-  , carry :: Int
-  , speed :: Int
-  , range :: Int
-  } deriving (Generic, Show)
-
-data ShipStatRange a = ShipStatRange
-  { base :: a
-  , max :: a
-  } deriving (Generic, Show)
-
-parseRange :: FromJSON a => T.Text -> Object -> Parser (ShipStatRange a)
-parseRange fieldName v = ShipStatRange
-    <$> v .: fieldName
-    <*> v .: fieldNameMax
-  where
-    fieldNameMax = fieldName <> "_max"
-
-instance FromJSON Ship where
-    parseJSON = withObject "Ship" $ \v -> Ship
-        <$> v .: "id"
-        <*> v .: "name"
-        <*> v .: "stat"
-
-instance FromJSON ShipName where
-    parseJSON = withObject "ShipName" $ \v -> ShipName
-        <$> v .: "ja_jp"
-        <*> v .: "ja_kana"
-        <*> v .: "ja_romaji"
-        <*> v .: "zh_cn"
-
-instance FromJSON ShipStat where
-    parseJSON = withObject "ShipStat" $ \v -> ShipStat
-        <$> parseRange "fire" v
-        <*> parseRange "torpedo" v
-        <*> parseRange "aa" v
-        <*> parseRange "asw" v
-        <*> parseRange "hp" v
-        <*> parseRange "armor" v
-        <*> parseRange "evasion" v
-        <*> parseRange "los" v
-        <*> parseRange "luck" v
-        <*> v .: "carry"
-        <*> v .: "speed"
-        <*> v .: "range"

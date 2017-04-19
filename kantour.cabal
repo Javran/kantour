@@ -37,6 +37,7 @@ library
                      , Kantour.QuotesFetch.SimpleLogger
                      , Kantour.QuotesFetch.Main
                      , Kantour.WhoCallsTheFleet.Main
+                     , Kantour.WhoCallsTheFleet.Types
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
   build-depends:       base
