@@ -23,6 +23,7 @@ data Ship = Ship
   , name :: ShipName
   , stat :: ShipStat
   , remodel :: Maybe RemodelInfo
+  , remodelCost :: Maybe RemodelInfo
   , scrap :: Maybe Scrap
   , shipTypeId :: Int
   , classId :: Value
@@ -32,6 +33,7 @@ data Ship = Ship
   , buildTime :: Maybe Int
   , rarity :: Maybe Int
   , consumption :: Consumption
+  , moderonzation :: Maybe Modernization
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -82,6 +84,18 @@ data Consumption = Consumption
   , ammo :: Int
   } deriving (Generic, Show)
 
+data RemodelCost = RemodelCost
+  { ammo :: Int
+  , steel :: Int
+  } deriving (Generic, Show)
+
+data Modernization = Modernization
+  { fire :: Int
+  , torpedo :: Int
+  , antiAir :: Int
+  , armor :: Int
+  , luck :: Int -- TODO: doesn't seem to have this field
+  } deriving (Generic, Show)
 {-
 
 TODO
@@ -95,13 +109,6 @@ TODO
 
 * `lines` 台词
   * `start` 入手台词
-
-* `modernization` 近代化改修（合成）所得属性
-  * 按顺序资源为：火力、雷装、对空、装甲、运
-
-* `remodel_cost` 改装消耗
-  * `ammo` 弹耗
-  * `steel` 钢耗
 
 * `additional_item_types` 额外可装备类型ID -> `item_types.json`
 
@@ -128,6 +135,7 @@ instance FromJSON Ship where
         <*> v .: "name"
         <*> v .: "stat"
         <*> v .:? "remodel"
+        <*> v .:? "remodel_cost"
         <*> v .:? "scrap"
         <*> v .: "type"
         <*> v .: "class"
@@ -137,6 +145,7 @@ instance FromJSON Ship where
         <*> v .:? "buildtime"
         <*> v .:? "rare"
         <*> v .: "consum"
+        <*> v .:? "modernization"
 
 instance FromJSON ShipName where
     parseJSON = withObject "ShipName" $ \v -> ShipName
@@ -181,3 +190,13 @@ instance FromJSON Consumption where
     parseJSON = withObject "Consumption" $ \v -> Consumption
         <$> v .: "fuel"
         <*> v .: "ammo"
+
+instance FromJSON Modernization where
+    parseJSON = withArray "Modernization" $ \arr -> do
+        guard $ V.length arr == 4
+        Modernization
+            <$> parseJSON (arr V.! 0)
+            <*> parseJSON (arr V.! 1)
+            <*> parseJSON (arr V.! 2)
+            <*> parseJSON (arr V.! 3)
+            <*> pure 0
