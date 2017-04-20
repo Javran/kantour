@@ -34,6 +34,8 @@ data Ship = Ship
   , rarity :: Maybe Int
   , consumption :: Consumption
   , moderonzation :: Maybe Modernization
+  , slots :: Array
+  , equips :: Maybe Array
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -146,6 +148,8 @@ instance FromJSON Ship where
         <*> v .:? "rare"
         <*> v .: "consum"
         <*> v .:? "modernization"
+        <*> v .: "slot"
+        <*> v .:? "equip"
 
 instance FromJSON ShipName where
     parseJSON = withObject "ShipName" $ \v -> ShipName
