@@ -37,6 +37,9 @@ data Ship = Ship
   , moderonzation :: Maybe Modernization
   , slots :: Array
   , equips :: Maybe Array
+  , lines :: Maybe Value
+  , rels :: Maybe Value
+  , links :: Maybe Value
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -103,25 +106,8 @@ data Modernization = Modernization
 
 TODO
 
-* `slot` 装备格 & 每格搭载
-  * 元素数量表示有多少装备格
-  * 每个数字表示该格搭载量
-
-* `equip` 默认装备
-  * 对应装备格
-
-* `lines` 台词
-  * `start` 入手台词
-
 * `additional_item_types` 额外可装备类型ID -> `item_types.json`
 
-* `rels` 相关信息
-  * `cv` 声优ID -> `entities.json`
-  * `illustrator` 画师ID -> `entities.json`
-
-* `links` 相关链接
-  * `name` 链接名
-  * `url` 链接地址
   -}
 
 parseRange :: FromJSON a => T.Text -> Object -> Parser (StatRange a)
@@ -151,6 +137,9 @@ instance FromJSON Ship where
         <*> v .:? "modernization"
         <*> v .: "slot"
         <*> (equip1 v <|> equipEmpty v)
+        <*> v .:? "lines"
+        <*> v .:? "rels"
+        <*> v .:? "links"
       where
         equip1, equipEmpty :: Object -> Parser (Maybe Array)
         equip1 v' = v' .:? "equip"
