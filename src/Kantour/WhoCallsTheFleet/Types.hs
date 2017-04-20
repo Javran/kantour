@@ -12,6 +12,7 @@ import qualified Data.Vector as V
 import qualified Data.Text as T
 import GHC.Generics
 import Data.Semigroup
+import Control.Applicative
 
 -- https://github.com/Diablohu/KanColle-JSON-Database/wiki/ships.json
 
@@ -149,7 +150,16 @@ instance FromJSON Ship where
         <*> v .: "consum"
         <*> v .:? "modernization"
         <*> v .: "slot"
-        <*> v .:? "equip"
+        <*> (equip1 v <|> equipEmpty v)
+      where
+        equip1, equipEmpty :: Object -> Parser (Maybe Array)
+        equip1 v' = v' .:? "equip"
+        equipEmpty v' = do
+            Just s <- strP
+            guard $ s == ""
+            pure Nothing
+          where
+            strP = v' .:? "equip" :: Parser (Maybe String)
 
 instance FromJSON ShipName where
     parseJSON = withObject "ShipName" $ \v -> ShipName
