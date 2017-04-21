@@ -18,6 +18,9 @@ import Control.Applicative
 
 type MasterId = Int
 
+-- perhaps a bad idea, but let's try this anyway.
+-- a better alternative would be to provide "safe accessors" depending
+-- on master id
 -- masterId: 9181, 9182, 9183
 data BlueSteelShip = BlueSteelShip
   { masterId :: MasterId
@@ -206,3 +209,9 @@ instance FromJSON Modernization where
             <*> parseJSON (arr V.! 2)
             <*> parseJSON (arr V.! 3)
             <*> pure 0
+
+instance FromJSON BlueSteelShip where
+    parseJSON = withObject "BlueSteelShip" $ \v -> do
+        mstId <- v .: "masterId" :: Parser Int
+        guard $ mstId `elem` [9181, 9182, 9183]
+        BlueSteelShip mstId <$> pure (Object v)
