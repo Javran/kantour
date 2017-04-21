@@ -40,6 +40,7 @@ data Ship = Ship
   , lines :: Maybe Value
   , rels :: Maybe Value
   , links :: Maybe Value
+  , additionalItemTypes :: Maybe [Int]
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -102,13 +103,6 @@ data Modernization = Modernization
   , armor :: Int
   , luck :: Int -- TODO: doesn't seem to have this field
   } deriving (Generic, Show)
-{-
-
-TODO
-
-* `additional_item_types` 额外可装备类型ID -> `item_types.json`
-
-  -}
 
 parseRange :: FromJSON a => T.Text -> Object -> Parser (StatRange a)
 parseRange fieldName v = StatRange
@@ -140,6 +134,7 @@ instance FromJSON Ship where
         <*> v .:? "lines"
         <*> v .:? "rels"
         <*> v .:? "links"
+        <*> v .:? "additional_item_types"
       where
         equip1, equipEmpty :: Object -> Parser (Maybe Array)
         equip1 v' = v' .:? "equip"
