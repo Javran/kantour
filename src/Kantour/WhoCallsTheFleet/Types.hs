@@ -18,6 +18,12 @@ import Control.Applicative
 
 type MasterId = Int
 
+-- masterId: 9181, 9182, 9183
+data BlueSteelShip = BlueSteelShip
+  { masterId :: MasterId
+  , raw :: Value
+  } deriving (Generic, Show)
+
 data Ship = Ship
   { masterId :: MasterId
   , libraryId :: Int
@@ -34,13 +40,14 @@ data Ship = Ship
   , buildTime :: Maybe Int
   , rarity :: Maybe Int
   , consumption :: Consumption
-  , moderonzation :: Maybe Modernization
+  , modernization :: Maybe Modernization
   , slots :: Array
   , equips :: Maybe Array
   , lines :: Maybe Value
   , rels :: Maybe Value
   , links :: Maybe Value
   , additionalItemTypes :: Maybe [Int]
+  , raw :: Value
   } deriving (Generic, Show)
 
 data ShipName = ShipName
@@ -135,6 +142,7 @@ instance FromJSON Ship where
         <*> v .:? "rels"
         <*> v .:? "links"
         <*> v .:? "additional_item_types"
+        <*> pure (Object v)
       where
         equip1, equipEmpty :: Object -> Parser (Maybe Array)
         equip1 v' = v' .:? "equip"

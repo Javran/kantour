@@ -14,7 +14,8 @@ import Data.MonoTraversable
 import Data.Semigroup
 import Data.String
 import Data.Word
-
+import Control.Monad
+import Data.Maybe
 import Kantour.WhoCallsTheFleet.Types
 
 w2c :: Word8 -> Char
@@ -51,7 +52,11 @@ defaultMain = do
         process raw = do
             let result = eitherDecodeStrict' raw :: Either String Ship
             case result of
-                Right m -> pure ()
+                Right m -> do
+                    let mz = modernization (m :: Ship)
+                    when (isNothing mz) $
+                        BSC.putStrLn raw
+                    pure ()
                 Left msg -> do
                     putStrLn $ "parsing failed: " <> msg
                     BSC.putStrLn raw
