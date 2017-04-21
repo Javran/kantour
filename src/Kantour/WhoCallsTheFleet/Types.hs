@@ -74,7 +74,6 @@ data ShipStat = ShipStat
   , carry :: Int
   , speed :: Int
   , range :: Int
-
   } deriving (Generic, Show)
 
 data StatRange a = StatRange
