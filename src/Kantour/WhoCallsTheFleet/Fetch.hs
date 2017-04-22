@@ -12,6 +12,14 @@ import Data.Word
 import Data.Char
 import Data.MonoTraversable
 
+import Kantour.WhoCallsTheFleet.Types
+import Data.Aeson
+
+import Data.Semigroup
+import Data.String
+import Control.Monad
+import Data.Maybe
+
 w2c :: Word8 -> Char
 w2c = chr . fromIntegral
 
@@ -35,6 +43,24 @@ fetchURL url = do
 
 fetchShipsRaw :: IO [BS.ByteString]
 fetchShipsRaw = splitLines <$> fetchURL (repoBase ++ "ships.json")
+
+fetchShips :: IO [Ship]
+fetchShips = do
+    raws <- fetchShipsRaw
+    let process :: BSC.ByteString -> IO (Maybe Ship)
+        process raw = do
+            let result = eitherDecodeStrict' raw :: Either String Ship
+            case result of
+                Right m -> do
+                    let mz = modernization (m :: Ship)
+                    when (isNothing mz) $
+                        BSC.putStrLn raw
+                    pure (Just m)
+                Left msg -> do
+                    putStrLn $ "parsing failed: " <> msg
+                    BSC.putStrLn raw
+                    pure Nothing
+    catMaybes <$> mapM process raws
 
 fetchEquipmentsRaw :: IO [BS.ByteString]
 fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
