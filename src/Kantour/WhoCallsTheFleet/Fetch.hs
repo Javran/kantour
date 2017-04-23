@@ -64,3 +64,20 @@ fetchShips = do
 
 fetchEquipmentsRaw :: IO [BS.ByteString]
 fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
+
+fetchEquipments :: IO [Equipment]
+fetchEquipments = do
+    raws <- fetchEquipmentsRaw
+    let process :: BSC.ByteString -> IO (Maybe Equipment)
+        process raw = do
+            let result = eitherDecodeStrict' raw :: Either String Equipment
+            case result of
+                Right m -> do
+                    print m
+                    pure (Just m)
+                Left msg -> do
+                    putStrLn $ "parsing failed: " <> msg
+                    BSC.putStrLn raw
+                    pure Nothing
+    -- TODO
+    catMaybes <$> mapM process raws

@@ -1,4 +1,8 @@
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 module Kantour.WhoCallsTheFleet.Types.Equipment where
+
+import GHC.Generics
+import Data.Aeson
 
 data Equipment = Equipment
   { masterId :: Int
@@ -9,5 +13,17 @@ data Equipment = Equipment
   , dismantle :: ()
   , craftable :: Bool
   , improvable :: Bool
-  , rankUpgradable :: Bool
-  }
+  , rankUpgradable :: ()
+  } deriving (Generic, Show)
+
+instance FromJSON Equipment where
+    parseJSON = withObject "Equipment" $ \v -> Equipment
+        <$> v .: "id"
+        <*> v .: "rarity"
+        <*> v .: "type"
+        <*> pure ()
+        <*> pure ()
+        <*> pure ()
+        <*> v .: "craftable"
+        <*> v .: "improvable"
+        <*> pure ()
