@@ -16,15 +16,3 @@ defaultMain = do
     ships <- fetchShips
     mapM_ print ships
 
-data Equipment = Equipment
-  { masterId :: Int
-  , eqpRarity :: Int
-  , eqpType :: Int
-  , eqpName :: () -- TODO
-  , eqpStat :: ()
-  , eqpDismantle :: ()
-  , eqpCraftable :: Bool
-  , eqpImprovable :: Bool
-  , eqpRankUpgradable :: Bool
-  }
-
