@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Kantour.WhoCallsTheFleet.Fetch where
 
 import Network.HTTP.Client
@@ -47,37 +48,22 @@ fetchShipsRaw = splitLines <$> fetchURL (repoBase ++ "ships.json")
 fetchShips :: IO [Ship]
 fetchShips = do
     raws <- fetchShipsRaw
-    let process :: BSC.ByteString -> IO (Maybe Ship)
-        process raw = do
-            let result = eitherDecodeStrict' raw :: Either String Ship
-            case result of
-                Right m -> do
-                    let mz = modernization (m :: Ship)
-                    when (isNothing mz) $
-                        BSC.putStrLn raw
-                    pure (Just m)
-                Left msg -> do
-                    putStrLn $ "parsing failed: " <> msg
-                    BSC.putStrLn raw
-                    pure Nothing
-    catMaybes <$> mapM process raws
+    catMaybes <$> mapM verboseParse raws
 
 fetchEquipmentsRaw :: IO [BS.ByteString]
 fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
 
+verboseParse :: forall a. FromJSON a => BS.ByteString -> IO (Maybe a)
+verboseParse raw = do
+    let result = eitherDecodeStrict' raw :: Either String a
+    case result of
+        Right m -> pure (Just m)
+        Left msg -> do
+            putStrLn $ "parsing failed: " <> msg
+            BSC.putStrLn raw
+            pure Nothing
+
 fetchEquipments :: IO [Equipment]
 fetchEquipments = do
     raws <- fetchEquipmentsRaw
-    let process :: BSC.ByteString -> IO (Maybe Equipment)
-        process raw = do
-            let result = eitherDecodeStrict' raw :: Either String Equipment
-            case result of
-                Right m -> do
-                    print m
-                    pure (Just m)
-                Left msg -> do
-                    putStrLn $ "parsing failed: " <> msg
-                    BSC.putStrLn raw
-                    pure Nothing
-    -- TODO
-    catMaybes <$> mapM process raws
+    catMaybes <$> mapM verboseParse raws
