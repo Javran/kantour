@@ -4,6 +4,7 @@ module Kantour.WhoCallsTheFleet.Types.Equipment where
 import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
+import Control.Applicative
 
 data Equipment = Equipment
   { masterId :: Int
@@ -45,8 +46,8 @@ instance FromJSON Equipment where
         <*> v .: "name"
         <*> v .: "stat"
         <*> pure ()
-        <*> v .: "craftable"
-        <*> v .: "improvable"
+        <*> (v .: "craftable" <|> pure False)
+        <*> (v .: "improvable" <|> pure False)
         <*> pure ()
 
 instance FromJSON EquipmentName where
