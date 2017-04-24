@@ -4,7 +4,9 @@ module Kantour.WhoCallsTheFleet.Types.Equipment where
 import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
+import qualified Data.Vector as V
 import Control.Applicative
+import Control.Monad
 
 data Equipment = Equipment
   { masterId :: Int
@@ -12,7 +14,7 @@ data Equipment = Equipment
   , eqpType :: Int
   , name :: EquipmentName
   , stat :: EquipmentStat
-  , dismantle :: ()
+  , dismantle :: EquipmentDismantle
   , craftable :: Bool
   , improvable :: Bool
   , rankUpgradable :: ()
@@ -24,7 +26,6 @@ data EquipmentName = EquipmentName
   , jaRomaji :: T.Text
   , zhCN :: T.Text
   } deriving (Generic, Show)
-
 
 data EquipmentStat = EquipmentStat
   { fire :: Int
@@ -38,6 +39,13 @@ data EquipmentStat = EquipmentStat
   , lineOfSight :: Int
   } deriving (Generic, Show)
 
+data EquipmentDismantle = EquipmentDismantle
+  { fuel :: Int
+  , ammo :: Int
+  , steel :: Int
+  , bauxite :: Int
+  } deriving (Generic, Show)
+
 instance FromJSON Equipment where
     parseJSON = withObject "Equipment" $ \v -> Equipment
         <$> v .: "id"
@@ -45,7 +53,7 @@ instance FromJSON Equipment where
         <*> v .: "type"
         <*> v .: "name"
         <*> v .: "stat"
-        <*> pure ()
+        <*> v .: "dismantle"
         <*> (v .: "craftable" <|> pure False)
         <*> (v .: "improvable" <|> pure False)
         <*> pure ()
@@ -68,3 +76,12 @@ instance FromJSON EquipmentStat where
         <*> v .: "evasion"
         <*> v .: "hit"
         <*> v .: "los"
+
+instance FromJSON EquipmentDismantle where
+    parseJSON = withArray "EquipmentDismantle" $ \arr -> do
+        guard $ V.length arr == 4
+        EquipmentDismantle
+            <$> parseJSON (arr V.! 0)
+            <*> parseJSON (arr V.! 1)
+            <*> parseJSON (arr V.! 2)
+            <*> parseJSON (arr V.! 3)
