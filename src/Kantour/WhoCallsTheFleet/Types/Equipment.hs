@@ -10,7 +10,7 @@ data Equipment = Equipment
   , rarity :: Int
   , eqpType :: Int
   , name :: EquipmentName
-  , stat :: ()
+  , stat :: EquipmentStat
   , dismantle :: ()
   , craftable :: Bool
   , improvable :: Bool
@@ -24,13 +24,26 @@ data EquipmentName = EquipmentName
   , zhCN :: T.Text
   } deriving (Generic, Show)
 
+
+data EquipmentStat = EquipmentStat
+  { fire :: Int
+  , torpedo :: Int
+  , bomb :: Int
+  , antiSub :: Int
+  , antiAir :: Int
+  , armor :: Int
+  , evasion :: Int
+  , hit :: Int
+  , lineOfSight :: Int
+  } deriving (Generic, Show)
+
 instance FromJSON Equipment where
     parseJSON = withObject "Equipment" $ \v -> Equipment
         <$> v .: "id"
         <*> v .: "rarity"
         <*> v .: "type"
         <*> v .: "name"
-        <*> pure ()
+        <*> v .: "stat"
         <*> pure ()
         <*> v .: "craftable"
         <*> v .: "improvable"
@@ -42,3 +55,15 @@ instance FromJSON EquipmentName where
         <*> v .: "ja_kana"
         <*> v .: "ja_romaji"
         <*> v .: "zh_cn"
+
+instance FromJSON EquipmentStat where
+    parseJSON = withObject "EquipmentStat" $ \v -> EquipmentStat
+        <$> v .: "fire"
+        <*> v .: "torpedo"
+        <*> v .: "bomb"
+        <*> v .: "asw"
+        <*> v .: "aa"
+        <*> v .: "armor"
+        <*> v .: "evasion"
+        <*> v .: "hit"
+        <*> v .: "los"
