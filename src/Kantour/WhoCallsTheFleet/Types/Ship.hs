@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import GHC.Generics
 import Data.Semigroup
 import Control.Applicative
+import Kantour.WhoCallsTheFleet.Types.Common
 
 -- https://github.com/Diablohu/KanColle-JSON-Database/wiki/ships.json
 
@@ -82,12 +83,7 @@ data RemodelInfo = RemodelInfo
   , remodelLoop :: Maybe Bool
   } deriving (Generic, Show)
 
-data Scrap = Scrap
-  { fuel :: Int
-  , ammo :: Int
-  , steel :: Int
-  , bauxite :: Int
-  } deriving (Generic, Show)
+type Scrap = Resource Int
 
 data Consumption = Consumption
   { fuel :: Int
@@ -178,15 +174,6 @@ instance FromJSON RemodelInfo where
         <*> v .:? "next"
         <*> v .:? "next_lvl"
         <*> v .:? "loop"
-
-instance FromJSON Scrap where
-    parseJSON = withArray "Scrap" $ \arr -> do
-        guard $ V.length arr == 4
-        Scrap
-            <$> parseJSON (arr V.! 0)
-            <*> parseJSON (arr V.! 1)
-            <*> parseJSON (arr V.! 2)
-            <*> parseJSON (arr V.! 3)
 
 instance FromJSON Consumption where
     parseJSON = withObject "Consumption" $ \v -> Consumption
