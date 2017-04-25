@@ -38,6 +38,7 @@ library
                      , Kantour.QuotesFetch.Main
                      , Kantour.WhoCallsTheFleet.Main
                      , Kantour.WhoCallsTheFleet.Types
+                     , Kantour.WhoCallsTheFleet.Types.Common
                      , Kantour.WhoCallsTheFleet.Types.Ship
                      , Kantour.WhoCallsTheFleet.Types.Equipment
                      , Kantour.WhoCallsTheFleet.Fetch
