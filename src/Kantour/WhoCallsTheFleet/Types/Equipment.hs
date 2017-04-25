@@ -4,9 +4,8 @@ module Kantour.WhoCallsTheFleet.Types.Equipment where
 import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
-import qualified Data.Vector as V
 import Control.Applicative
-import Control.Monad
+import Kantour.WhoCallsTheFleet.Types.Common
 
 data Equipment = Equipment
   { masterId :: Int
@@ -14,7 +13,7 @@ data Equipment = Equipment
   , eqpType :: Int
   , name :: EquipmentName
   , stat :: EquipmentStat
-  , dismantle :: EquipmentDismantle
+  , dismantle :: Dismantle
   , craftable :: Bool
   , improvable :: Bool
   , rankUpgradable :: ()
@@ -39,12 +38,7 @@ data EquipmentStat = EquipmentStat
   , lineOfSight :: Int
   } deriving (Generic, Show)
 
-data EquipmentDismantle = EquipmentDismantle
-  { fuel :: Int
-  , ammo :: Int
-  , steel :: Int
-  , bauxite :: Int
-  } deriving (Generic, Show)
+type Dismantle = Resource Int
 
 instance FromJSON Equipment where
     parseJSON = withObject "Equipment" $ \v -> Equipment
@@ -76,12 +70,3 @@ instance FromJSON EquipmentStat where
         <*> v .: "evasion"
         <*> v .: "hit"
         <*> v .: "los"
-
-instance FromJSON EquipmentDismantle where
-    parseJSON = withArray "EquipmentDismantle" $ \arr -> do
-        guard $ V.length arr == 4
-        EquipmentDismantle
-            <$> parseJSON (arr V.! 0)
-            <*> parseJSON (arr V.! 1)
-            <*> parseJSON (arr V.! 2)
-            <*> parseJSON (arr V.! 3)
