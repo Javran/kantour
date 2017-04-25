@@ -25,7 +25,7 @@ isBlueSteelShip s = masterId s `elem` [9181,9182,9183]
 data Ship = Ship
   { masterId :: MasterId
   , libraryId :: Int
-  , name :: ShipName
+  , name :: Name
   , stat :: ShipStat
   , remodel :: Maybe RemodelInfo
   , remodelCost :: Maybe RemodelInfo
@@ -46,14 +46,6 @@ data Ship = Ship
   , links :: Maybe Value
   , additionalItemTypes :: Maybe [Int]
   , raw :: Value
-  } deriving (Generic, Show)
-
-data ShipName = ShipName
-  { jaJP :: T.Text
-  , jaKana :: T.Text
-  , jaRomaji :: T.Text
-  , zhCN :: T.Text
-  , suffix :: Maybe Int
   } deriving (Generic, Show)
 
 data ShipStat = ShipStat
@@ -144,14 +136,6 @@ instance FromJSON Ship where
             pure Nothing
           where
             strP = v' .:? "equip" :: Parser (Maybe String)
-
-instance FromJSON ShipName where
-    parseJSON = withObject "ShipName" $ \v -> ShipName
-        <$> v .: "ja_jp"
-        <*> v .: "ja_kana"
-        <*> v .: "ja_romaji"
-        <*> v .: "zh_cn"
-        <*> v .:? "suffix"
 
 instance FromJSON ShipStat where
     parseJSON = withObject "ShipStat" $ \v -> ShipStat
