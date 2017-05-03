@@ -73,13 +73,13 @@ defaultMain = do
     case mArgs of
         Nothing -> do
             putStrLn "invalid arguments"
-            putStrLn "usage: maptool <main xml> [extra xml] [-- diagrams args]"
+            putStrLn "usage: maptool <main xml> [hidden xml] [-- diagrams args]"
             putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
             exitFailure
         Just ((srcFP, mHiddenFP), mDiagramArgs) -> do
             -- pretty printing arguments
             putStrLn $ "main xml: " ++ srcFP
-            putStrLn $ "extra xml: " ++ fromMaybe "<N/A>" mHiddenFP
+            putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" mHiddenFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
             (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
             (hiddenRoutes, hiddenBeginNodes) <-
@@ -100,8 +100,8 @@ defaultMain = do
             putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
 
 -- separate argument list into maptool arguments and those meant for diagrams:
--- arg list: <main xml> [extra xml] [-- <diagram args>]
--- where <main xml> is the map xml file, [extra xml] is an optional part.
+-- arg list: <main xml> [hidden xml] [-- <diagram args>]
+-- where <main xml> is the map xml file, [hidden xml] is an optional part.
 -- additionally, if "--" exists and <diagram args> is not empty, diagram will be called
 -- to draw a picture.
 sepArgs :: [String] -> Maybe ((String, Maybe String), Maybe [String])
