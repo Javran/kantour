@@ -76,7 +76,12 @@ findHiddenSpriteId =
     findHiddenRoot :: [String] -> [String] -> String
     findHiddenRoot tags names
         | equalLength tags names =
-            let isExtraRoot (_, s) = "scene.sally.mc.MCCellSP" `isPrefixOf` s
+            -- TODO: sometimes the extra data comes directly from SallyMain,
+            -- in which case we need to have a more specific filter
+            -- (it's 383_17 and 383_29 for 38-3) .. perhaps finding a better parameter syntax would help
+            let isExtraRoot (_, s) =
+                    "scene.sally.mc.MCCellSP" `isPrefixOf` s
+                    -- "scene.sally.mc.MCCellSP383_17" `isPrefixOf` s
             in case find isExtraRoot (zip tags names) of
                    Just (spriteId, _) -> spriteId
                    Nothing -> error "cell root not found"
