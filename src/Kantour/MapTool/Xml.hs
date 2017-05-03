@@ -87,6 +87,23 @@ findHiddenSpriteId =
                    Nothing -> error "cell root not found"
         | otherwise = error "tags & names length differs"
 
+findHiddenSpriteRoots :: ArrowXml arr => arr XmlDoc [String]
+findHiddenSpriteRoots =
+    docDeep (hasName "item"
+             >>> hasAttrValue "type" (== "SymbolClassTag"))
+    >>> (listA (this /> (hasName "tags" /> getItem)) &&&
+         listA (this /> (hasName "names" /> getItem)))
+    >>> arr (uncurry findHiddenRoots)
+  where
+    getItem = hasName "item" /> getText
+    findHiddenRoots :: [String] -> [String] -> [String]
+    findHiddenRoots tags names
+        | equalLength tags names =
+            let isExtraRoot (_, s) =
+                    "scene.sally.mc.MCCellSP" `isPrefixOf` s
+            in map fst $ filter isExtraRoot (zip tags names)
+        | otherwise = error "tags & names length differs"
+
 findLineShapeInfo :: ArrowXml arr => String -> arr XmlDoc (ShapeBounds,V2 Int)
 findLineShapeInfo lineId = proc doc -> do
     sprite <- findSprite lineId -<< doc

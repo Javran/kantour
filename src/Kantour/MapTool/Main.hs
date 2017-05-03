@@ -82,6 +82,16 @@ defaultMain = do
             putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" mHiddenFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
             (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
+            {- TODO: list hidden sprite roots
+            tmp <-
+                case mHiddenFP of
+                    Just hiddenFP -> do
+                        parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
+                        case parsed of
+                            Left errMsg -> do
+                                putStrLn $ "Parse error: " ++ errMsg
+                                pure []
+                            Right v -> pure v -}
             (hiddenRoutes, hiddenBeginNodes) <-
                 case mHiddenFP of
                     Just hiddenFP -> safeParseXmlDoc extractFromHidden hiddenFP
