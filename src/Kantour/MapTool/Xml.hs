@@ -14,7 +14,6 @@ import Linear
 import Kantour.MapTool.Types
 import Kantour.Utils
 import Control.Exception
-import Control.Arrow
 
 -- type for the full document
 newtype XmlDoc = XmlDoc XmlTree
@@ -202,16 +201,12 @@ safeParseXmlDoc
     -> String
     -> IO ([MyLine], [V2 Int])
 safeParseXmlDoc arrExtract fp = do
-    parsed <- right f <$> parseXmlDoc arrExtract fp
+    parsed <- right unsafeExactlyOne <$> parseXmlDoc arrExtract fp
     case parsed of
         Left errMsg -> do
             putStrLn $ "Parse error: " ++ errMsg
             pure ([], [])
         Right v -> pure v
-  where
-    f xs = case exactlyOne xs of
-        Just x -> x
-        Nothing -> error "expecting exactly one element"
 
 runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)

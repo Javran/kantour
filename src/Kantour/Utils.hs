@@ -70,3 +70,8 @@ compareLength _ [] = GT
 exactlyOne :: [a] -> Maybe a
 exactlyOne [x] = Just x
 exactlyOne _ = Nothing
+
+unsafeExactlyOne :: [a] -> a
+unsafeExactlyOne m = case m of
+    [x] -> x
+    _ -> error "expecting exactly one element"
