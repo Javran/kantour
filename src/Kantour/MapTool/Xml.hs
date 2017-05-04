@@ -14,6 +14,7 @@ import Linear
 import Kantour.MapTool.Types
 import Kantour.Utils
 import Control.Exception
+import Control.Arrow
 
 -- type for the full document
 newtype XmlDoc = XmlDoc XmlTree
@@ -80,7 +81,7 @@ findHiddenSpriteId =
             -- in which case we need to have a more specific filter
             -- (it's 383_17 and 383_29 for 38-3) .. perhaps finding a better parameter syntax would help
             let isExtraRoot (_, s) =
-                    "scene.sally.mc.MCCellSP" `isPrefixOf` s
+                    "scene.sally.mc.MCCellSP385" `isPrefixOf` s
                     -- "scene.sally.mc.MCCellSP383_17" `isPrefixOf` s
             in case find isExtraRoot (zip tags names) of
                    Just (spriteId, _) -> spriteId
@@ -100,7 +101,7 @@ findHiddenSpriteRoots =
     findHiddenRoots tags names
         | equalLength tags names =
             let isExtraRoot (_, s) =
-                    "scene.sally.mc.MCCellSP" `isPrefixOf` s
+                    "scene.sally.mc.MCCellSP385" `isPrefixOf` s
             in map fst $ filter isExtraRoot (zip tags names)
         | otherwise = error "tags & names length differs"
 
@@ -182,15 +183,15 @@ extractFromHidden = proc doc -> do
     listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc)
 
 parseXmlDoc
-    :: IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int])
+    :: IOSLA (XIOState ()) XmlDoc a
     -> String
-    -> IO (Either String ([MyLine], [V2 Int]))
+    -> IO (Either String [a])
 parseXmlDoc arrExtract fp = do
     lDoc <- runX (readDocument [] fp)
     case lDoc of
         [doc] ->
-            (do [(routes, extraBeginPts)] <- runWithDoc_ arrExtract doc
-                pure (Right (routes, extraBeginPts))) `catches`
+            (Right <$> runWithDoc_ arrExtract doc)
+                 `catches`
             [ Handler (\(e :: IOException) -> pure (Left (show e)))
             , Handler (\(e :: ErrorCall) -> pure (Left (show e)))
             ]
@@ -201,12 +202,16 @@ safeParseXmlDoc
     -> String
     -> IO ([MyLine], [V2 Int])
 safeParseXmlDoc arrExtract fp = do
-    parsed <- parseXmlDoc arrExtract fp
+    parsed <- right f <$> parseXmlDoc arrExtract fp
     case parsed of
         Left errMsg -> do
             putStrLn $ "Parse error: " ++ errMsg
             pure ([], [])
         Right v -> pure v
+  where
+    f xs = case exactlyOne xs of
+        Just x -> x
+        Nothing -> error "expecting exactly one element"
 
 runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)
