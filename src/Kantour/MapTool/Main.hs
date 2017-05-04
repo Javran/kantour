@@ -18,6 +18,7 @@ import Linear.Affine
 import Data.Function
 import Text.JSON
 import Data.Monoid
+import Text.Printf
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import System.Exit
@@ -82,16 +83,16 @@ defaultMain = do
             putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" mHiddenFP
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
             (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
-            {- TODO: list hidden sprite roots
-            tmp <-
-                case mHiddenFP of
-                    Just hiddenFP -> do
-                        parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
-                        case parsed of
-                            Left errMsg -> do
-                                putStrLn $ "Parse error: " ++ errMsg
-                                pure []
-                            Right v -> pure v -}
+            case mHiddenFP of
+                Just hiddenFP -> do
+                    parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
+                    case parsed of
+                        Left errMsg ->
+                            putStrLn $ "Parse error: " ++ errMsg
+                        Right [vs] ->
+                            let ppr (sId, sName) = printf "Id: %s\tName: %s\n" sId sName
+                            in mapM_ ppr vs
+                Nothing -> pure ()
             (hiddenRoutes, hiddenBeginNodes) <-
                 case mHiddenFP of
                     Just hiddenFP -> safeParseXmlDoc extractFromHidden hiddenFP
