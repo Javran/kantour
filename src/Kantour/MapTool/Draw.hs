@@ -22,7 +22,7 @@ twipToPixel x = fromIntegral x / 20
 drawKCMap :: MapInfo
           -> Diagram B
 drawKCMap mi@MapInfo {_miLines = xs} =
-    (allPoints # applyAll routeConnections) `atop` arrTextLayer
+    ((allPoints # applyAll routeConnections) `atop` arrTextLayer) # centerXY # pad 1.1
   where
     arrowOpts = with & gaps .~ small & headLength .~ 22
     circle' color txt =
