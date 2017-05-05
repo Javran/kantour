@@ -89,8 +89,9 @@ defaultMain = do
                     case parsed of
                         Left errMsg ->
                             putStrLn $ "Parse error: " ++ errMsg
-                        Right [vs] ->
-                            let ppr (sId, sName) = printf "Id: %s\tName: %s\n" sId sName
+                        Right vss ->
+                            let vs = concat vss
+                                ppr (sId, sName) = printf "Id: %s\tName: %s\n" sId sName
                             in mapM_ ppr vs
                 Nothing -> pure ()
             (hiddenRoutes, hiddenBeginNodes) <-
