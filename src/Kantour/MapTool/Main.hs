@@ -26,6 +26,8 @@ import System.Exit
 import Kantour.MapTool.Types
 import Kantour.MapTool.Draw
 import Kantour.MapTool.Xml
+import qualified Data.Yaml as Yaml
+import Kantour.MapTool.MapConfig
 
 {-
 
@@ -77,8 +79,20 @@ see "example.yaml"
 
 -}
 
+loadFromConfig :: FilePath -> IO ()
+loadFromConfig fp = do
+    result <- Yaml.decodeFileEither fp :: IO (Either Yaml.ParseException MapConfig)
+    case result of
+        Left err -> putStrLn $ "error while parsing config '" ++ fp ++ "': " ++ show err
+        Right mapConf ->
+            print mapConf
+
+-- TODO: tmp entry point for debugging
 defaultMain :: IO ()
-defaultMain = do
+defaultMain = loadFromConfig "example.yaml"
+
+defaultMainDraw :: IO ()
+defaultMainDraw = do
     mArgs <- sepArgs <$> getArgs
     case mArgs of
         Nothing -> do

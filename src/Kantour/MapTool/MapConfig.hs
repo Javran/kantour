@@ -7,12 +7,12 @@ import Data.Aeson.Types
 data MapConfig = MapConfig
   { sourceFile :: FilePath
   , extraSources :: [MapExtraSource]
-  }
+  } deriving Show
 
 data MapExtraSource = MapExtraSource
   { sourceFile :: FilePath
-  , matchString :: String
-  }
+  , matchString :: Maybe String
+  } deriving Show
 
 instance FromJSON MapConfig where
     parseJSON = withObject "MapConfig" $ \v -> MapConfig
@@ -22,4 +22,4 @@ instance FromJSON MapConfig where
 instance FromJSON MapExtraSource where
     parseJSON = withObject "MapExtraSource" $ \v -> MapExtraSource
         <$> v .: "source"
-        <*> v .: "match-string"
+        <*> v .:? "match-string"
