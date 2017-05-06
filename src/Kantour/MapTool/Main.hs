@@ -68,6 +68,15 @@ TODO:
 
 -}
 
+{-
+
+TODO: argument parsing is getting complicated, let's try using a structured config file
+to tell the program what to do.
+
+see "example.yaml"
+
+-}
+
 defaultMain :: IO ()
 defaultMain = do
     mArgs <- sepArgs <$> getArgs
