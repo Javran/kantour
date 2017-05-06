@@ -24,6 +24,7 @@ library
                      , Kantour.MapTool.Main
                      , Kantour.MapTool.Types
                      , Kantour.MapTool.Xml
+                     , Kantour.MapTool.MapConfig
                      , Kantour.MapTool.Draw
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.Kcwiki
@@ -79,6 +80,7 @@ library
                      , aeson
                      , unordered-containers
                      , data-default
+                     , yaml
   default-language:    Haskell2010
 
 executable dropcalc
