@@ -6,6 +6,12 @@ import Data.Maybe
 import Control.Monad
 import Data.Char
 
+getStat :: Int -> Int -> Int -> Int
+getStat baseSt maxSt level = baseSt + floor lvlBonus
+  where
+    lvlBonus :: Double
+    lvlBonus = fromIntegral (maxSt - baseSt) * fromIntegral level / 99
+
 processRaw :: String -> IM.IntMap Int
 processRaw =
       enforceLength
