@@ -8,10 +8,13 @@ import Data.Char
 
 processRaw :: String -> IM.IntMap Int
 processRaw =
-      IM.fromList
+      enforceLength
+    . IM.fromList
     . mapMaybe getDataLine
     . lines
   where
+    enforceLength x =
+        if IM.size x >= 2 then x else error "require at least 2 lines of data"
     getDataLine :: String -> Maybe (Int,Int)
     getDataLine raw = do
         -- has non-empty content
@@ -37,4 +40,4 @@ defaultMain = do
             print d
             pure ()
         _ ->
-            putStrLn "shipstat <stat file>"
+            error "shipstat <stat file>"
