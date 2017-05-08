@@ -6,7 +6,32 @@ import qualified Data.IntSet as IS
 import Data.Maybe
 import Control.Monad
 import Data.Char
-import Data.Foldable
+
+{-
+
+this module is for estimating several ship stats: ASW, LoS and Evasion,
+all of them depends on the level and few other hidden stats and is computed the same way.
+
+file format:
+- empty lines, and lines with leading "#" are ignored
+- data line consists of 2 numbers separated by space: first is the level and second stat
+
+example of a sample file:
+
+```
+# Taiyou ASW stat estimation
+
+31 42
+32 42
+33 43
+34 43
+37 43
+```
+
+-}
+
+{-# ANN module "HLint: ignore Avoid lambda" #-}
+
 
 getStat :: Int -> Int -> Int -> Int
 getStat baseSt maxSt level = baseSt + floor lvlBonus
@@ -75,12 +100,6 @@ processRaw =
         case words raw of
             [a,b] -> Just (read a, read b)
             _ -> Nothing
-{-
-
-this module is for estimating several ship stats: ASW, LoS and Evasion,
-all of them depends on the level and few other hidden stats and is computed the same way.
-
--}
 
 checkTruth :: (Int, Int) -> [(Int,Int)] -> [(Int,Int)]
 checkTruth (lvl,stat) = filter check
