@@ -32,7 +32,6 @@ example of a sample file:
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
-
 getStat :: Int -> Int -> Int -> Int
 getStat baseSt maxSt level = baseSt + floor lvlBonus
   where
@@ -101,22 +100,29 @@ processRaw =
             [a,b] -> Just (read a, read b)
             _ -> Nothing
 
-checkTruth :: (Int, Int) -> [(Int,Int)] -> [(Int,Int)]
-checkTruth (lvl,stat) = filter check
+
+type ProgArgs = [String]
+
+estimateStat :: ProgArgs -> IO ()
+estimateStat [fp] = do
+    d <- processRaw <$> readFile fp
+    let searchSpace = genRange (findRange d)
+        go curSearchSpace truth = checkTruth truth curSearchSpace
+        results = foldl go searchSpace (IM.toList d)
+    print results
+    pure ()
   where
-    check :: (Int, Int) -> Bool
-    check (baseStat, maxStat) = getStat baseStat maxStat lvl == stat
+    checkTruth :: (Int, Int) -> [(Int,Int)] -> [(Int,Int)]
+    checkTruth (lvl,stat) = filter check
+      where
+        check :: (Int, Int) -> Bool
+        check (baseStat, maxStat) = getStat baseStat maxStat lvl == stat
+estimateStat _ = error "shipstat est <stat file>"
 
 defaultMain :: IO ()
 defaultMain = do
     as <- getArgs
     case as of
-        [fp] -> do
-            d <- processRaw <$> readFile fp
-            let searchSpace = genRange (findRange d)
-                results = foldl (\curSearchSpace truth -> checkTruth truth curSearchSpace) searchSpace (IM.toList d)
-            -- print searchSpace
-            print results
-            pure ()
+        "est":as' -> estimateStat as'
         _ ->
-            error "shipstat <stat file>"
+            error "shipstat est <args> / shipstat calc <base> <max> [target level]"
