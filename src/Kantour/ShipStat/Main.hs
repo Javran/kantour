@@ -119,6 +119,25 @@ estimateStat [fp] = do
         check (baseStat, maxStat) = getStat baseStat maxStat lvl == stat
 estimateStat _ = error "shipstat est <stat file>"
 
+
+calcStat :: ProgArgs -> IO ()
+calcStat as = case as of
+    (baseRaw:maxRaw:as')
+        | [(baseSt,"")] <- reads baseRaw
+        , [(maxSt,"")] <- reads maxRaw ->
+        case as' of
+            [] -> calcStat' baseSt maxSt Nothing
+            [levelRaw] | [(level,"")] <- reads levelRaw ->
+                calcStat' baseSt maxSt (Just level)
+            _ -> failedPattern
+    _ -> failedPattern
+  where
+    calcStat' :: Int -> Int -> Maybe Int -> IO ()
+    calcStat' baseSt maxSt mLevel = pure ()
+
+    failedPattern = error "shipstat calc <base> <max> [target level]"
+
+
 defaultMain :: IO ()
 defaultMain = do
     as <- getArgs
