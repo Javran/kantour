@@ -6,6 +6,9 @@ import qualified Data.IntSet as IS
 import Data.Maybe
 import Control.Monad
 import Data.Char
+import Text.Printf
+import Data.Semigroup
+import Data.Coerce
 
 {-
 
@@ -31,6 +34,7 @@ example of a sample file:
 -}
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
+{-# ANN module "HLint: ignore Eta reduce" #-}
 
 getStat :: Int -> Int -> Int -> Int
 getStat baseSt maxSt level = baseSt + floor lvlBonus
@@ -100,7 +104,6 @@ processRaw =
             [a,b] -> Just (read a, read b)
             _ -> Nothing
 
-
 type ProgArgs = [String]
 
 estimateStat :: ProgArgs -> IO ()
@@ -119,7 +122,6 @@ estimateStat [fp] = do
         check (baseStat, maxStat) = getStat baseStat maxStat lvl == stat
 estimateStat _ = error "shipstat est <stat file>"
 
-
 calcStat :: ProgArgs -> IO ()
 calcStat as = case as of
     (baseRaw:maxRaw:as')
@@ -133,15 +135,24 @@ calcStat as = case as of
     _ -> failedPattern
   where
     calcStat' :: Int -> Int -> Maybe Int -> IO ()
-    calcStat' baseSt maxSt mLevel = pure ()
+    calcStat' baseSt maxSt mLevel = case mLevel of
+        Nothing -> do
+          let statTable = map (\lvl -> (getStat' lvl,lvl)) [1..155]
+              statMinLvls = IM.fromListWith (<>) (coerce statTable :: [(Int, Min Int)])
+              statList = IM.toAscList statMinLvls
+          mapM_ (\(st,lvl) -> pprStat (coerce lvl :: Int) st) statList
+        Just level -> pprStat level (getStat' level)
+      where
+        getStat' = getStat baseSt maxSt
+        pprStat level st = printf "Level: %d\tStat: %d\n" level st
 
     failedPattern = error "shipstat calc <base> <max> [target level]"
-
 
 defaultMain :: IO ()
 defaultMain = do
     as <- getArgs
     case as of
         "est":as' -> estimateStat as'
+        "calc":as' -> calcStat as'
         _ ->
             error "shipstat est <args> / shipstat calc <base> <max> [target level]"
