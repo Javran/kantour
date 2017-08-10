@@ -64,27 +64,28 @@ findMapSpriteId =
          >>> hasAttrValue "name" (== "map")
          >>> getAttrValue "characterId")
 
-findHiddenSpriteId :: ArrowXml arr => arr XmlDoc String
-findHiddenSpriteId =
+findHiddenSpriteIds :: ArrowXml arr => String -> arr XmlDoc [String]
+findHiddenSpriteIds searchTag =
     docDeep (hasName "item"
              >>> hasAttrValue "type" (== "SymbolClassTag"))
     >>> (listA (this /> (hasName "tags" /> getItem)) &&&
          listA (this /> (hasName "names" /> getItem)))
-    >>> arr (uncurry findHiddenRoot)
+    >>> arr (uncurry findHiddenRoots)
   where
     getItem = hasName "item" /> getText
-    findHiddenRoot :: [String] -> [String] -> String
-    findHiddenRoot tags names
+    findHiddenRoots :: [String] -> [String] -> [String]
+    findHiddenRoots tags names
         | equalLength tags names =
             -- TODO: sometimes the extra data comes directly from SallyMain,
             -- in which case we need to have a more specific filter
             -- (it's 383_17 and 383_29 for 38-3) .. perhaps finding a better parameter syntax would help
-            let isExtraRoot (_, s) =
-                    "scene.sally.mc.MCCellSP385" `isPrefixOf` s
+            let fullSearchTag = "scene.sally.mc.MCCellSP" ++ searchTag
+                isExtraRoot (_, s) =
+                    fullSearchTag `isPrefixOf` s
                     -- "scene.sally.mc.MCCellSP383_17" `isPrefixOf` s
-            in case find isExtraRoot (zip tags names) of
-                   Just (spriteId, _) -> spriteId
-                   Nothing -> error "cell root not found"
+            in case filter isExtraRoot (zip tags names) of
+                   xs@(_:_) -> map fst xs
+                   [] -> error "cell root not found"
         | otherwise = error "tags & names length differs"
 
 findHiddenSpriteRoots :: ArrowXml arr => arr XmlDoc [(String,String)]
@@ -175,11 +176,16 @@ extractFromMain = proc doc -> do
     begins <- listA getMapBeginNode -< d'
     this -< (rs ++ extraRs, begins)
 
-extractFromHidden :: ArrowXml arr => arr XmlDoc ([MyLine], [V2 Int])
-extractFromHidden = proc doc -> do
-    spriteId <- findHiddenSpriteId -< doc
+extractSingle :: ArrowXml arr => String -> arr XmlDoc ([MyLine], [V2 Int])
+extractSingle spriteId = proc doc -> do
     extraSprite <- findSprite spriteId -<< doc
     listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc)
+
+extractFromHidden :: ArrowXml arr => String -> arr XmlDoc ([MyLine], [V2 Int])
+extractFromHidden searchTag = proc doc -> do
+    spriteIds <- findHiddenSpriteIds searchTag -< doc
+    result <- catA (extractSingle <$> spriteIds) -<< doc
+    this -< result
 
 parseXmlDoc
     :: IOSLA (XIOState ()) XmlDoc a
@@ -196,12 +202,17 @@ parseXmlDoc arrExtract fp = do
             ]
         _ -> pure $ Left $ "error when parsing: " ++ fp
 
+collapseToOne :: (Monoid a, Monoid b) => [(a,b)] -> (a,b)
+collapseToOne xs = (mconcat as, mconcat bs)
+  where
+    (as,bs) = unzip xs
+
 safeParseXmlDoc
     :: IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int])
     -> String
     -> IO ([MyLine], [V2 Int])
 safeParseXmlDoc arrExtract fp = do
-    parsed <- right unsafeExactlyOne <$> parseXmlDoc arrExtract fp
+    parsed <- right collapseToOne <$> parseXmlDoc arrExtract fp
     case parsed of
         Left errMsg -> do
             putStrLn $ "Parse error: " ++ errMsg

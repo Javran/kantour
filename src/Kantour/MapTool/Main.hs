@@ -88,26 +88,27 @@ loadFromConfig fp = do
             print mapConf
 
 -- TODO: tmp entry point for debugging
-defaultMain :: IO ()
-defaultMain = loadFromConfig "example.yaml"
+-- defaultMain :: IO ()
+-- defaultMain = loadFromConfig "example.yaml"
 
-defaultMainDraw :: IO ()
-defaultMainDraw = do
+-- stack build && stack exec -- maptool 38-3.xml sm38.xml 383 -- -o 38-3.svg -w 2000 && ristretto 38-3.svg
+defaultMain :: IO ()
+defaultMain = do
     mArgs <- sepArgs <$> getArgs
     case mArgs of
         Nothing -> do
             putStrLn "invalid arguments"
-            putStrLn "usage: maptool <main xml> [hidden xml] [-- diagrams args]"
+            putStrLn "usage: maptool <main xml> [hidden xml <search tag>] [-- diagrams args]"
             putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
             exitFailure
-        Just ((srcFP, mHiddenFP), mDiagramArgs) -> do
+        Just ((srcFP, mHiddenFPInfo), mDiagramArgs) -> do
             -- pretty printing arguments
             putStrLn $ "main xml: " ++ srcFP
-            putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" mHiddenFP
+            putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" (fst <$> mHiddenFPInfo)
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
             (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
-            case mHiddenFP of
-                Just hiddenFP -> do
+            case mHiddenFPInfo of
+                Just (hiddenFP, _) -> do
                     parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
                     case parsed of
                         Left errMsg ->
@@ -118,8 +119,8 @@ defaultMainDraw = do
                             in mapM_ ppr vs
                 Nothing -> pure ()
             (hiddenRoutes, hiddenBeginNodes) <-
-                case mHiddenFP of
-                    Just hiddenFP -> safeParseXmlDoc extractFromHidden hiddenFP
+                case mHiddenFPInfo of
+                    Just (hiddenFP, searchTag) -> safeParseXmlDoc (extractFromHidden searchTag) hiddenFP
                     Nothing -> pure ([], [])
             putStrLn "====="
             -- the coordinates look like large numbers because SWF uses twip as basic unit
@@ -134,19 +135,20 @@ defaultMainDraw = do
             putStrLn "=== JSON encoding ==="
             putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
 
+-- TODO (new) search tag: "385" means "scene.sally.mc.MCCellSP385", etc.
 -- separate argument list into maptool arguments and those meant for diagrams:
--- arg list: <main xml> [hidden xml] [-- <diagram args>]
+-- arg list: <main xml> [hidden xml <search tag>] [-- <diagram args>]
 -- where <main xml> is the map xml file, [hidden xml] is an optional part.
 -- additionally, if "--" exists and <diagram args> is not empty, diagram will be called
 -- to draw a picture.
-sepArgs :: [String] -> Maybe ((String, Maybe String), Maybe [String])
+sepArgs :: [String] -> Maybe ((String, Maybe (String,String)), Maybe [String])
 sepArgs as = do
     let (ls,rs') = break (== "--") as
     lVal <- case ls of
         [] -> Nothing
         mainXmlFP : ls' -> case ls' of
             [] -> pure (mainXmlFP, Nothing)
-            [extraXmlFP] -> pure (mainXmlFP, Just extraXmlFP)
+            [extraXmlFP,searchTag] -> pure (mainXmlFP, Just (extraXmlFP,searchTag))
             _ -> Nothing
     let rVal = case rs' of
             [] -> Nothing
