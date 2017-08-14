@@ -1,2 +1,9 @@
+{-# LANGUAGE NamedFieldPuns #-}
 import Distribution.Simple
-main = defaultMain
+import Distribution.Simple.LocalBuildInfo
+
+main :: IO ()
+main = defaultMainWithHooks (simpleUserHooks {postBuild})
+  where
+    -- TODO
+    postBuild _ _ _ LocalBuildInfo {buildDir} = pure ()

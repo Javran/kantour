@@ -56,11 +56,11 @@ fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
 verboseParse :: forall a. FromJSON a => BS.ByteString -> IO (Maybe a)
 verboseParse raw = do
     let result = eitherDecodeStrict' raw :: Either String a
+    -- BSC.putStrLn raw
     case result of
         Right m -> pure (Just m)
         Left msg -> do
             putStrLn $ "parsing failed: " <> msg
-            BSC.putStrLn raw
             pure Nothing
 
 fetchEquipments :: IO [Equipment]

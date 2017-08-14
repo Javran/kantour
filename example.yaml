@@ -1,6 +1,0 @@
-source: ./383.xml
-extras:
-  - source: ./sm38.xml
-    match-string: scene.sally.mc.MCCellSP383_29
-  - source: ./sm38.xml
-    match-string: scene.sally.mc.MCCellSP383_17

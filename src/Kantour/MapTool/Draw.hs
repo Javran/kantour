@@ -6,7 +6,8 @@
 module Kantour.MapTool.Draw where
 
 import Diagrams.Prelude
-import Diagrams.Backend.SVG.CmdLine
+-- import Diagrams.Backend.SVG.CmdLine
+import Diagrams.Backend.Rasterific.CmdLine
 import Data.Coerce
 
 import qualified Data.Set as S

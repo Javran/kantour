@@ -1,3 +1,4 @@
+{-# LANGUAGE PartialTypeSignatures #-}
 module Kantour.Utils where
 
 import Data.Foldable

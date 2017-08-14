@@ -9,9 +9,14 @@ author:              Javran Cheng
 maintainer:          javran.c@gmail.com
 copyright:           Copyright: (c) 2016 Javran Cheng
 category:            Web
-build-type:          Simple
+build-type:          Custom
 -- extra-source-files:
 cabal-version:       >=1.10
+
+custom-setup
+  setup-depends:
+    base,
+    Cabal
 
 library
   hs-source-dirs:      src
@@ -49,6 +54,7 @@ library
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
   build-depends:       base
+                     , Cabal
                      , mwc-random
                      , random
                      , primitive
@@ -64,6 +70,7 @@ library
                      , diagrams
                      , diagrams-lib
                      , diagrams-svg
+                     , diagrams-rasterific
                      , hxt
                      , strict
                      , linear
