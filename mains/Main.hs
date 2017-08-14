@@ -1,6 +1,6 @@
 module Main where
 
-import Kantour.ASWEquip.Main
+import Kantour.Main
 
 main :: IO ()
 main = defaultMain
