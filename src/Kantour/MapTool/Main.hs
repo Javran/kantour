@@ -28,6 +28,13 @@ import Kantour.MapTool.Draw
 import Kantour.MapTool.Xml
 import qualified Data.Yaml as Yaml
 import Kantour.MapTool.MapConfig
+import Kantour.Subcommand
+
+data SubCmdMapTool
+
+instance Subcommand SubCmdMapTool where
+    name _ = "MapTool"
+    main _ = defaultMain
 
 {-
 

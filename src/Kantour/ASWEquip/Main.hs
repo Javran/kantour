@@ -10,6 +10,13 @@ import Data.List
 import Text.Printf
 import Data.Ord
 import System.Environment
+import Kantour.Subcommand
+
+data SubCmdAswEquip
+
+instance Subcommand SubCmdAswEquip where
+    name _ = "AswEquip"
+    main _ = defaultMain
 
 {-
 

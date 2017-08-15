@@ -10,6 +10,13 @@ import Statistics.Sample
 import Data.Vector.Algorithms.Intro
 import Data.Function
 import Numeric.SpecFunctions
+import Kantour.Subcommand
+
+data SubCmdDropCalc
+
+instance Subcommand SubCmdDropCalc where
+    name _ = "DropCalc"
+    main _ = defaultMain
 
 experiment :: PrimMonad m => Gen (PrimState m) -> Double -> m Int
 experiment g r = experiment' 0

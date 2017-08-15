@@ -9,6 +9,13 @@ import Data.Char
 import Text.Printf
 import Data.Semigroup
 import Data.Coerce
+import Kantour.Subcommand
+
+data SubCmdShipStat
+
+instance Subcommand SubCmdShipStat where
+    name _ = "ShipStat"
+    main _ = defaultMain
 
 {-
 

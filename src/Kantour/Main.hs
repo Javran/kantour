@@ -14,6 +14,13 @@ import Data.Proxy
 
 import Kantour.Coded.Main (SubCmdCoded)
 import Kantour.DecMapUrl.Main (SubCmdDecMapUrl)
+import Kantour.DropCalc.Main (SubCmdDropCalc)
+import Kantour.MiniJson.Main (SubCmdMiniJson)
+import Kantour.MapTool.Main (SubCmdMapTool)
+import Kantour.ShipStat.Main (SubCmdShipStat)
+import Kantour.ASWEquip.Main (SubCmdAswEquip)
+import Kantour.QuotesFetch.Main (SubCmdQuotesFetch)
+import Kantour.WhoCallsTheFleet.Main (SubCmdWctf)
 
 data ESub = forall sub. Subcommand sub => ESub (Proxy sub)
 
@@ -22,25 +29,16 @@ cmds =
     mkInd <$>
       [ ESub (Proxy :: Proxy SubCmdCoded)
       , ESub (Proxy :: Proxy SubCmdDecMapUrl)
+      , ESub (Proxy :: Proxy SubCmdDropCalc)
+      , ESub (Proxy :: Proxy SubCmdMiniJson)
+      , ESub (Proxy :: Proxy SubCmdMapTool)
+      , ESub (Proxy :: Proxy SubCmdShipStat)
+      , ESub (Proxy :: Proxy SubCmdAswEquip)
+      , ESub (Proxy :: Proxy SubCmdQuotesFetch)
+      , ESub (Proxy :: Proxy SubCmdWctf)
       ]
   where
     mkInd (ESub m) = (mk $ name m, main m)
-
-{-
-
-to be recovered:
-
-- dropcalc
-- shipstat
-- aswequip
-- coded
-- minijson
-- maptool
-- quotesfetch
-- wctf
-- decmapurl
-
--}
 
 defaultMain :: IO ()
 defaultMain = do

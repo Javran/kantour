@@ -8,6 +8,13 @@ import Text.PrettyPrint.HughesPJClass
 import System.Exit
 
 import Kantour.MiniJson.Parser
+import Kantour.Subcommand
+
+data SubCmdMiniJson
+
+instance Subcommand SubCmdMiniJson  where
+    name _ = "MiniJson"
+    main _ = defaultMain
 
 -- instead of what Data.Aeson does,
 -- we actually want to work on top of object key order preserving data structure

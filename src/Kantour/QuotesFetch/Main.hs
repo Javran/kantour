@@ -28,6 +28,13 @@ import Data.Typeable
 import Data.Either
 import Control.Exception
 import Kantour.Utils
+import Kantour.Subcommand
+
+data SubCmdQuotesFetch
+
+instance Subcommand SubCmdQuotesFetch where
+    name _ = "QuotesFetch"
+    main _ = defaultMain
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 {-# ANN module ("HLint: ignore Use unless" :: String) #-}
