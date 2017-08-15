@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Kantour.Coded.Main
   ( defaultMain
-  , SubCmdCoded(..)
+  , SubCmdCoded
   ) where
 
 import System.Environment
@@ -12,10 +12,10 @@ import Control.Monad.State
 import Data.Monoid
 import Kantour.Subcommand
 
-data SubCmdCoded = SubCmdCoded
+data SubCmdCoded
 
 instance Subcommand SubCmdCoded  where
-    name _ = "ASWEquip"
+    name _ = "Coded"
     main _ = defaultMain
 
 data BinData = BD

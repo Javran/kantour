@@ -4,17 +4,25 @@ module Kantour.Main
   ) where
 
 import Kantour.Subcommand
-import Kantour.Coded.Main (SubCmdCoded(..))
+
 import Data.CaseInsensitive
 import System.Environment
 import System.Exit
 import Text.Printf
 import Control.Monad
+import Data.Proxy
 
-data ESub = forall sub. Subcommand sub => ESub sub
+import Kantour.Coded.Main (SubCmdCoded)
+import Kantour.DecMapUrl.Main (SubCmdDecMapUrl)
+
+data ESub = forall sub. Subcommand sub => ESub (Proxy sub)
 
 cmds :: [(CI String, IO ())]
-cmds = mkInd <$> [ESub SubCmdCoded]
+cmds =
+    mkInd <$>
+      [ ESub (Proxy :: Proxy SubCmdCoded)
+      , ESub (Proxy :: Proxy SubCmdDecMapUrl)
+      ]
   where
     mkInd (ESub m) = (mk $ name m, main m)
 

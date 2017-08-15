@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Kantour.DecMapUrl.Main
   ( defaultMain
+  , SubCmdDecMapUrl
   ) where
 
 import Text.Printf
@@ -13,6 +14,13 @@ import Data.Char
 import System.Random
 import Data.Function
 import Control.Monad
+import Kantour.Subcommand
+
+data SubCmdDecMapUrl
+
+instance Subcommand SubCmdDecMapUrl where
+    name _ = "DecMapUrl"
+    main _ = defaultMain
 
 serverIps :: [String]
 serverIps =

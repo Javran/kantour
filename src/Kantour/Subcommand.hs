@@ -1,5 +1,7 @@
 module Kantour.Subcommand where
 
+import Data.Proxy
+
 class Subcommand s where
-  name :: s -> String
-  main :: s -> IO ()
+  name :: Proxy s -> String
+  main :: Proxy s -> IO ()
