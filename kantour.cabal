@@ -48,6 +48,7 @@ library
                      , Kantour.WhoCallsTheFleet.Fetch
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
+                     , Kantour.Subcommand
                      , Kantour.Main
   build-depends:       base
                      , mwc-random
@@ -87,6 +88,7 @@ library
                      , unordered-containers
                      , data-default
                      , yaml
+                     , case-insensitive
   default-language:    Haskell2010
 
 executable kantour

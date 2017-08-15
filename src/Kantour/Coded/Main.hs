@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Kantour.Coded.Main
   ( defaultMain
+  , SubCmdCoded(..)
   ) where
 
 import System.Environment
@@ -9,6 +10,13 @@ import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Control.Monad.State
 import Data.Monoid
+import Kantour.Subcommand
+
+data SubCmdCoded = SubCmdCoded
+
+instance Subcommand SubCmdCoded  where
+    name _ = "ASWEquip"
+    main _ = defaultMain
 
 data BinData = BD
   { _bdFirst :: ByteString
