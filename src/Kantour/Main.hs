@@ -1,42 +1,34 @@
-{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ExistentialQuantification, TemplateHaskell #-}
 module Kantour.Main
   ( defaultMain
   ) where
 
 import Kantour.Subcommand
 
-import Data.CaseInsensitive
 import System.Environment
 import System.Exit
 import Text.Printf
 import Control.Monad
 import Data.Proxy
+import Kantour.TH
 
-import Kantour.Coded.Main (SubCmdCoded)
-import Kantour.DecMapUrl.Main (SubCmdDecMapUrl)
-import Kantour.DropCalc.Main (SubCmdDropCalc)
-import Kantour.MiniJson.Main (SubCmdMiniJson)
-import Kantour.MapTool.Main (SubCmdMapTool)
-import Kantour.ShipStat.Main (SubCmdShipStat)
-import Kantour.ASWEquip.Main (SubCmdAswEquip)
-import Kantour.QuotesFetch.Main (SubCmdQuotesFetch)
-import Kantour.WhoCallsTheFleet.Main (SubCmdWctf)
+import Data.CaseInsensitive
+
+import Kantour.Coded.Main ()
+import Kantour.DecMapUrl.Main ()
+import Kantour.DropCalc.Main ()
+import Kantour.MiniJson.Main ()
+import Kantour.MapTool.Main ()
+import Kantour.ShipStat.Main ()
+import Kantour.ASWEquip.Main ()
+import Kantour.QuotesFetch.Main ()
+import Kantour.WhoCallsTheFleet.Main ()
 
 data ESub = forall sub. Subcommand sub => ESub (Proxy sub)
 
 cmds :: [(CI String, IO ())]
 cmds =
-    mkInd <$>
-      [ ESub (Proxy :: Proxy SubCmdCoded)
-      , ESub (Proxy :: Proxy SubCmdDecMapUrl)
-      , ESub (Proxy :: Proxy SubCmdDropCalc)
-      , ESub (Proxy :: Proxy SubCmdMiniJson)
-      , ESub (Proxy :: Proxy SubCmdMapTool)
-      , ESub (Proxy :: Proxy SubCmdShipStat)
-      , ESub (Proxy :: Proxy SubCmdAswEquip)
-      , ESub (Proxy :: Proxy SubCmdQuotesFetch)
-      , ESub (Proxy :: Proxy SubCmdWctf)
-      ]
+    mkInd <$> $(genSubcommands)
   where
     mkInd (ESub m) = (mk $ name m, main m)
 
