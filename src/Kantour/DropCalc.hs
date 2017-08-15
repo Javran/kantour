@@ -1,4 +1,4 @@
-module Kantour.DropCalc.Main where
+module Kantour.DropCalc where
 
 import System.Environment
 import Control.Monad

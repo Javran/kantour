@@ -1,4 +1,4 @@
-module Kantour.ShipStat.Main where
+module Kantour.ShipStat where
 
 import System.Environment
 import qualified Data.IntMap.Strict as IM

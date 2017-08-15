@@ -4,7 +4,7 @@
   , MultiWayIf
   #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
-module Kantour.ASWEquip.Main where
+module Kantour.AswEquip where
 
 import Data.List
 import Text.Printf

@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Kantour.Coded.Main
+module Kantour.Coded
   ( defaultMain
   , SubCmdCoded
   ) where

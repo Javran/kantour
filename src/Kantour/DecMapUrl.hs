@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Kantour.DecMapUrl.Main
+module Kantour.DecMapUrl
   ( defaultMain
   , SubCmdDecMapUrl
   ) where

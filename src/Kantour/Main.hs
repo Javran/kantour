@@ -14,13 +14,14 @@ import Kantour.TH
 
 import Data.CaseInsensitive
 
-import Kantour.Coded.Main ()
-import Kantour.DecMapUrl.Main ()
-import Kantour.DropCalc.Main ()
+import Kantour.Coded ()
+import Kantour.DecMapUrl ()
+import Kantour.ShipStat ()
+import Kantour.AswEquip ()
+
+import Kantour.DropCalc ()
 import Kantour.MiniJson.Main ()
 import Kantour.MapTool.Main ()
-import Kantour.ShipStat.Main ()
-import Kantour.ASWEquip.Main ()
 import Kantour.QuotesFetch.Main ()
 import Kantour.WhoCallsTheFleet.Main ()
 

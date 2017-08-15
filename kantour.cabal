@@ -16,10 +16,10 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
-  exposed-modules:     Kantour.DropCalc.Main
-                     , Kantour.ShipStat.Main
-                     , Kantour.ASWEquip.Main
-                     , Kantour.Coded.Main
+  exposed-modules:     Kantour.DropCalc
+                     , Kantour.ShipStat
+                     , Kantour.AswEquip
+                     , Kantour.Coded
                      , Kantour.MiniJson.Main
                      , Kantour.MiniJson.Types
                      , Kantour.MiniJson.Parser
@@ -28,7 +28,7 @@ library
                      , Kantour.MapTool.Xml
                      , Kantour.MapTool.MapConfig
                      , Kantour.MapTool.Draw
-                     , Kantour.DecMapUrl.Main
+                     , Kantour.DecMapUrl
                      , Kantour.QuotesFetch.Types
                      , Kantour.QuotesFetch.Kcwiki
                      , Kantour.QuotesFetch.ShipDatabase
