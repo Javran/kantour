@@ -29,7 +29,7 @@ experiment g r = experiment' 0
           else experiment' newCnt
 
 computeCDF :: Int -> Int -> Double -> Double
-computeCDF k r p = i (1-p) (fromIntegral r) (fromIntegral (k+1))
+computeCDF k r p = i (1-p) (fromIntegral r) (fromIntegral k)
   where
     i x a b = incompleteBeta a b x
 
