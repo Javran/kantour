@@ -4,4 +4,4 @@ packages:
 - '.'
 extra-deps:
 - language-lua-0.10.0
-resolver: lts-8.2
+resolver: lts-9.11
