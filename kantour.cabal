@@ -46,6 +46,9 @@ library
                      , Kantour.WhoCallsTheFleet.Types.Ship
                      , Kantour.WhoCallsTheFleet.Types.Equipment
                      , Kantour.WhoCallsTheFleet.Fetch
+                     , Kantour.ESports.Main
+                     , Kantour.ESports.Quest
+                     , Kantour.ESports.Progressor
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
                      , Kantour.Subcommand

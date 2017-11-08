@@ -24,6 +24,7 @@ import Kantour.MiniJson.Main ()
 import Kantour.MapTool.Main ()
 import Kantour.QuotesFetch.Main ()
 import Kantour.WhoCallsTheFleet.Main ()
+import Kantour.ESports.Main ()
 
 data ESub = forall sub. Subcommand sub => ESub (Proxy sub)
 
