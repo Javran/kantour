@@ -48,7 +48,6 @@ mergeProb xs
 
 TODO
 
-2-1
 2-2
 2-3/oa
 2-3/subs
@@ -277,6 +276,27 @@ allProgressor =
             "Bw5" -> ssSunk
             "Bq3" -> 1
             "EO1-6" -> 1
+            _ -> 0
+    , mkP "2-1" (timeNorm + timeRes + timeNorm) $
+        let cvSunkC = mergeProb [(2%3, 3), (1%3, 2)]
+            cvSunkE = mergeProb [(2%3, 2), (1%3, 3)]
+            cvSunkF = cvSunkC
+            cvSunk = mergeProb
+                       [ (1%2, cvSunkC)
+                       , (1%2, mergeProb [(1%2, cvSunkE), (1%2, cvSunkF)])
+                       ]
+            bossNodeExpect = mergeProb [(1%2, 0), (1%2, mergeProb [(1%2, 1), (1%2,0)])]
+        in \case
+            "Bd1" -> 2
+            "Bd2" -> 2
+            "Bd3" -> 2
+            "Bd4" -> cvSunk
+            "Bd7" -> bossNodeExpect
+            "Bw1/1" -> 1
+            "Bw1/2" -> 2
+            "Bw1/3" -> bossNodeExpect
+            "Bw1/4" -> bossNodeExpect
+            "Bw2" -> cvSunk
             _ -> 0
     ]
   where
