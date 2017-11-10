@@ -48,7 +48,9 @@ mergeProb xs
 
 TODO
 
-2-2
+2-2/no-a-only-ef
+2-2/no-a-only-eg
+
 2-3/oa
 2-3/subs
 2-4
@@ -297,6 +299,32 @@ allProgressor =
             "Bw1/3" -> bossNodeExpect
             "Bw1/4" -> bossNodeExpect
             "Bw2" -> cvSunk
+            _ -> 0
+    , -- refresh on A, either E -> F and E -> G are acceptable, no CV.
+      mkP "2-2/no-a-either-no-cv"
+        (mergeProb [ (1%2, timeRefresh)
+                   , (1%2, timeRes + timeNorm)
+                   ]) $
+        let cvSunkF = mergeProb [(2%3, 0), (1%3, 2)]
+            tpSunkG = mergeProb [(1%4, 4), (1%4, 3), (2%4, 2)]
+            cvSunk = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10 , cvSunkF), (3%10, 0)])]
+            tpSunk = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10 , 0), (3%10, tpSunkG)])]
+            bossNodeExpect = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10,1),(3%10,0)])]
+        in \case
+            "Bd1" -> mergeProb [(1%2, 0), (1%2, 1)]
+            "Bd2" -> mergeProb [(1%2, 0), (1%2, 1)]
+            "Bd3" -> mergeProb [(1%2, 0), (1%2, 1)]
+            "Bd4" -> cvSunk
+            "Bd5" -> tpSunk
+            "Bd6" -> tpSunk
+            "Bd7" -> bossNodeExpect
+            "Bw1/1" -> 1
+            "Bw1/2" -> Sum 0.8 * mergeProb [(1%2, 0), (1%2, 1)] -- expect slightly less S-rank
+            "Bw1/3" -> bossNodeExpect
+            "Bw1/4" -> Sum 0.8 * bossNodeExpect
+            "Bw2" -> cvSunk
+            "Bw3" -> tpSunk
+            "Bw4" -> tpSunk
             _ -> 0
     ]
   where
