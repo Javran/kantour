@@ -326,6 +326,26 @@ allProgressor =
             "Bw3" -> tpSunk
             "Bw4" -> tpSunk
             _ -> 0
+    , -- refresh on A, the only acceptable route is E -> F, with CV.
+      mkP "2-2/no-a-only-ef"
+        (mergeProb [ (1%2, timeRefresh)
+                   , (1%2, mergeProb [(7%10, timeNorm), (3%10, timeRefresh)])
+                   ]) $
+        let cvSunkF = mergeProb [(2%3, 0), (1%3, 2)]
+            bossNodeExpect = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10,1),(3%10,0)])]
+            cvSunk = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10 , cvSunkF), (3%10, 0)])]
+        in \case
+            "Bd1" -> bossNodeExpect
+            "Bd2" -> bossNodeExpect
+            "Bd3" -> bossNodeExpect
+            "Bd4" -> cvSunk
+            "Bd7" -> bossNodeExpect
+            "Bw1/1" -> 1
+            "Bw1/2" -> bossNodeExpect * Sum 0.6
+            "Bw1/3" -> bossNodeExpect
+            "Bw1/4" -> bossNodeExpect
+            "Bw2" -> cvSunk
+            _ -> 0
     ]
   where
     mkP :: forall n1 n2. (Coercible n1 (Sum Double), Coercible n2 (Sum Double))
