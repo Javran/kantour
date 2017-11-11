@@ -48,10 +48,7 @@ mergeProb xs
 
 TODO
 
-2-2/no-a-only-ef
-2-2/no-a-only-eg
-
-2-3/oa
+2-3/airstrike
 2-3/subs
 2-4
 2-5/norm
@@ -345,6 +342,25 @@ allProgressor =
             "Bw1/3" -> bossNodeExpect
             "Bw1/4" -> bossNodeExpect
             "Bw2" -> cvSunk
+            _ -> 0
+    , -- refresh no A, the only acceptable route is E -> G, without CV
+      mkP "2-2/no-a-only-eg"
+        (mergeProb [ (1%2, timeRefresh)
+                   , (1%2, mergeProb [(7%10, timeNorm), (3%10, timeRefresh)])
+                   ]) $
+        let tpSunkG = mergeProb [(1%4, 4), (1%4, 3), (2%4, 2)]
+            tpSunk = mergeProb [(1%2, 0), (1%2, mergeProb [(3%10 , 0), (7%10, tpSunkG)])]
+            tpNodeExpect = mergeProb [(1%2, 0), (1%2, mergeProb [(7%10,1),(3%10,0)])]
+        in \case
+            "Bd1" -> tpNodeExpect
+            "Bd2" -> tpNodeExpect
+            "Bd3" -> tpNodeExpect
+            "Bd5" -> tpSunk
+            "Bd6" -> tpSunk
+            "Bw1/1" -> 1
+            "Bw1/2" -> tpNodeExpect * Sum 0.9
+            "Bw3" -> tpSunk
+            "Bw4" -> tpSunk
             _ -> 0
     ]
   where
