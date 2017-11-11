@@ -362,6 +362,77 @@ allProgressor =
             "Bw3" -> tpSunk
             "Bw4" -> tpSunk
             _ -> 0
+    , -- 1AV5CVL
+      mkP "2-3/airstrike"
+        (mergeProb
+            [ -- Start->A,B,E,F or G
+              (1%2, timeRes + timeNorm + timeRes + timeNorm)
+              -- Start->C
+            , (1%2
+              , timeNorm + mergeProb
+                  [ -- D,E,F or G
+                    (7%10, timeRes + timeRes + timeNorm)
+                    -- H,I,I or K
+                  , (3%10, timeNorm + timeRes + mergeProb [(1%2, timeRes), (1%2, timeNorm)])
+                  ]
+              )
+            ]) $
+        let cvSunkF = mergeProb [(1%3, 3), (2%3, 2)]
+            cvSunkG = mergeProb [(1%3, 2), (2%3, 1)]
+            cvSunkH = cvSunkF
+            cvSunkK = cvSunkF
+            tpSunkF = 2
+            tpSunkH = tpSunkF
+            tpSunkK = tpSunkF
+            cvSunk = mergeProb
+              [ -- Start->A->B->E
+                (1%2, mergeProb [(7%10, cvSunkG), (3%10, cvSunkF)])
+                -- Start->C
+              , (1%2, mergeProb
+                        [ -- D->E->F or G
+                          (7%10, mergeProb [(7%10, cvSunkG), (3%10, cvSunkF)])
+                          -- H->I->J or K
+                        , (3%10, cvSunkH + mergeProb [(1%2, 0), (1%2, cvSunkK)])
+                        ])
+              ]
+            tpSunk = mergeProb
+              [ -- Start ->A->B->E
+                (1%2, mergeProb [(7%10, 0), (3%10, tpSunkF)])
+              , -- Start->C
+                (1%2, mergeProb
+                        [ -- D->E->F or G
+                          (7%10, mergeProb [(7%10, 0), (3%10, tpSunkF)])
+                          -- H->I->J or K
+                        , (3%10, tpSunkH + mergeProb [(1%2, 0), (1%2, tpSunkK)])
+                        ])
+              ]
+            expectNodeCount = mergeProb [(toK, 3), (1-toK, 2)]
+              where
+                toK = (1%2) * (3%10) * (1%2)
+            expectBossNode =
+                mergeProb
+                  [ -- Start->A->B->E
+                    (1%2, mergeProb [(3%10, 0), (7%10, 1)])
+                  , -- Start->C
+                    (1%2, mergeProb [(3%10, 0), (7%10, mergeProb [(3%10, 0), (7%10, 1)])])
+                  ]
+
+        in \case
+            "Bd1" -> 1
+            "Bd2" -> 1
+            "Bd3" -> expectNodeCount
+            "Bd4" -> cvSunk
+            "Bd5" -> tpSunk
+            "Bd6" -> tpSunk
+            "Bd7" -> expectBossNode
+            "Bw1/1" -> 1
+            "Bw1/2" -> expectNodeCount
+            "Bw1/3" -> expectBossNode
+            "Bw1/4" -> expectBossNode
+            "Bw2" -> cvSunk
+            "Bw3" -> tpSunk
+            "Bw4" -> tpSunk
+            _ -> 0
     ]
   where
     mkP :: forall n1 n2. (Coercible n1 (Sum Double), Coercible n2 (Sum Double))
