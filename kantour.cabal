@@ -49,6 +49,7 @@ library
                      , Kantour.ESports.Main
                      , Kantour.ESports.Quest
                      , Kantour.ESports.Progressor
+                     , Kantour.MapToolFast.Main
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
                      , Kantour.Subcommand
@@ -94,6 +95,8 @@ library
                      , yaml
                      , case-insensitive
                      , template-haskell
+                     , xeno
+                     , hexml
   default-language:    Haskell2010
 
 executable kantour
