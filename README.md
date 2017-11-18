@@ -57,3 +57,20 @@ Usage: `dropcalc <rate> <# of experiments>`
 - `# of experiment` is the number of times that we simulate ship farming with
   the specified drop rate under the assumption that the result complies with uniform
   distribution.
+
+## Notes about map drawing
+
+- Decrypt `Core.swf`
+
+- Save RND in `<Core>.scripts/common/resources/MapResourceLoader` as a text file
+  (the final semicolon is optional)
+
+- `stack exec -- kantour decmapurl mapRND.txt` shows areas
+
+- `stack exec -- kantour decmapurl mapRND.txt <area>` prints downloading command
+
+- `ffdec -swf2xml 39-1.swf 39-1.xml` - need to do this for all maps
+
+- Get `SallyMain.swf` or other stuff that contains hidden routes, convert to xml.
+
+- `stack exec -- kantour maptool 39-4.xml bin/sm.xml 394 -- -w 800 -h 400 -o test.png`
