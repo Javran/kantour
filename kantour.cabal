@@ -50,6 +50,7 @@ library
                      , Kantour.ESports.Quest
                      , Kantour.ESports.Progressor
                      , Kantour.MapToolFast.Main
+                     , Kantour.MapRedraw
                      , Kantour.Utils
                      , Kantour.Kcwiki.ShipInfo
                      , Kantour.Subcommand

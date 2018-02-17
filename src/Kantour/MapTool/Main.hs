@@ -127,7 +127,8 @@ defaultMain = do
                 Nothing -> pure ()
             (hiddenRoutes, hiddenBeginNodes) <-
                 case mHiddenFPInfo of
-                    Just (hiddenFP, searchTag) -> safeParseXmlDoc (extractFromHidden searchTag) hiddenFP
+                    Just (hiddenFP, searchTag) ->
+                        safeParseXmlDoc (extractFromHidden searchTag) hiddenFP
                     Nothing -> pure ([], [])
             putStrLn "====="
             -- the coordinates look like large numbers because SWF uses twip as basic unit
@@ -141,6 +142,9 @@ defaultMain = do
                 Just diagramArgs -> withArgs diagramArgs $ draw mapInfo
             putStrLn "=== JSON encoding ==="
             putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
+            putStrLn "=== Begin MapInfo ==="
+            print mapInfo
+            putStrLn "=== End MapInfo ==="
 
 -- TODO (new) search tag: "385" means "scene.sally.mc.MCCellSP385", etc.
 -- separate argument list into maptool arguments and those meant for diagrams:

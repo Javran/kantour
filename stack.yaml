@@ -2,6 +2,5 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
-extra-deps:
-- language-lua-0.10.0
-resolver: lts-9.11
+extra-deps: []
+resolver: lts-9.20

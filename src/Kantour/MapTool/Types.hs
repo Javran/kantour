@@ -20,7 +20,7 @@ data MyLine = MyLine
   { _lName :: String
   , _lStart :: V2 Int
   , _lEnd :: V2 Int
-  } deriving Show
+  } deriving (Show, Read)
 
 makeLenses ''MyLine
 
@@ -35,7 +35,7 @@ data MapInfo = MapInfo
   { _miLines :: [MyLine]
   , _miStarts :: S.Set (V2 Int)
   , _miNodeNames :: M.Map (V2 Int) String -- ^ INVARIANT: all nodes have a unique name in it
-  }
+  } deriving (Show, Read)
 
 makeLenses ''MapInfo
 
