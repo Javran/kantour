@@ -66,7 +66,16 @@ type ProgArgs = [String]
 estimateStat :: ProgArgs -> IO ()
 estimateStat [fp] = do
     d <- processRaw <$> readFile fp
-    print (computeStatInfo d)
+    let results = computeStatInfo d
+        pprStatInfoLine (StatInfo b m) = printf "base: %d, lv.99: %d\n" b m
+    case results of
+        [] -> putStrLn "search failed"
+        [x] -> do
+            putStr "single solution: "
+            pprStatInfoLine x
+        xs -> do
+            putStrLn "possible stats are: "
+            mapM_ pprStatInfoLine xs
     pure ()
 estimateStat _ = error "shipstat est <stat file>"
 
