@@ -108,10 +108,10 @@ getPossibleStatInfo (level1, curSt1) (level2, curSt2)
             stDiffUpper, stDiffLower :: Double
             stDiffLower = (((curSt2 - curSt1) - 1) * 99) `fDiv` (level2 - level1)
             stDiffUpper = (((curSt2 - curSt1) + 1) * 99) `fDiv` (level2 - level1)
-        stDiff <- [floor stDiffLower .. ceiling stDiffUpper]
+        stDiff <- dropWhile (< 0) [floor stDiffLower .. ceiling stDiffUpper]
         let baseSt1 = curSt1 - floor((stDiff * level1) `fDiv` 99)
             baseSt2 = curSt2 - floor((stDiff * level2) `fDiv` 99)
-        guard $ baseSt1 == baseSt2
+        guard $ baseSt1 >= 0 && baseSt1 == baseSt2
         pure (StatInfo baseSt1 stDiff)
     | otherwise = []
 
