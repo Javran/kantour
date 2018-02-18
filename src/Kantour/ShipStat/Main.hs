@@ -9,6 +9,7 @@ import Text.Printf
 import Data.Semigroup
 import Data.Coerce
 import Kantour.Subcommand
+import System.Exit
 
 import Kantour.ShipStat.Core
 
@@ -67,7 +68,7 @@ estimateStat :: ProgArgs -> IO ()
 estimateStat [fp] = do
     d <- processRaw <$> readFile fp
     let results = computeStatInfo d
-        pprStatInfoLine (StatInfo b m) = printf "base: %d, lv.99: %d\n" b m
+        pprStatInfoLine (StatInfo b df) = printf "base: %d, lv.99: %d\n" b (b+df)
     case results of
         [] -> putStrLn "search failed"
         [x] -> do
@@ -111,5 +112,7 @@ defaultMain = do
     case as of
         "est":as' -> estimateStat as'
         "calc":as' -> calcStat as'
-        _ ->
-            error "shipstat est <args> / shipstat calc <base> <max> [target level]"
+        _ -> do
+            putStrLn "shipstat <subcmd> [args] ..."
+            putStrLn "subcmd: est / calc"
+            exitFailure
