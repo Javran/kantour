@@ -12,6 +12,7 @@ import Kantour.Subcommand
 import System.Exit
 
 import Kantour.ShipStat.Core
+import Kantour.ShipStat.ProcessDump
 
 data SubCmdShipStat
 
@@ -112,7 +113,8 @@ defaultMain = do
     case as of
         "est":as' -> estimateStat as'
         "calc":as' -> calcStat as'
+        "process-dump":as' -> processDump as'
         _ -> do
             putStrLn "shipstat <subcmd> [args] ..."
-            putStrLn "subcmd: est / calc"
+            putStrLn "subcmd: est / calc / process-dump"
             exitFailure

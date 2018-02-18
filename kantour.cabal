@@ -19,6 +19,7 @@ library
   exposed-modules:     Kantour.DropCalc
                      , Kantour.ShipStat.Main
                      , Kantour.ShipStat.Core
+                     , Kantour.ShipStat.ProcessDump
                      , Kantour.AswEquip
                      , Kantour.Coded
                      , Kantour.MiniJson.Main
