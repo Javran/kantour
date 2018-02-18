@@ -13,6 +13,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBSC
 import System.Exit
 import Data.Traversable
 import Data.Aeson
+import Data.String
 import Data.Aeson.Types
 import Data.Maybe
 import Control.Monad
@@ -79,8 +80,22 @@ groupDumpInfoWithWarning rs = do
             pure $ IM.fromList $ concatMap collapse $ IM.toList ys
     IM.traverseWithKey traverseShipLevelRecords grp1
 
-processDump :: [String] -> IO ()
-processDump [fp] = do
+{-
+
+key: shipId
+
+value:
+
+    - `Nothing` for insufficient amount of data (less than 2)
+
+    - `Just x` otherwise
+
+        - empty StatInfo means data given is inconsistent therefore exhausted search space
+-}
+type ShipStatInfoTable = IM.IntMap (Maybe (StatStruct [StatInfo]))
+
+computeShipStatInfoTable :: FilePath -> IO ShipStatInfoTable
+computeShipStatInfoTable fp = do
     (rawLines :: [Maybe ShipStatRecord]) <-
         fmap decode . LBSC.lines <$> LBS.readFile fp
     let lineCount = length rawLines
@@ -88,25 +103,53 @@ processDump [fp] = do
         validLineCount = length xs
     when (validLineCount /= lineCount) $
       putStrLn $ "invalid lines: " ++ show (lineCount - validLineCount)
-    shipStatInfoTable <- IM.map processShipLevelRecords <$> groupDumpInfoWithWarning xs
-    _ <- flip IM.traverseWithKey shipStatInfoTable $ \shipId statInfoRowsM ->
-        case statInfoRowsM of
-            Just statInfoRows -> do
-                let StatStruct {_evasion = eInfo, _asw = aInfo, _los = lInfo } = statInfoRows
-                    statInfoStr (StatInfo b d) = printf "base: %d, lv.99: %d" b (b+d)
-                    pprInfo :: [StatInfo] -> IO ()
-                    pprInfo [] = putStrLn "    <inconsistent>"
-                    pprInfo ss = forM_ ss $ \si -> putStrLn $ "    " ++ statInfoStr si
-                printf "ship %d\n" shipId
-                putStrLn "  asw: "
-                pprInfo aInfo
-                putStrLn "  evasion: "
-                pprInfo eInfo
-                putStrLn "  los: "
-                pprInfo lInfo
-                pure ()
-            Nothing -> printf "ship %d: insufficient\n" shipId
-    pure ()
+    IM.map processShipLevelRecords <$> groupDumpInfoWithWarning xs
+
+pprResult :: ShipStatInfoTable -> IO ()
+pprResult tbl = void $ flip IM.traverseWithKey tbl $ \shipId statInfoRowsM ->
+    case statInfoRowsM of
+        Just statInfoRows -> do
+            let StatStruct {_evasion = eInfo, _asw = aInfo, _los = lInfo } = statInfoRows
+                statInfoStr (StatInfo b d) = printf "base: %d, lv.99: %d" b (b+d)
+                pprInfo :: [StatInfo] -> IO ()
+                pprInfo [] = putStrLn "    <inconsistent>"
+                pprInfo ss = forM_ ss $ \si -> putStrLn $ "    " ++ statInfoStr si
+            printf "ship %d\n" shipId
+            putStrLn "  asw: "
+            pprInfo aInfo
+            putStrLn "  evasion: "
+            pprInfo eInfo
+            putStrLn "  los: "
+            pprInfo lInfo
+        Nothing -> printf "ship %d: insufficient\n" shipId
+
+newtype FinalReport = FinalReport ShipStatInfoTable deriving Generic
+
+instance ToJSON FinalReport where
+    toJSON (FinalReport shipTbl) = object $ reportShip <$> IM.toAscList shipTbl
+      where
+        reportShip (k, statResult) = fromString (show k) .= statResult'
+          where
+            statResult' = case statResult of
+                Nothing -> "insufficient" :: Value
+                Just st ->
+                    let convert :: StatInfo -> Value
+                        convert (StatInfo baseSt stDiff) =
+                            object ["base" .= baseSt, "max" .= (baseSt + stDiff)]
+                        StatStruct
+                          { _evasion = eInfo
+                          , _asw = aInfo
+                          , _los = lInfo
+                          } = (fmap . fmap) convert st
+                    in object ["evasion" .= eInfo, "asw" .= aInfo, "los" .= lInfo]
+
+processDump :: [String] -> IO ()
+processDump [fp] = pprResult =<< computeShipStatInfoTable fp
+processDump [fp, jsonOut] = do
+    tbl <- computeShipStatInfoTable fp
+    let encoded = encode (FinalReport tbl)
+    LBS.writeFile jsonOut encoded
 processDump _ = do
     putStrLn "process-dump <dump file>"
+    putStrLn "process-dump <dump file> [out JSON file]"
     exitFailure
