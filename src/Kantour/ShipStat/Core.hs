@@ -10,7 +10,7 @@ module Kantour.ShipStat.Core
 
 import Data.Function
 import Control.Monad
-import qualified Data.IntMap as IM
+import qualified Data.IntMap.Strict as IM
 
 -- | compute stat at certain level given base stat and max stat (at Lv. 99)
 getStat :: Int -> Int -> Int -> Int

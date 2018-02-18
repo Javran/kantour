@@ -1,8 +1,7 @@
-module Kantour.ShipStat.Main where
+module Kantour.ShipStat.Main () where
 
 import System.Environment
 import qualified Data.IntMap.Strict as IM
-import qualified Data.IntSet as IS
 import Data.Maybe
 import Control.Monad
 import Data.Char
@@ -41,52 +40,7 @@ example of a sample file:
 ```
 
 -}
-
-{-# ANN module "HLint: ignore Avoid lambda" #-}
 {-# ANN module "HLint: ignore Eta reduce" #-}
-
-findRange :: IM.IntMap Int -> ((Int, Int), (Int, Int))
-findRange m =
-    ( (minimum lv1Stats, maximum lv1Stats)
-    , (minimum lv99Stats, maximum lv99Stats)
-    )
-  where
-    keys = IM.keysSet m
-    minLvl = IS.findMin keys
-    Just minStat = IM.lookup minLvl m
-    maxLvl = IS.findMax keys
-    Just maxStat = IM.lookup maxLvl m
-
-    estimatedRanges :: [(Int,Int)]
-    estimatedRanges = do
-        minStat' <- [minStat-1,minStat+1]
-        maxStat' <- [maxStat-1,maxStat+1]
-        pure (estimate' (minLvl,minStat') (maxLvl,maxStat'))
-
-    lv1Stats = map fst estimatedRanges
-    lv99Stats = map snd estimatedRanges
-
-genRange :: ((Int,Int),(Int,Int)) -> [(Int, Int)]
-genRange ((lv1A,lv1B), (lv99A,lv99B)) =
-    [ (lv1,lv99)
-    | lv1 <- [lv1A ..lv1B]
-    , lv99 <- [lv99A..lv99B]
-    ]
-
--- gives a value on Lv. 1 and Lv. 99
--- TODO: not sure whether it's Lv. 1 or 0 considered base stat
-estimate' :: (Int, Int) -> (Int, Int) -> (Int, Int)
-estimate' (x1, y1) (x2, y2) = (floor (le 1), ceiling (le 99))
-  where
-    le = linearEstimate (x1, y1) (x2, y2)
-
-linearEstimate :: (Int, Int) -> (Int, Int) -> Int -> Double
-linearEstimate (x1, y1) (x2, y2) x = fI x * k + b
-  where
-    fI :: Integral i => i -> Double
-    fI = fromIntegral
-    k = fI (y2 - y1) / fI (x2 - x1)
-    b = fI y1 - k * fI x1
 
 processRaw :: String -> IM.IntMap Int
 processRaw =
@@ -112,17 +66,8 @@ type ProgArgs = [String]
 estimateStat :: ProgArgs -> IO ()
 estimateStat [fp] = do
     d <- processRaw <$> readFile fp
-    let searchSpace = genRange (findRange d)
-        go curSearchSpace truth = checkTruth truth curSearchSpace
-        results = foldl go searchSpace (IM.toList d)
-    print results
+    print (computeStatInfo d)
     pure ()
-  where
-    checkTruth :: (Int, Int) -> [(Int,Int)] -> [(Int,Int)]
-    checkTruth (lvl,stat) = filter check
-      where
-        check :: (Int, Int) -> Bool
-        check (baseStat, maxStat) = getStat baseStat maxStat lvl == stat
 estimateStat _ = error "shipstat est <stat file>"
 
 calcStat :: ProgArgs -> IO ()
@@ -140,7 +85,7 @@ calcStat as = case as of
     calcStat' :: Int -> Int -> Maybe Int -> IO ()
     calcStat' baseSt maxSt mLevel = case mLevel of
         Nothing -> do
-          let statTable = map (\lvl -> (getStat' lvl,lvl)) [1..155]
+          let statTable = map (\lvl -> (getStat' lvl,lvl)) [1..165]
               statMinLvls = IM.fromListWith (<>) (coerce statTable :: [(Int, Min Int)])
               statList = IM.toAscList statMinLvls
           mapM_ (\(st,lvl) -> pprStat (coerce lvl :: Int) st) statList
