@@ -16,7 +16,7 @@ import Data.CaseInsensitive
 
 import Kantour.Coded ()
 import Kantour.DecMapUrl ()
-import Kantour.ShipStat ()
+import Kantour.ShipStat.Main ()
 import Kantour.AswEquip ()
 
 import Kantour.DropCalc ()

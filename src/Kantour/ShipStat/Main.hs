@@ -1,4 +1,4 @@
-module Kantour.ShipStat where
+module Kantour.ShipStat.Main where
 
 import System.Environment
 import qualified Data.IntMap.Strict as IM
@@ -10,6 +10,8 @@ import Text.Printf
 import Data.Semigroup
 import Data.Coerce
 import Kantour.Subcommand
+
+import Kantour.ShipStat.Core
 
 data SubCmdShipStat
 
@@ -42,12 +44,6 @@ example of a sample file:
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 {-# ANN module "HLint: ignore Eta reduce" #-}
-
-getStat :: Int -> Int -> Int -> Int
-getStat baseSt maxSt level = baseSt + floor lvlBonus
-  where
-    lvlBonus :: Double
-    lvlBonus = fromIntegral (maxSt - baseSt) * fromIntegral level / 99
 
 findRange :: IM.IntMap Int -> ((Int, Int), (Int, Int))
 findRange m =
