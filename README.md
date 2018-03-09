@@ -73,6 +73,6 @@ Usage: `dropcalc <rate> <# of experiments>`
 
 - Get `SallyMain.swf` or other stuff that contains hidden routes, convert to xml.
 
-- `stack exec -- kantour maptool 39-4.xml bin/sm.xml 394 -- -w 800 -h 400 -o test.png`
+- `stack exec -- kantour maptool 39-4.xml bin/sm.xml 394 -- -w 800 -h 480 -o test.png`
 
 - `stack exec -- kantour mapredraw 41_01.mi 41_01.png`

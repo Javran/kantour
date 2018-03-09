@@ -9,6 +9,7 @@
 module Kantour.MapTool.Main where
 
 import System.Environment
+import System.FilePath
 import Data.List
 import Data.Maybe
 import Control.Monad
@@ -113,6 +114,7 @@ defaultMain = do
             putStrLn $ "main xml: " ++ srcFP
             putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" (fst <$> mHiddenFPInfo)
             putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
+            let miFP = srcFP <.> "mi"
             (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
             case mHiddenFPInfo of
                 Just (hiddenFP, _) -> do
@@ -142,9 +144,8 @@ defaultMain = do
                 Just diagramArgs -> withArgs diagramArgs $ draw mapInfo
             putStrLn "=== JSON encoding ==="
             putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
-            putStrLn "=== Begin MapInfo ==="
-            print mapInfo
-            putStrLn "=== End MapInfo ==="
+            writeFile miFP (show mapInfo)
+            putStrLn $ "Written map info to: " ++ miFP
 
 -- TODO (new) search tag: "385" means "scene.sally.mc.MCCellSP385", etc.
 -- separate argument list into maptool arguments and those meant for diagrams:
