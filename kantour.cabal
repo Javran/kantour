@@ -48,49 +48,38 @@ library
                      , Kantour.TH
                      , Kantour.Main
   build-depends:       base
-                     , mwc-random
-                     , random
-                     , primitive
-                     , vector
-                     , statistics
-                     , vector-algorithms
-                     , math-functions
-                     , bytestring
-                     , mtl
-                     , transformers
-                     , text
-                     , attoparsec
+                     , aeson
+                     , aeson-pretty
+                     , lens
+                     , linear
+                     , containers
                      , diagrams
                      , diagrams-lib
                      , diagrams-svg
                      , diagrams-rasterific
+                     , text
+                     , pretty
+                     , attoparsec
+                     , bytestring
+                     , hexml
+                     , primitive
+                     , vector
+                     , vector-algorithms
+                     , statistics
+                     , mwc-random
+                     , math-functions
+                     , random
+                     , mtl
+                     , template-haskell
                      , hxt
-                     , strict
-                     , linear
-                     , lens
-                     , containers
+                     , filepath
+                     , yaml
                      , json
-                     , hslua
                      , http-client
                      , http-client-tls
-                     , http-types
-                     , parallel-io
-                     , pretty
-                     , megaparsec
-                     , deepseq
-                     , monad-logger
-                     , fast-logger
                      , mono-traversable
-                     , aeson
-                     , aeson-pretty
-                     , unordered-containers
-                     , data-default
-                     , yaml
+                     , http-types
                      , case-insensitive
-                     , template-haskell
-                     , xeno
-                     , hexml
-                     , filepath
   default-language:    Haskell2010
 
 executable kantour
