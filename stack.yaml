@@ -2,9 +2,5 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
-extra-deps:
-- diagrams-rasterific-1.4
-- hslua-0.4.1
-- megaparsec-5.3.1
-- hspec-megaparsec-0.3.1
-resolver: lts-10.5
+extra-deps: []
+resolver: lts-12.12

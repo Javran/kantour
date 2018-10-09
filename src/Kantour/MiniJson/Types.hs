@@ -1,8 +1,8 @@
 module Kantour.MiniJson.Types where
 
 import qualified Data.Text as T
-import Text.PrettyPrint
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint hiding ((<>))
+import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import Data.Char
 
 -- INVARIANT: all appearance of Integer below should all be non-negative

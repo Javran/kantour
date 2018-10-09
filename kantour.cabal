@@ -31,17 +31,6 @@ library
                      , Kantour.MapTool.MapConfig
                      , Kantour.MapTool.Draw
                      , Kantour.DecMapUrl
-                     , Kantour.QuotesFetch.Types
-                     , Kantour.QuotesFetch.Kcwiki
-                     , Kantour.QuotesFetch.ShipDatabase
-                     , Kantour.QuotesFetch.PageParser
-                     , Kantour.QuotesFetch.ComponentParser
-                     , Kantour.QuotesFetch.PageProcessor
-                     , Kantour.QuotesFetch.Quotes
-                     , Kantour.QuotesFetch.Fetch
-                     , Kantour.QuotesFetch.JsonMerge
-                     , Kantour.QuotesFetch.SimpleLogger
-                     , Kantour.QuotesFetch.Main
                      , Kantour.WhoCallsTheFleet.Main
                      , Kantour.WhoCallsTheFleet.Types
                      , Kantour.WhoCallsTheFleet.Types.Common
@@ -81,13 +70,13 @@ library
                      , lens
                      , containers
                      , json
-                     , hslua <0.5
+                     , hslua
                      , http-client
                      , http-client-tls
                      , http-types
                      , parallel-io
                      , pretty
-                     , megaparsec <=5.3.1
+                     , megaparsec
                      , deepseq
                      , monad-logger
                      , fast-logger
@@ -118,12 +107,11 @@ test-suite spec
   hs-source-dirs:      test
   ghc-options:         -Wall
   other-modules:       Kantour.UtilsSpec
-                       Kantour.QuotesFetch.PageParserSpec
   build-depends:       base
                      , kantour
                      , hspec
-                     , hspec-megaparsec <1
-                     , megaparsec <=5.3.1
+                     , hspec-megaparsec
+                     , megaparsec
                      , QuickCheck
                      , heredoc
   default-language:    Haskell2010
