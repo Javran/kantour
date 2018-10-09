@@ -11,7 +11,6 @@ import Control.Monad
 import qualified Data.Vector as V
 import qualified Data.Text as T
 import GHC.Generics
-import Data.Semigroup
 import Control.Applicative
 import Kantour.WhoCallsTheFleet.Types.Common
 

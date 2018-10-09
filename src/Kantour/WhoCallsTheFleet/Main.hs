@@ -12,5 +12,5 @@ instance Subcommand SubCmdWctf where
 
 defaultMain :: IO ()
 defaultMain = do
-    es <- fetchEquipments
+    _ <- fetchEquipments
     pure ()

@@ -9,7 +9,6 @@ import System.Environment
 import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Control.Monad.State
-import Data.Monoid
 import Kantour.Subcommand
 
 data SubCmdCoded

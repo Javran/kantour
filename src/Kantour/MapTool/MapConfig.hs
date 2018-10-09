@@ -2,7 +2,6 @@
 module Kantour.MapTool.MapConfig where
 
 import Data.Aeson
-import Data.Aeson.Types
 
 data MapConfig = MapConfig
   { sourceFile :: FilePath

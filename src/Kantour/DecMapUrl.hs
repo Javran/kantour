@@ -5,7 +5,6 @@ module Kantour.DecMapUrl
   ) where
 
 import Text.Printf
-import Numeric
 import Data.Bits
 import System.Environment
 import System.Exit
@@ -103,7 +102,7 @@ defaultMain = do
               . filter ((== area) . fst)
               $ mapData
             mapPairs = zip [1..] maps
-            process (sub, fileName) = do
+            process (sub :: Int, fileName) = do
                 serverIp <- genServerIp
                 let url = concat
                       [ "http://"

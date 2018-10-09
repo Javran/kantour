@@ -16,9 +16,6 @@ import Data.MonoTraversable
 import Kantour.WhoCallsTheFleet.Types
 import Data.Aeson
 
-import Data.Semigroup
-import Data.String
-import Control.Monad
 import Data.Maybe
 
 w2c :: Word8 -> Char
@@ -54,8 +51,8 @@ fetchEquipmentsRaw :: IO [BS.ByteString]
 fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
 
 verboseParse :: forall a. FromJSON a => BS.ByteString -> IO (Maybe a)
-verboseParse raw = do
-    let result = eitherDecodeStrict' raw :: Either String a
+verboseParse raw' = do
+    let result = eitherDecodeStrict' raw' :: Either String a
     -- BSC.putStrLn raw
     case result of
         Right m -> pure (Just m)

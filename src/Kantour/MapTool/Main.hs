@@ -18,7 +18,6 @@ import Linear
 import Linear.Affine
 import Data.Function
 import Text.JSON
-import Data.Monoid
 import Text.Printf
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
