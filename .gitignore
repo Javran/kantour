@@ -23,3 +23,5 @@ cabal.project.local
 *.xml
 /private/
 /stack.yaml.lock
+
+kantour.cabal

@@ -1,0 +1,82 @@
+name: kantour
+version: 0.1.0.0
+synopsis: Javran's KanColle Toolset.
+github: Javran/kantour
+license: BSD3
+author: "Javran Cheng"
+maintainer: "Javran.C@gmail.com"
+copyright: "Copyright: (c) 2016 - 2019 Javran Cheng"
+category: Web
+
+dependencies:
+- aeson
+- aeson-pretty
+- attoparsec
+- base
+- bytestring
+- case-insensitive
+- containers
+- diagrams
+- diagrams-lib
+- diagrams-rasterific
+- diagrams-svg
+- filepath
+- hexml
+- http-client
+- http-client-tls
+- http-types
+- hxt
+- json
+- lens
+- linear
+- math-functions
+- mono-traversable
+- mtl
+- mwc-random
+- pretty
+- primitive
+- random
+- statistics
+- template-haskell
+- text
+- vector
+- vector-algorithms
+- yaml
+
+library:
+  source-dirs: src
+  ghc-options:
+    - -O2
+    - -Wall
+
+executables:
+  kantour:
+    source-dirs: mains
+    main: Main.hs
+    ghc-options:
+      - -threaded
+      - -O2
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -main-is Main
+    dependencies:
+      - kantour
+
+tests:
+  hspec:
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - kantour
+      - hspec
+      - hspec-megaparsec
+      - megaparsec
+      - QuickCheck
+      - heredoc
+    ghc-options:
+      - -threaded
+      - -O2
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -main-is Spec
