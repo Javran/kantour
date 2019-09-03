@@ -8,9 +8,6 @@ import Control.Monad
 
 {-# ANN module "HLint: ignore Redundant do" #-}
 
-main :: IO ()
-main = hspec spec
-
 spec :: Spec
 spec = do
     describe "alterAL" $ do
