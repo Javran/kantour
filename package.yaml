@@ -5,7 +5,7 @@ github: Javran/kantour
 license: BSD3
 author: "Javran Cheng"
 maintainer: "Javran.C@gmail.com"
-copyright: "Copyright: (c) 2016-2019 Javran Cheng"
+copyright: "Copyright: (c) 2016-Present Javran Cheng"
 category: Web
 
 dependencies:
@@ -46,16 +46,17 @@ dependencies:
 library:
   source-dirs: src
   ghc-options:
-    - -O2
     - -Wall
+    - -O2
 
 executables:
   kantour:
     source-dirs: mains
     main: Main.hs
     ghc-options:
-      - -threaded
+      - -Wall
       - -O2
+      - -threaded
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Main
@@ -75,8 +76,9 @@ tests:
       - QuickCheck
       - heredoc
     ghc-options:
-      - -threaded
+      - -Wall
       - -O2
+      - -threaded
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Spec
