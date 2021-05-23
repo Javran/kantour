@@ -1,4 +1,6 @@
--- https://gamedev.stackexchange.com/a/116000
+{-
+  Reference: https://gamedev.stackexchange.com/a/116000
+ -}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Kantour.KcData.Map.Sprite where
@@ -14,6 +16,6 @@ data Sprite = Sprite
   , spriteSourceSize :: Xywh Int
   , sourceSize :: Wh Int
   }
-  deriving (Generic)
+  deriving (Generic, Show)
 
 instance FromJSON Sprite

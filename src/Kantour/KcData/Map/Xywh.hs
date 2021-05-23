@@ -4,11 +4,11 @@ module Kantour.KcData.Map.Xywh where
 
 import Data.Aeson
 
-newtype Xy a = Xy (a, a)
+newtype Xy a = Xy (a, a) deriving (Eq, Show)
 
-newtype Wh a = Wh (a, a)
+newtype Wh a = Wh (a, a) deriving (Eq, Show)
 
-newtype Xywh a = Xywh (Xy a, Wh a)
+newtype Xywh a = Xywh (Xy a, Wh a) deriving (Eq, Show)
 
 instance FromJSON a => FromJSON (Xy a) where
   parseJSON = withObject "Xy" $ \o ->

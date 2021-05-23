@@ -14,7 +14,7 @@ import qualified Data.Vector as Vec
 import Kantour.KcData.Map.Image as D
 import Kantour.Subcommand
 import System.Environment
-
+import qualified Data.HashMap.Strict as HM
 data SubCmdMapTwol
 
 instance Subcommand SubCmdMapTwol where
@@ -45,8 +45,8 @@ defaultMain =
         eitherDecodeFileStrict @D.Image fp >>= \case
           Left msg -> error $ "failed to parse " <> fp <> ": " <> msg
           Right v -> pure v
-      -- let Just bgs = (traverse . traverse) (Just . bg) $ fmap (: []) vals
+      let Just xs = (traverse . traverse) (Just . HM.elems . frames) $ fmap (: []) vals
       putStrLn $ "all " <> show (length fps) <> " files parsed."
-      -- mapM_ print bgs
+      mapM_ print xs
     _ -> do
       putStrLn "<file list> <target file>"
