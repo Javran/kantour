@@ -1,16 +1,19 @@
-{-# LANGUAGE OverloadedStrings, TypeFamilies, DuplicateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module Kantour.WhoCallsTheFleet.Main where
 
-import Kantour.WhoCallsTheFleet.Fetch
 import Kantour.Subcommand
+import Kantour.WhoCallsTheFleet.Fetch
 
 data SubCmdWctf
 
 instance Subcommand SubCmdWctf where
-    name _ = "Wctf"
-    main _ = defaultMain
+  name _ = "Wctf"
+  main _ = defaultMain
 
 defaultMain :: IO ()
 defaultMain = do
-    _ <- fetchEquipments
-    pure ()
+  _ <- fetchEquipments
+  pure ()
