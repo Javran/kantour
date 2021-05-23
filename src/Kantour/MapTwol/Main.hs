@@ -1,16 +1,17 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Kantour.MapTwol.Main where
 
 {-
   TODO: status: under construction.
-
  -}
 
 import Control.Monad
 import Data.Aeson
 import qualified Data.Vector as Vec
+import Kantour.KcData.Map.Info as Info
 import Kantour.Subcommand
 import System.Environment
 
@@ -38,5 +39,14 @@ defaultMain =
           Right v -> pure v
       let resultObj = Array $ Vec.fromList vals
       encodeFile dstFile resultObj
+    ["parse-all", srcFileList] -> do
+      fps <- lines <$> readFile srcFileList
+      (vals :: [Info]) <- forM fps $ \fp ->
+        eitherDecodeFileStrict @Info fp >>= \case
+          Left msg -> error $ "failed to parse " <> fp <> ": " <> msg
+          Right v -> pure v
+      let Just bgs = (traverse . traverse) (Just . bg) $ fmap (: []) vals
+      putStrLn $ "all " <> show (length fps) <> " files parsed."
+      mapM_ print bgs
     _ -> do
       putStrLn "<file list> <target file>"
