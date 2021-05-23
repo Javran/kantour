@@ -5,13 +5,14 @@ module Kantour.KcData.Map.Spot where
 import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
+import Kantour.KcData.Map.Xywh
 
 data Spot = Spot
   { no :: Int
   , x :: Int
   , y :: Int
   , direction :: Maybe T.Text
-  , line :: Maybe Value
+  , line :: Maybe (Xy Int)
   , cpoint :: Maybe Value
   , color :: Maybe Int
   , offsets :: Maybe Value

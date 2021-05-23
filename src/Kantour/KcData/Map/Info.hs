@@ -7,12 +7,13 @@ import qualified Data.Vector as V
 import GHC.Generics
 import Kantour.KcData.Map.Spot
 import Kantour.KcData.Map.BgObject
+import Kantour.KcData.Map.Enemy
 
 data Info = Info
   { spots :: V.Vector Spot
   , -- | info{num} meta doesn't seem to have this one.
     bg :: Maybe (V.Vector BgObject)
-  , enemies :: Maybe (V.Vector Value)
+  , enemies :: Maybe (V.Vector Enemy)
   , recce :: Maybe (V.Vector Value)
   , airbase :: Maybe Value
   , airbaseraid :: Maybe Value

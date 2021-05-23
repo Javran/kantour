@@ -8,6 +8,7 @@ module Kantour.MapTwol.Main where
   TODO: status: under construction.
  -}
 
+import Control.Arrow
 import Control.Monad
 import Data.Aeson
 import Data.Coerce
@@ -16,6 +17,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Graphics.Image as Img
 import qualified Kantour.KcData.Map.Image as KcImage
+import qualified Kantour.KcData.Map.Info as KcInfo
 import qualified Kantour.KcData.Map.Sprite as Sprite
 import qualified Kantour.KcData.Map.Xywh as Xywh
 import Kantour.Subcommand
@@ -48,21 +50,22 @@ defaultMain =
       encodeFile dstFile resultObj
     ["parse-all", srcFileList] -> do
       fps <- lines <$> readFile srcFileList
-      (vals :: [KcImage.Image]) <- forM fps $ \fp ->
-        eitherDecodeFileStrict @KcImage.Image fp >>= \case
+      vals <- forM fps $ \fp ->
+        eitherDecodeFileStrict @KcInfo.Info fp >>= \case
           Left msg -> error $ "failed to parse " <> fp <> ": " <> msg
           Right v -> pure v
-      let Just xs = (traverse . traverse) (Just . HM.elems . KcImage.frames) $ fmap (: []) vals
+      -- let Just xs = (traverse . traverse) (Just ) $ fmap (: []) vals
       putStrLn $ "all " <> show (length fps) <> " files parsed."
-      mapM_ print xs
+      -- mapM_ print xs
     [ "extract-sprite"
-      , srcPrefix {- the part without ".png" or ".json" -}
+      , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05
+                   -}
       , dstDir {- assume existing -}
       ] -> do
-        Right img <- Img.readImageExact @(Img.Image Img.VS Img.RGBA Img.Word8) Img.PNG (srcPrefix <> ".png")
-        Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> ".json")
+        Right img <- Img.readImageExact @(Img.Image Img.VS Img.RGBA Img.Word8) Img.PNG (srcPrefix <> "_image.png")
+        Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> "_image.json")
         let imgs = extractSprite img (KcImage.frames meta)
-        forM_ (HM.toList imgs) $ \(fn, spImg) -> do
+        forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
           Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
     _ -> do
       putStrLn "<file list> <target file>"
@@ -71,8 +74,8 @@ extractSprite
   :: Img.Array arr cs e
   => Img.Image arr cs e
   -> HM.HashMap k Sprite.Sprite
-  -> HM.HashMap k (Img.Image arr cs e)
-extractSprite img = HM.map convert
+  -> HM.HashMap k (Sprite.Sprite, Img.Image arr cs e)
+extractSprite img = HM.map (id &&& convert)
   where
     convert sp = Img.crop (y, x) (h, w) img
       where
