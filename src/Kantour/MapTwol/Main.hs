@@ -11,7 +11,7 @@ module Kantour.MapTwol.Main where
 import Control.Monad
 import Data.Aeson
 import qualified Data.Vector as Vec
-import Kantour.KcData.Map.Info as Info
+import Kantour.KcData.Map.Image as D
 import Kantour.Subcommand
 import System.Environment
 
@@ -41,12 +41,12 @@ defaultMain =
       encodeFile dstFile resultObj
     ["parse-all", srcFileList] -> do
       fps <- lines <$> readFile srcFileList
-      (vals :: [Info]) <- forM fps $ \fp ->
-        eitherDecodeFileStrict @Info fp >>= \case
+      (vals :: [D.Image]) <- forM fps $ \fp ->
+        eitherDecodeFileStrict @D.Image fp >>= \case
           Left msg -> error $ "failed to parse " <> fp <> ": " <> msg
           Right v -> pure v
-      let Just bgs = (traverse . traverse) (Just . bg) $ fmap (: []) vals
+      -- let Just bgs = (traverse . traverse) (Just . bg) $ fmap (: []) vals
       putStrLn $ "all " <> show (length fps) <> " files parsed."
-      mapM_ print bgs
+      -- mapM_ print bgs
     _ -> do
       putStrLn "<file list> <target file>"

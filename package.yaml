@@ -43,6 +43,7 @@ dependencies:
 - vector
 - vector-algorithms
 - yaml
+- unordered-containers
 
 library:
   source-dirs: src
