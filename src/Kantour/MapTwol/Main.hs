@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -18,6 +19,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Graphics.Image as Img
 import qualified Kantour.KcData.Map.BgObject as Bg
+import qualified Kantour.KcData.Map.Enemy as Enemy
 import qualified Kantour.KcData.Map.Image as KcImage
 import qualified Kantour.KcData.Map.Info as KcInfo
 import qualified Kantour.KcData.Map.Sprite as Sprite
@@ -64,7 +66,11 @@ defaultMain =
       , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05 -}
       , dstDir {- assume existing -}
       ] -> do
-        Right img <- Img.readImageExact @(Img.Image Img.VS Img.RGBA Double) Img.PNG (srcPrefix <> "_image.png")
+        Right img <-
+          Img.readImageExact
+            @(Img.Image Img.VS Img.RGBA Double)
+            Img.PNG
+            (srcPrefix <> "_image.png")
         Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> "_image.json")
         Right mapInfo <- eitherDecodeFileStrict @KcInfo.Info (srcPrefix <> "_info.json")
         let (prefix, sprites) = stripSpriteKeyPrefix (KcImage.frames meta)
@@ -73,12 +79,23 @@ defaultMain =
         forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
           Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
         putStrLn $ show (HM.size imgs) <> " files written."
-        let bgs :: Vec.Vector Bg.BgObject
-            bgs = fromJust . KcInfo.bg $ mapInfo
+        let bgs =
+              Vec.map (\b -> snd $ imgs HM.! Bg.img b) $
+                fromJust . KcInfo.bg $ mapInfo
             combinedBg =
-              Vec.foldl1 (\acc i -> superimpose' (0, 0) i acc) $
-                Vec.map (\b -> snd $ imgs HM.! Bg.img b) bgs
+              Vec.foldl1 (\acc i -> superimpose' (0, 0) i acc) bgs
+            ems :: [Enemy.Enemy]
+            ems = maybe [] Vec.toList (KcInfo.enemies mapInfo)
+            withEnemies =
+              foldl
+                (\acc e ->
+                   let Enemy.Enemy {Enemy.x, Enemy.y, Enemy.img = iK} = e
+                       (_, i) = imgs HM.! iK
+                    in superimpose' (y, x) i acc)
+                combinedBg
+                ems
         Img.writeImageExact Img.PNG [] (dstDir </> "gen_background.png") combinedBg
+        Img.writeImageExact Img.PNG [] (dstDir </> "gen_with_enemies.png") withEnemies
     _ -> do
       putStrLn "<file list> <target file>"
 
