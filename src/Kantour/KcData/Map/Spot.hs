@@ -2,9 +2,9 @@
 
 module Kantour.KcData.Map.Spot where
 
-import GHC.Generics
 import Data.Aeson
 import qualified Data.Text as T
+import GHC.Generics
 import Kantour.KcData.Map.Xywh
 
 data Spot = Spot
@@ -23,6 +23,6 @@ data Spot = Spot
   , replenish :: Maybe Value
   , repair :: Maybe Value
   }
-  deriving (Generic)
+  deriving (Generic, Show)
 
 instance FromJSON Spot

@@ -13,13 +13,16 @@ import Control.Monad
 import Data.Aeson
 import Data.Coerce
 import qualified Data.HashMap.Strict as HM
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Graphics.Image as Img
+import qualified Kantour.KcData.Map.BgObject as Bg
 import qualified Kantour.KcData.Map.Image as KcImage
 import qualified Kantour.KcData.Map.Info as KcInfo
 import qualified Kantour.KcData.Map.Sprite as Sprite
 import qualified Kantour.KcData.Map.Xywh as Xywh
+import Kantour.MapTwol.Superimpose
 import Kantour.Subcommand
 import System.Environment
 import System.FilePath.Posix
@@ -50,25 +53,45 @@ defaultMain =
       encodeFile dstFile resultObj
     ["parse-all", srcFileList] -> do
       fps <- lines <$> readFile srcFileList
-      vals <- forM fps $ \fp ->
+      _vals <- forM fps $ \fp ->
         eitherDecodeFileStrict @KcInfo.Info fp >>= \case
           Left msg -> error $ "failed to parse " <> fp <> ": " <> msg
           Right v -> pure v
       -- let Just xs = (traverse . traverse) (Just ) $ fmap (: []) vals
       putStrLn $ "all " <> show (length fps) <> " files parsed."
-      -- mapM_ print xs
+    -- mapM_ print xs
     [ "extract-sprite"
-      , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05
-                   -}
+      , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05 -}
       , dstDir {- assume existing -}
       ] -> do
-        Right img <- Img.readImageExact @(Img.Image Img.VS Img.RGBA Img.Word8) Img.PNG (srcPrefix <> "_image.png")
+        Right img <- Img.readImageExact @(Img.Image Img.VS Img.RGBA Double) Img.PNG (srcPrefix <> "_image.png")
         Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> "_image.json")
-        let imgs = extractSprite img (KcImage.frames meta)
+        Right mapInfo <- eitherDecodeFileStrict @KcInfo.Info (srcPrefix <> "_info.json")
+        let (prefix, sprites) = stripSpriteKeyPrefix (KcImage.frames meta)
+            imgs = extractSprite img sprites
+        putStrLn $ "Prefix " <> show prefix <> " removed from sprite file names."
         forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
           Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
+        putStrLn $ show (HM.size imgs) <> " files written."
+        let bgs :: Vec.Vector Bg.BgObject
+            bgs = fromJust . KcInfo.bg $ mapInfo
+            combinedBg =
+              Vec.foldl1 (\acc i -> superimpose' (0, 0) i acc) $
+                Vec.map (\b -> snd $ imgs HM.! Bg.img b) bgs
+        Img.writeImageExact Img.PNG [] (dstDir </> "gen_background.png") combinedBg
     _ -> do
       putStrLn "<file list> <target file>"
+
+stripSpriteKeyPrefix :: HM.HashMap T.Text b -> (T.Text, HM.HashMap T.Text b)
+stripSpriteKeyPrefix m =
+  (commonPrefix, HM.fromList . (fmap . first) (T.drop prefixLen) $ HM.toList m)
+  where
+    prefixLen = T.length commonPrefix
+    commonPrefix = T.take (i + 1) k
+      where
+        -- assuming this map is always non-empty
+        (k, _) = head (HM.toList m)
+        Just i = T.findIndex (== '_') k
 
 extractSprite
   :: Img.Array arr cs e

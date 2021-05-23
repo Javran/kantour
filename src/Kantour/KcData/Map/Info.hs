@@ -5,9 +5,9 @@ module Kantour.KcData.Map.Info where
 import Data.Aeson
 import qualified Data.Vector as V
 import GHC.Generics
-import Kantour.KcData.Map.Spot
 import Kantour.KcData.Map.BgObject
 import Kantour.KcData.Map.Enemy
+import Kantour.KcData.Map.Spot
 
 data Info = Info
   { spots :: V.Vector Spot
@@ -20,6 +20,6 @@ data Info = Info
   , airraids :: Maybe (V.Vector Value)
   , labels :: Maybe Value
   }
-  deriving (Generic)
+  deriving (Generic, Show)
 
 instance FromJSON Info
