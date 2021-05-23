@@ -45,7 +45,7 @@ pArr =
         char ']'
 pStr =
         char '"' >>
-        (JText . T.pack) <$> many pChar <*
+        JText . T.pack <$> many pChar <*
         char '"'
       where
         toChr :: String -> Char

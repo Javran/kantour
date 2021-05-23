@@ -1,40 +1,35 @@
-{-# OPTIONS_GHC
-    -fwarn-partial-type-signatures
-  #-}
-{-# LANGUAGE
-    PartialTypeSignatures
-  , ScopedTypeVariables
-  , NoMonomorphismRestriction
-  #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# OPTIONS_GHC -fwarn-partial-type-signatures #-}
+
 module Kantour.MapTool.Main where
 
-import System.Environment
-import System.FilePath
-import Data.List
-import Data.Maybe
 import Control.Monad
-
+import Data.Function
+import Data.List
+import qualified Data.Map.Strict as M
+import Data.Maybe
+import qualified Data.Set as S
+import qualified Data.Yaml as Yaml
+import Kantour.MapTool.Draw
+import Kantour.MapTool.MapConfig
+import Kantour.MapTool.Types
+import Kantour.MapTool.Xml
+import Kantour.Subcommand
 import Linear
 import Linear.Affine
-import Data.Function
+import System.Environment
+import System.Exit
+import System.FilePath
 import Text.JSON
 import Text.Printf
-import qualified Data.Map.Strict as M
-import qualified Data.Set as S
-import System.Exit
-
-import Kantour.MapTool.Types
-import Kantour.MapTool.Draw
-import Kantour.MapTool.Xml
-import qualified Data.Yaml as Yaml
-import Kantour.MapTool.MapConfig
-import Kantour.Subcommand
 
 data SubCmdMapTool
 
 instance Subcommand SubCmdMapTool where
-    name _ = "MapTool"
-    main _ = defaultMain
+  name _ = "MapTool"
+  main _ = defaultMain
 
 {-
 
@@ -88,11 +83,11 @@ see "example.yaml"
 
 loadFromConfig :: FilePath -> IO ()
 loadFromConfig fp = do
-    result <- Yaml.decodeFileEither fp :: IO (Either Yaml.ParseException MapConfig)
-    case result of
-        Left err -> putStrLn $ "error while parsing config '" ++ fp ++ "': " ++ show err
-        Right mapConf ->
-            print mapConf
+  result <- Yaml.decodeFileEither fp :: IO (Either Yaml.ParseException MapConfig)
+  case result of
+    Left err -> putStrLn $ "error while parsing config '" ++ fp ++ "': " ++ show err
+    Right mapConf ->
+      print mapConf
 
 -- TODO: tmp entry point for debugging
 -- defaultMain :: IO ()
@@ -101,50 +96,50 @@ loadFromConfig fp = do
 -- stack build && stack exec -- maptool 38-3.xml sm38.xml 383 -- -o 38-3.svg -w 2000 && ristretto 38-3.svg
 defaultMain :: IO ()
 defaultMain = do
-    mArgs <- sepArgs <$> getArgs
-    case mArgs of
-        Nothing -> do
-            putStrLn "invalid arguments"
-            putStrLn "usage: maptool <main xml> [hidden xml <search tag>] [-- diagrams args]"
-            putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
-            exitFailure
-        Just ((srcFP, mHiddenFPInfo), mDiagramArgs) -> do
-            -- pretty printing arguments
-            putStrLn $ "main xml: " ++ srcFP
-            putStrLn $ "hidden xml: " ++ fromMaybe "<N/A>" (fst <$> mHiddenFPInfo)
-            putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
-            let miFP = srcFP <.> "mi"
-            (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
-            case mHiddenFPInfo of
-                Just (hiddenFP, _) -> do
-                    parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
-                    case parsed of
-                        Left errMsg ->
-                            putStrLn $ "Parse error: " ++ errMsg
-                        Right vss ->
-                            let vs = concat vss
-                                ppr (sId, sName) = printf "Id: %s\tName: %s\n" sId sName
-                            in mapM_ ppr vs
-                Nothing -> pure ()
-            (hiddenRoutes, hiddenBeginNodes) <-
-                case mHiddenFPInfo of
-                    Just (hiddenFP, searchTag) ->
-                        safeParseXmlDoc (extractFromHidden searchTag) hiddenFP
-                    Nothing -> pure ([], [])
-            putStrLn "====="
-            -- the coordinates look like large numbers because SWF uses twip as basic unit
-            -- (most of the time) divide them by 20 to get pixels
-            let beginNodes = mainBeginNodes ++ hiddenBeginNodes
-                adjustedRoutes = adjustLines beginNodes (mainRoutes ++ hiddenRoutes)
-                pointMap = mkPointMap beginNodes adjustedRoutes
-                mapInfo = MapInfo adjustedRoutes (S.fromList beginNodes) pointMap
-            case mDiagramArgs of
-                Nothing -> pure ()
-                Just diagramArgs -> withArgs diagramArgs $ draw mapInfo
-            putStrLn "=== JSON encoding ==="
-            putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
-            writeFile miFP (show mapInfo)
-            putStrLn $ "Written map info to: " ++ miFP
+  mArgs <- sepArgs <$> getArgs
+  case mArgs of
+    Nothing -> do
+      putStrLn "invalid arguments"
+      putStrLn "usage: maptool <main xml> [hidden xml <search tag>] [-- diagrams args]"
+      putStrLn "the argument list passing to diagrams, if exists, has to be non empty"
+      exitFailure
+    Just ((srcFP, mHiddenFPInfo), mDiagramArgs) -> do
+      -- pretty printing arguments
+      putStrLn $ "main xml: " ++ srcFP
+      putStrLn $ "hidden xml: " ++ maybe "<N/A>" fst mHiddenFPInfo
+      putStrLn $ "args to diagrams: " ++ maybe "<N/A>" unwords mDiagramArgs
+      let miFP = srcFP <.> "mi"
+      (mainRoutes, mainBeginNodes) <- safeParseXmlDoc extractFromMain srcFP
+      case mHiddenFPInfo of
+        Just (hiddenFP, _) -> do
+          parsed <- parseXmlDoc findHiddenSpriteRoots hiddenFP
+          case parsed of
+            Left errMsg ->
+              putStrLn $ "Parse error: " ++ errMsg
+            Right vss ->
+              let vs = concat vss
+                  ppr (sId, sName) = printf "Id: %s\tName: %s\n" sId sName
+               in mapM_ ppr vs
+        Nothing -> pure ()
+      (hiddenRoutes, hiddenBeginNodes) <-
+        case mHiddenFPInfo of
+          Just (hiddenFP, searchTag) ->
+            safeParseXmlDoc (extractFromHidden searchTag) hiddenFP
+          Nothing -> pure ([], [])
+      putStrLn "====="
+      -- the coordinates look like large numbers because SWF uses twip as basic unit
+      -- (most of the time) divide them by 20 to get pixels
+      let beginNodes = mainBeginNodes ++ hiddenBeginNodes
+          adjustedRoutes = adjustLines beginNodes (mainRoutes ++ hiddenRoutes)
+          pointMap = mkPointMap beginNodes adjustedRoutes
+          mapInfo = MapInfo adjustedRoutes (S.fromList beginNodes) pointMap
+      case mDiagramArgs of
+        Nothing -> pure ()
+        Just diagramArgs -> withArgs diagramArgs $ draw mapInfo
+      putStrLn "=== JSON encoding ==="
+      putStrLn (encodeStrict (linesToJSValue adjustedRoutes pointMap))
+      writeFile miFP (show mapInfo)
+      putStrLn $ "Written map info to: " ++ miFP
 
 -- TODO (new) search tag: "385" means "scene.sally.mc.MCCellSP385", etc.
 -- separate argument list into maptool arguments and those meant for diagrams:
@@ -152,20 +147,20 @@ defaultMain = do
 -- where <main xml> is the map xml file, [hidden xml] is an optional part.
 -- additionally, if "--" exists and <diagram args> is not empty, diagram will be called
 -- to draw a picture.
-sepArgs :: [String] -> Maybe ((String, Maybe (String,String)), Maybe [String])
+sepArgs :: [String] -> Maybe ((String, Maybe (String, String)), Maybe [String])
 sepArgs as = do
-    let (ls,rs') = break (== "--") as
-    lVal <- case ls of
+  let (ls, rs') = break (== "--") as
+  lVal <- case ls of
+    [] -> Nothing
+    mainXmlFP : ls' -> case ls' of
+      [] -> pure (mainXmlFP, Nothing)
+      [extraXmlFP, searchTag] -> pure (mainXmlFP, Just (extraXmlFP, searchTag))
+      _ -> Nothing
+  let rVal = case rs' of
         [] -> Nothing
-        mainXmlFP : ls' -> case ls' of
-            [] -> pure (mainXmlFP, Nothing)
-            [extraXmlFP,searchTag] -> pure (mainXmlFP, Just (extraXmlFP,searchTag))
-            _ -> Nothing
-    let rVal = case rs' of
-            [] -> Nothing
-            -- the "_" part as to be "--" as it's the result from "break"
-            _:xs -> guard (not (null xs)) >> pure xs
-    pure (lVal, rVal)
+        -- the "_" part as to be "--" as it's the result from "break"
+        _ : xs -> guard (not (null xs)) >> pure xs
+  pure (lVal, rVal)
 
 {-
 begin point of each edge is estimated from end point and the shape info of the line
@@ -179,7 +174,7 @@ adjustLines startPts ls = adjustLine <$> ls
   where
     confirmedPoints = startPts ++ (_lEnd <$> ls)
     adjustLine :: MyLine -> MyLine
-    adjustLine l@(MyLine _ lStartPt _) = l { _lStart = adjustedStartPt }
+    adjustLine l@(MyLine _ lStartPt _) = l {_lStart = adjustedStartPt}
       where
         adjustedStartPt = minimumBy (compare `on` qdA lStartPt) confirmedPoints
 
@@ -200,24 +195,27 @@ guess names for each node:
 mkPointMap :: [V2 Int] -> [MyLine] -> M.Map (V2 Int) String
 mkPointMap beginNodes xs = M.union beginNodeNames endNodeNames
   where
-    beginNodeNames = M.fromList (zip beginNodes (formatName <$> [1::Int ..]))
+    beginNodeNames = M.fromList (zip beginNodes (formatName <$> [1 :: Int ..]))
       where
         formatName x = "<" ++ show x ++ ">"
 
     -- collect all possible names and pick the minimal one
-    endNodeNames = M.map getMin
-                   (M.fromListWith (++)
-                    (map convert xs))
+    endNodeNames =
+      M.map
+        getMin
+        (M.fromListWith
+           (++)
+           (map convert xs))
 
     getMin = minimumBy (\x y -> compare (length x) (length y) <> compare x y)
     lineToInt l = read (simpleLName l)
     nodeNameFromInt v
-        | v-1 < length ns = ns !! (v-1)
-        | otherwise = show v
+      | v -1 < length ns = ns !! (v -1)
+      | otherwise = show v
       where
-        ns = map (:[]) ['A'..'Z']
+        ns = map (: []) ['A' .. 'Z']
 
-    convert l = (_lEnd l,[nodeNameFromInt .lineToInt $ l])
+    convert l = (_lEnd l, [nodeNameFromInt . lineToInt $ l])
 
 linesToJSValue :: [MyLine] -> M.Map (V2 Int) String -> JSValue
 linesToJSValue xs nnames = JSObject (toJSObject (convert <$> ys))
@@ -225,9 +223,9 @@ linesToJSValue xs nnames = JSObject (toJSObject (convert <$> ys))
     ys = sortBy (compare `on` (\l -> read (simpleLName l) :: Int)) xs
     getNm v = makeStart (fromMaybe "Unknown" (M.lookup v nnames))
       where
-        makeStart ('<':_) = "Start"
+        makeStart ('<' : _) = "Start"
         makeStart v' = v'
     convert :: MyLine -> (String, JSValue)
-    convert l = (simpleLName l,JSArray (f <$> [getNm (_lStart l),getNm (_lEnd l)]))
+    convert l = (simpleLName l, JSArray (f <$> [getNm (_lStart l), getNm (_lEnd l)]))
       where
         f = JSString . toJSString

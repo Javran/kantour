@@ -5,3 +5,5 @@ packages:
 
 extra-deps:
 - json-0.10
+- hip-1.5.6.0
+- repa-3.4.1.4

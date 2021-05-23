@@ -26,6 +26,7 @@ dependencies:
 - http-client-tls
 - http-types
 - hxt
+- hip
 - json
 - lens
 - linear
