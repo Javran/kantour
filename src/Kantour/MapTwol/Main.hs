@@ -29,6 +29,7 @@ import Kantour.MapTwol.Superimpose
 import Kantour.Subcommand
 import System.Environment
 import System.FilePath.Posix
+import Text.Printf
 
 data SubCmdMapTwol
 
@@ -70,34 +71,27 @@ defaultMain =
         {-
           Separate sprites into a directory.
          -}
-        Right img <-
-          Img.readImageExact
-            @(Img.Image Img.VS Img.RGBA Double)
-            Img.PNG
-            (srcPrefix <> ".png")
-        Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> ".json")
-        let sprites = KcImage.frames meta
-            imgs = extractSprite img sprites
+        imgs <- extractSpriteFromFilePrefix srcPrefix
         forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
           Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
         putStrLn $ show (HM.size imgs) <> " files written."
     [ "extract-map"
-      , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05 -}
+      , kcs2Prefix {- e.g. /some/local/resource/path/kcs2 (remove final '/' if any) -}
+      , worldRaw {- e.g. '48' -}
+      , areaRaw {- e.g. '7' -}
       , dstDir {- assume existing -}
       ] -> do
-        Right img <-
-          Img.readImageExact
-            @(Img.Image Img.VS Img.RGBA Double)
-            Img.PNG
-            (srcPrefix <> "_image.png")
-        Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> "_image.json")
+        let srcPrefix :: FilePath
+            srcPrefix =
+              kcs2Prefix
+                </> printf
+                  "resources/map/%03d/%02d"
+                  (read worldRaw :: Int)
+                  (read areaRaw :: Int)
         Right mapInfo <- eitherDecodeFileStrict @KcInfo.Info (srcPrefix <> "_info.json")
-        let (prefix, sprites) = stripSpriteKeyPrefix (KcImage.frames meta)
-            imgs = extractSprite img sprites
+        imgsPre <- extractSpriteFromFilePrefix (srcPrefix <> "_image")
+        let (prefix, imgs) = stripSpriteKeyPrefix imgsPre
         putStrLn $ "Prefix " <> show prefix <> " removed from sprite file names."
-        forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
-          Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
-        putStrLn $ show (HM.size imgs) <> " files written."
         let containRed = False
             bgs =
               concatMap
@@ -136,6 +130,19 @@ stripSpriteKeyPrefix m =
         -- assuming this map is always non-empty
         (k, _) = head (HM.toList m)
         Just i = T.findIndex (== '_') k
+
+extractSpriteFromFilePrefix
+  :: FilePath -> IO (HM.HashMap T.Text (Sprite.Sprite, Img.Image Img.VS Img.RGBA Double))
+extractSpriteFromFilePrefix srcPrefix = do
+  Right img <-
+    Img.readImageExact
+      @(Img.Image Img.VS Img.RGBA Double)
+      Img.PNG
+      (srcPrefix <> ".png")
+  Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> ".json")
+  let sprites = KcImage.frames meta
+      imgs = extractSprite img sprites
+  pure imgs
 
 extractSprite
   :: Img.Array arr cs e
