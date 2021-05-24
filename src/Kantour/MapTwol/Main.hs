@@ -64,6 +64,24 @@ defaultMain =
       putStrLn $ "all " <> show (length fps) <> " files parsed."
     -- mapM_ print xs
     [ "extract-sprite"
+      , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05_image -}
+      , dstDir {- assume existing -}
+      ] -> do
+        {-
+          Separate sprites into a directory.
+         -}
+        Right img <-
+          Img.readImageExact
+            @(Img.Image Img.VS Img.RGBA Double)
+            Img.PNG
+            (srcPrefix <> ".png")
+        Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> ".json")
+        let sprites = KcImage.frames meta
+            imgs = extractSprite img sprites
+        forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
+          Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
+        putStrLn $ show (HM.size imgs) <> " files written."
+    [ "extract-map"
       , srcPrefix {- e.g. /some/local/resource/path/kcs2/resources/map/004/05 -}
       , dstDir {- assume existing -}
       ] -> do
