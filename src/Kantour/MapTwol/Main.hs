@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -18,7 +19,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Graphics.Image as Img
-import qualified Kantour.KcData.Map.BgObject as Bg
+import qualified Kantour.KcData.Map.Background as Bg
 import qualified Kantour.KcData.Map.Enemy as Enemy
 import qualified Kantour.KcData.Map.Image as KcImage
 import qualified Kantour.KcData.Map.Info as KcInfo
@@ -79,11 +80,19 @@ defaultMain =
         forM_ (HM.toList imgs) $ \(fn, (_, spImg)) -> do
           Img.writeImageExact Img.PNG [] (dstDir </> T.unpack fn) spImg
         putStrLn $ show (HM.size imgs) <> " files written."
-        let bgs =
-              Vec.map (\b -> snd $ imgs HM.! Bg.img b) $
-                fromJust . KcInfo.bg $ mapInfo
+        let containRed = False
+            bgs =
+              concatMap
+                (\b ->
+                   [ snd $ imgs HM.! Bg.img b
+                   | Bg.name b /= Just "red" || containRed
+                   ])
+                . Vec.toList
+                . fromJust
+                . KcInfo.bg
+                $ mapInfo
             combinedBg =
-              Vec.foldl1 (\acc i -> superimpose' (0, 0) i acc) bgs
+              foldl1 (\acc i -> superimpose' (0, 0) i acc) bgs
             ems :: [Enemy.Enemy]
             ems = maybe [] Vec.toList (KcInfo.enemies mapInfo)
             withEnemies =

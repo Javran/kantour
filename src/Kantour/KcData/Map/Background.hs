@@ -2,34 +2,34 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Kantour.KcData.Map.BgObject where
+module Kantour.KcData.Map.Background where
 
 import Control.Applicative
 import Data.Aeson
 import qualified Data.Text as T
 import GHC.Generics
 
-data BgObject = BgObject
+data Background = Background
   { img :: T.Text
   , name :: Maybe T.Text
   }
   deriving (Generic, Show)
 
-instance FromJSON BgObject where
+instance FromJSON Background where
   parseJSON v =
     withText
-      "BgObject.Str"
+      "Background.Str"
       (\img ->
          pure $
-           BgObject
+           Background
              { img
              , name = Nothing
              })
       v
       <|> withObject
-        "BgObject.Obj"
+        "Background.Obj"
         (\o -> do
            img <- o .: "img"
            name <- o .: "name"
-           pure $ BgObject {img, name})
+           pure $ Background {img, name})
         v
