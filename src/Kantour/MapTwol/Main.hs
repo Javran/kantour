@@ -15,6 +15,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Coerce
 import qualified Data.HashMap.Strict as HM
+import qualified Data.IntMap.Strict as IM
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
@@ -23,6 +24,7 @@ import qualified Kantour.KcData.Map.Background as Bg
 import qualified Kantour.KcData.Map.Enemy as Enemy
 import qualified Kantour.KcData.Map.Image as KcImage
 import qualified Kantour.KcData.Map.Info as KcInfo
+import qualified Kantour.KcData.Map.Spot as Spot
 import qualified Kantour.KcData.Map.Sprite as Sprite
 import qualified Kantour.KcData.Map.Xywh as Xywh
 import Kantour.MapTwol.Superimpose
@@ -36,6 +38,29 @@ data SubCmdMapTwol
 instance Subcommand SubCmdMapTwol where
   name _ = "MapTwol"
   main _ = defaultMain
+
+-- SpotPointImage._getTexture
+spotPointMap :: IM.IntMap Int
+spotPointMap =
+  IM.fromList
+    [ (-1, 55)
+    , (1, 48)
+    , (2, 51)
+    , (6, 51)
+    , (3, 53)
+    , (4, 54)
+    , (5, 42)
+    , (7, 40)
+    , (8, 41)
+    , (9, 52)
+    , (10, 39)
+    , (11, 56)
+    , (12, 57)
+    , (13, 17)
+    , (-2, 50)
+    , (-3, 47)
+    , (14, 48)
+    ]
 
 defaultMain :: IO ()
 defaultMain =
@@ -90,9 +115,35 @@ defaultMain =
                   (read areaRaw :: Int)
         Right mapInfo <- eitherDecodeFileStrict @KcInfo.Info (srcPrefix <> "_info.json")
         imgsPre <- extractSpriteFromFilePrefix (srcPrefix <> "_image")
+        mapMainPre <- extractSpriteFromFilePrefix (kcs2Prefix </> "img/map/map_main")
         let (prefix, imgs) = stripSpriteKeyPrefix imgsPre
+            mapMainImgs = IM.fromList . (fmap . first) toInt . HM.toList $ mapMainPre
+              where
+                magic = "map_main_"
+                toInt raw =
+                  if magic `T.isPrefixOf` raw
+                    then read . T.unpack $ T.drop (T.length magic) raw
+                    else error "invalid map_main key"
         putStrLn $ "Prefix " <> show prefix <> " removed from sprite file names."
         let containRed = False
+            spotToImgs :: Spot.Spot -> [(Xywh.Xy Int, Img.Image Img.VS Img.RGBA Double)]
+            spotToImgs
+              Spot.Spot
+                { Spot.x = spX
+                , Spot.y = spY
+                , Spot.offsets = ms
+                } =
+                fmap
+                  (\(k, (Xywh.Xy (dx, dy))) ->
+                     let (Sprite.Sprite {Sprite.sourceSize = Xywh.Wh (w, h)}, img) =
+                           mapMainImgs IM.! (spotPointMap IM.! (read $ T.unpack k))
+                      in ( -- Note: this appears to work but I'm not entirely sure if it's correct.
+                           Xywh.Xy (spX + dx - w `div` 2, spY + dy - h `div` 2)
+                         , img
+                         ))
+                  $ maybe [] HM.toList $ ms
+            extraSpotImgs :: [(Xywh.Xy Int, Img.Image Img.VS Img.RGBA Double)]
+            extraSpotImgs = foldMap spotToImgs $ KcInfo.spots mapInfo
             bgs =
               concatMap
                 (\b ->
@@ -103,8 +154,9 @@ defaultMain =
                 . fromJust
                 . KcInfo.bg
                 $ mapInfo
-            combinedBg =
+            combinedBgPre =
               foldl1 (\acc i -> superimpose' (0, 0) i acc) bgs
+            combinedBg = foldl (\acc (Xywh.Xy (x, y), i) -> superimpose' (y, x) i acc) combinedBgPre extraSpotImgs
             ems :: [Enemy.Enemy]
             ems = maybe [] Vec.toList (KcInfo.enemies mapInfo)
             withEnemies =
