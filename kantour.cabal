@@ -1,10 +1,10 @@
-cabal-version: 1.24
+cabal-version: 1.12
 
 -- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df62f37016697ae4f12098569f691c95f53b5f09a1c0deeafa5a2ebe5da2d434
+-- hash: 45082a1c9a9016c75cd8d27c590c9f1d79b4064f41d421354fc5afc138b4dbbd
 
 name:           kantour
 version:        0.1.0.0
@@ -17,17 +17,11 @@ maintainer:     Javran.C@gmail.com
 copyright:      Copyright: (c) 2016-Present Javran Cheng
 license:        BSD3
 license-file:   LICENSE
-build-type:     Custom
+build-type:     Simple
 
 source-repository head
   type: git
   location: https://github.com/Javran/kantour
-
-custom-setup
-  setup-depends:
-      Cabal
-    , base
-    , hpack
 
 library
   exposed-modules:
@@ -86,6 +80,7 @@ library
     , bytestring
     , case-insensitive
     , containers
+    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
@@ -131,6 +126,7 @@ executable kantour
     , bytestring
     , case-insensitive
     , containers
+    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
@@ -181,6 +177,7 @@ test-suite hspec
     , bytestring
     , case-insensitive
     , containers
+    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
