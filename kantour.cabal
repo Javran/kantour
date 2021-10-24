@@ -1,0 +1,217 @@
+cabal-version: 1.24
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: df62f37016697ae4f12098569f691c95f53b5f09a1c0deeafa5a2ebe5da2d434
+
+name:           kantour
+version:        0.1.0.0
+synopsis:       Javran's KanColle Toolset.
+category:       Web
+homepage:       https://github.com/Javran/kantour#readme
+bug-reports:    https://github.com/Javran/kantour/issues
+author:         Javran Cheng
+maintainer:     Javran.C@gmail.com
+copyright:      Copyright: (c) 2016-Present Javran Cheng
+license:        BSD3
+license-file:   LICENSE
+build-type:     Custom
+
+source-repository head
+  type: git
+  location: https://github.com/Javran/kantour
+
+custom-setup
+  setup-depends:
+      Cabal
+    , base
+    , hpack
+
+library
+  exposed-modules:
+      Kantour.AswEquip
+      Kantour.Coded
+      Kantour.DecMapUrl
+      Kantour.DropCalc
+      Kantour.ESports.Main
+      Kantour.ESports.Progressor
+      Kantour.ESports.Quest
+      Kantour.GameResource.Magic
+      Kantour.KcData.Map.Background
+      Kantour.KcData.Map.Enemy
+      Kantour.KcData.Map.Image
+      Kantour.KcData.Map.Info
+      Kantour.KcData.Map.Spot
+      Kantour.KcData.Map.Sprite
+      Kantour.KcData.Map.Xywh
+      Kantour.Kcwiki.EquipmentInfo
+      Kantour.Kcwiki.ShipInfo
+      Kantour.Main
+      Kantour.MapRedraw
+      Kantour.MapTool.Draw
+      Kantour.MapTool.Main
+      Kantour.MapTool.MapConfig
+      Kantour.MapTool.Types
+      Kantour.MapTool.Xml
+      Kantour.MapToolFast.Main
+      Kantour.MapTwol.Main
+      Kantour.MapTwol.Superimpose
+      Kantour.MiniJson.Main
+      Kantour.MiniJson.Parser
+      Kantour.MiniJson.Types
+      Kantour.ShipStat.Core
+      Kantour.ShipStat.Main
+      Kantour.ShipStat.ProcessDump
+      Kantour.Subcommand
+      Kantour.TH
+      Kantour.Utils
+      Kantour.WhoCallsTheFleet.Fetch
+      Kantour.WhoCallsTheFleet.Main
+      Kantour.WhoCallsTheFleet.Types
+      Kantour.WhoCallsTheFleet.Types.Common
+      Kantour.WhoCallsTheFleet.Types.Equipment
+      Kantour.WhoCallsTheFleet.Types.Ship
+  other-modules:
+      Paths_kantour
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -O2
+  build-depends:
+      aeson
+    , aeson-pretty
+    , attoparsec
+    , base
+    , bytestring
+    , case-insensitive
+    , containers
+    , diagrams
+    , diagrams-lib
+    , diagrams-rasterific
+    , diagrams-svg
+    , filepath
+    , hexml
+    , hip
+    , http-client
+    , http-client-tls
+    , http-types
+    , hxt
+    , json
+    , lens
+    , linear
+    , math-functions
+    , mono-traversable
+    , mtl
+    , mwc-random
+    , pretty
+    , primitive
+    , random
+    , statistics
+    , template-haskell
+    , text
+    , unordered-containers
+    , vector
+    , vector-algorithms
+    , yaml
+  default-language: Haskell2010
+
+executable kantour
+  main-is: Main.hs
+  other-modules:
+      Paths_kantour
+  hs-source-dirs:
+      mains
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
+  build-depends:
+      aeson
+    , aeson-pretty
+    , attoparsec
+    , base
+    , bytestring
+    , case-insensitive
+    , containers
+    , diagrams
+    , diagrams-lib
+    , diagrams-rasterific
+    , diagrams-svg
+    , filepath
+    , hexml
+    , hip
+    , http-client
+    , http-client-tls
+    , http-types
+    , hxt
+    , json
+    , kantour
+    , lens
+    , linear
+    , math-functions
+    , mono-traversable
+    , mtl
+    , mwc-random
+    , pretty
+    , primitive
+    , random
+    , statistics
+    , template-haskell
+    , text
+    , unordered-containers
+    , vector
+    , vector-algorithms
+    , yaml
+  default-language: Haskell2010
+
+test-suite hspec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Kantour.GameResource.MagicSpec
+      Kantour.UtilsSpec
+      Paths_kantour
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
+  build-depends:
+      QuickCheck
+    , aeson
+    , aeson-pretty
+    , attoparsec
+    , base
+    , bytestring
+    , case-insensitive
+    , containers
+    , diagrams
+    , diagrams-lib
+    , diagrams-rasterific
+    , diagrams-svg
+    , filepath
+    , heredoc
+    , hexml
+    , hip
+    , hspec
+    , hspec-megaparsec
+    , http-client
+    , http-client-tls
+    , http-types
+    , hxt
+    , json
+    , kantour
+    , lens
+    , linear
+    , math-functions
+    , megaparsec
+    , mono-traversable
+    , mtl
+    , mwc-random
+    , pretty
+    , primitive
+    , random
+    , statistics
+    , template-haskell
+    , text
+    , unordered-containers
+    , vector
+    , vector-algorithms
+    , yaml
+  default-language: Haskell2010

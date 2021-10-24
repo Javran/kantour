@@ -24,6 +24,4 @@ cabal.project.local
 /private/
 /stack.yaml.lock
 
-kantour.cabal
-
 z*
