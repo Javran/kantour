@@ -44,7 +44,6 @@ dependencies:
 - vector-algorithms
 - yaml
 - unordered-containers
-- dhall
 
 library:
   source-dirs: src

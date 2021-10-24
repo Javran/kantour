@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 45082a1c9a9016c75cd8d27c590c9f1d79b4064f41d421354fc5afc138b4dbbd
+-- hash: 629a60dff9c99d8ad7cd6c3cbc45c5c46c41545efc217466f08ebb8ee5db2c39
 
 name:           kantour
 version:        0.1.0.0
@@ -80,7 +80,6 @@ library
     , bytestring
     , case-insensitive
     , containers
-    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
@@ -126,7 +125,6 @@ executable kantour
     , bytestring
     , case-insensitive
     , containers
-    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
@@ -177,7 +175,6 @@ test-suite hspec
     , bytestring
     , case-insensitive
     , containers
-    , dhall
     , diagrams
     , diagrams-lib
     , diagrams-rasterific
