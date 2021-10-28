@@ -6,14 +6,10 @@ A set of tools for KanColle-related developments.
 
 ## Overview
 
-(TODO: migration is not yet done)
-
 This repo consists of two packages:
 
-- `kantour-core`: the majority of code. The future plan is to keep core library small
-  so that other project could depend on it without pulling in all sorts of other libraries.
-- `kantour`: currently just a wrapper around core library. The future plan is to shift mosta
-  of the CLI-only code and dependencies to this package.
+- `kantour-core`: the core library meant to be a dependency that other projects can built on top of.
+- `kantour`: the experimental side of kantour that might require all sorts of random dependencies.
 
 ## Commands
 
