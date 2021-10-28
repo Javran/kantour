@@ -1,20 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Kantour.GameResource.Magic
   ( servers
   , magicCode
-  ) where
+  )
+where
 
-import Data.Monoid
 import Data.Char
-
 import qualified Data.IntMap.Strict as IM
+import Data.Monoid
 import qualified Data.Text as T
 import qualified Data.Vector.Unboxed as VU
+
+defaultServer :: T.Text
+defaultServer = "203.104.209.71"
 
 servers :: IM.IntMap T.Text
 servers =
   IM.fromList
-    [ (1, "203.104.209.71")
+    [ (1, defaultServer)
     , (2, "203.104.209.87")
     , (3, "125.6.184.215")
     , (4, "203.104.209.183")
@@ -36,6 +40,7 @@ servers =
     , (20, "203.104.209.102")
     ]
 
+{- ORMOLU_DISABLE -}
 resourceMagic :: VU.Vector Int
 resourceMagic = VU.fromList
   [ 6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501
@@ -49,10 +54,11 @@ resourceMagic = VU.fromList
   , 9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815
   , 6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243
   ]
+{- ORMOLU_ENABLE -}
 
 magicCode :: Int -> String -> Int
 magicCode r seed =
-    (17*(r+7) * (resourceMagic VU.! ((s+r*a) `rem` 100))) `rem` 8973 + 1000
+  (17 * (r + 7) * (resourceMagic VU.! ((s + r * a) `rem` 100))) `rem` 8973 + 1000
   where
     s = getSum $ foldMap (Sum . ord) seed
     a = case seed of
