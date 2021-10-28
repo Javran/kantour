@@ -27,7 +27,6 @@ dependencies:
 - http-types
 - hxt
 - json
-- kantour-core
 - lens
 - linear
 - math-functions
@@ -45,6 +44,15 @@ dependencies:
 - vector-algorithms
 - yaml
 
+library:
+  source-dirs: src
+  ghc-options:
+    - -Wall
+    - -O2
+  dependencies:
+    - kantour-core
+
+
 executables:
   kantour:
     source-dirs: mains
@@ -56,3 +64,5 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Main
+    dependencies:
+      - kantour

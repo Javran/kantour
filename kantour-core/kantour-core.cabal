@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2f43d4ee3ef6cc6e3c56894baa2ee8933179e93ae602a0153b397c393b568f7e
+-- hash: 4f43a57a9e97e001663557f6842ad71048f08ee125ad3bdb24dd46aac31789f1
 
 name:           kantour-core
 version:        0.2.0.0
@@ -24,10 +24,6 @@ source-repository head
 
 library
   exposed-modules:
-      Kantour.AswEquip
-      Kantour.Coded
-      Kantour.DecMapUrl
-      Kantour.DropCalc
       Kantour.GameResource.Magic
       Kantour.KcData.Map.Background
       Kantour.KcData.Map.Enemy
@@ -36,33 +32,7 @@ library
       Kantour.KcData.Map.Spot
       Kantour.KcData.Map.Sprite
       Kantour.KcData.Map.Xywh
-      Kantour.Kcwiki.EquipmentInfo
-      Kantour.Kcwiki.ShipInfo
-      Kantour.Main
-      Kantour.MapRedraw
-      Kantour.MapTool.Draw
-      Kantour.MapTool.Main
-      Kantour.MapTool.MapConfig
-      Kantour.MapTool.Types
-      Kantour.MapTool.Xml
-      Kantour.MapToolFast.Main
-      Kantour.MapTwol.Main
-      Kantour.MapTwol.Superimpose
-      Kantour.MiniJson.Main
-      Kantour.MiniJson.Parser
-      Kantour.MiniJson.Types
-      Kantour.ShipStat.Core
-      Kantour.ShipStat.Main
-      Kantour.ShipStat.ProcessDump
-      Kantour.Subcommand
-      Kantour.TH
       Kantour.Utils
-      Kantour.WhoCallsTheFleet.Fetch
-      Kantour.WhoCallsTheFleet.Main
-      Kantour.WhoCallsTheFleet.Types
-      Kantour.WhoCallsTheFleet.Types.Common
-      Kantour.WhoCallsTheFleet.Types.Equipment
-      Kantour.WhoCallsTheFleet.Types.Ship
   other-modules:
       Paths_kantour_core
   hs-source-dirs:
@@ -70,39 +40,11 @@ library
   ghc-options: -Wall -O2
   build-depends:
       aeson
-    , aeson-pretty
-    , attoparsec
     , base
-    , bytestring
-    , case-insensitive
     , containers
-    , diagrams-core
-    , diagrams-lib
-    , diagrams-rasterific
-    , filepath
-    , hexml
-    , hip
-    , http-client
-    , http-client-tls
-    , http-types
-    , hxt
-    , json
-    , lens
-    , linear
-    , math-functions
-    , mono-traversable
-    , mtl
-    , mwc-random
-    , pretty
-    , primitive
-    , random
-    , statistics
-    , template-haskell
     , text
     , unordered-containers
     , vector
-    , vector-algorithms
-    , yaml
   default-language: Haskell2010
 
 test-suite hspec
@@ -118,39 +60,11 @@ test-suite hspec
   build-depends:
       QuickCheck
     , aeson
-    , aeson-pretty
-    , attoparsec
     , base
-    , bytestring
-    , case-insensitive
     , containers
-    , diagrams-core
-    , diagrams-lib
-    , diagrams-rasterific
-    , filepath
-    , hexml
-    , hip
     , hspec
-    , http-client
-    , http-client-tls
-    , http-types
-    , hxt
-    , json
     , kantour-core
-    , lens
-    , linear
-    , math-functions
-    , mono-traversable
-    , mtl
-    , mwc-random
-    , pretty
-    , primitive
-    , random
-    , statistics
-    , template-haskell
     , text
     , unordered-containers
     , vector
-    , vector-algorithms
-    , yaml
   default-language: Haskell2010

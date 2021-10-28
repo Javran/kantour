@@ -10,39 +10,11 @@ category: Web
 
 dependencies:
 - aeson
-- aeson-pretty
-- attoparsec
 - base
-- bytestring
-- case-insensitive
 - containers
-- diagrams-core
-- diagrams-lib
-- diagrams-rasterific
-- filepath
-- hexml
-- hip
-- http-client
-- http-client-tls
-- http-types
-- hxt
-- json
-- lens
-- linear
-- math-functions
-- mono-traversable
-- mtl
-- mwc-random
-- pretty
-- primitive
-- random
-- statistics
-- template-haskell
 - text
-- unordered-containers
 - vector
-- vector-algorithms
-- yaml
+- unordered-containers
 
 library:
   source-dirs: src
@@ -66,3 +38,4 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Spec
+      
