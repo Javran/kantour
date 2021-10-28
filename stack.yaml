@@ -1,7 +1,8 @@
 resolver: lts-16.31
 
 packages:
-- .
+- kantour-core
+- kantour
 
 extra-deps:
 - json-0.10

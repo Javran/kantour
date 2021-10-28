@@ -4,11 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 629a60dff9c99d8ad7cd6c3cbc45c5c46c41545efc217466f08ebb8ee5db2c39
+-- hash: 2f43d4ee3ef6cc6e3c56894baa2ee8933179e93ae602a0153b397c393b568f7e
 
-name:           kantour
-version:        0.1.0.0
-synopsis:       Javran's KanColle Toolset.
+name:           kantour-core
+version:        0.2.0.0
+synopsis:       Core library for KanColle-related tools.
 category:       Web
 homepage:       https://github.com/Javran/kantour#readme
 bug-reports:    https://github.com/Javran/kantour/issues
@@ -16,7 +16,6 @@ author:         Javran Cheng
 maintainer:     Javran.C@gmail.com
 copyright:      Copyright: (c) 2016-Present Javran Cheng
 license:        BSD3
-license-file:   LICENSE
 build-type:     Simple
 
 source-repository head
@@ -29,9 +28,6 @@ library
       Kantour.Coded
       Kantour.DecMapUrl
       Kantour.DropCalc
-      Kantour.ESports.Main
-      Kantour.ESports.Progressor
-      Kantour.ESports.Quest
       Kantour.GameResource.Magic
       Kantour.KcData.Map.Background
       Kantour.KcData.Map.Enemy
@@ -68,7 +64,7 @@ library
       Kantour.WhoCallsTheFleet.Types.Equipment
       Kantour.WhoCallsTheFleet.Types.Ship
   other-modules:
-      Paths_kantour
+      Paths_kantour_core
   hs-source-dirs:
       src
   ghc-options: -Wall -O2
@@ -80,10 +76,9 @@ library
     , bytestring
     , case-insensitive
     , containers
-    , diagrams
+    , diagrams-core
     , diagrams-lib
     , diagrams-rasterific
-    , diagrams-svg
     , filepath
     , hexml
     , hip
@@ -92,52 +87,6 @@ library
     , http-types
     , hxt
     , json
-    , lens
-    , linear
-    , math-functions
-    , mono-traversable
-    , mtl
-    , mwc-random
-    , pretty
-    , primitive
-    , random
-    , statistics
-    , template-haskell
-    , text
-    , unordered-containers
-    , vector
-    , vector-algorithms
-    , yaml
-  default-language: Haskell2010
-
-executable kantour
-  main-is: Main.hs
-  other-modules:
-      Paths_kantour
-  hs-source-dirs:
-      mains
-  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
-  build-depends:
-      aeson
-    , aeson-pretty
-    , attoparsec
-    , base
-    , bytestring
-    , case-insensitive
-    , containers
-    , diagrams
-    , diagrams-lib
-    , diagrams-rasterific
-    , diagrams-svg
-    , filepath
-    , hexml
-    , hip
-    , http-client
-    , http-client-tls
-    , http-types
-    , hxt
-    , json
-    , kantour
     , lens
     , linear
     , math-functions
@@ -162,7 +111,7 @@ test-suite hspec
   other-modules:
       Kantour.GameResource.MagicSpec
       Kantour.UtilsSpec
-      Paths_kantour
+      Paths_kantour_core
   hs-source-dirs:
       test
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
@@ -175,26 +124,22 @@ test-suite hspec
     , bytestring
     , case-insensitive
     , containers
-    , diagrams
+    , diagrams-core
     , diagrams-lib
     , diagrams-rasterific
-    , diagrams-svg
     , filepath
-    , heredoc
     , hexml
     , hip
     , hspec
-    , hspec-megaparsec
     , http-client
     , http-client-tls
     , http-types
     , hxt
     , json
-    , kantour
+    , kantour-core
     , lens
     , linear
     , math-functions
-    , megaparsec
     , mono-traversable
     , mtl
     , mwc-random

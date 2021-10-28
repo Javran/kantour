@@ -1,8 +1,0 @@
-cradle:
-  stack:
-    - path: "./src"
-      component: "kantour:lib"
-    - path: "./mains/Main.hs"
-      component: "kantour:exe:kantour"
-    - path: "./test"
-      component: "kantour:test:hspec"

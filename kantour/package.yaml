@@ -1,5 +1,5 @@
 name: kantour
-version: 0.1.0.0
+version: 0.2.0.0
 synopsis: Javran's KanColle Toolset.
 github: Javran/kantour
 license: BSD3
@@ -16,18 +16,18 @@ dependencies:
 - bytestring
 - case-insensitive
 - containers
-- diagrams
+- diagrams-core
 - diagrams-lib
 - diagrams-rasterific
-- diagrams-svg
 - filepath
 - hexml
+- hip
 - http-client
 - http-client-tls
 - http-types
 - hxt
-- hip
 - json
+- kantour-core
 - lens
 - linear
 - math-functions
@@ -40,16 +40,10 @@ dependencies:
 - statistics
 - template-haskell
 - text
+- unordered-containers
 - vector
 - vector-algorithms
 - yaml
-- unordered-containers
-
-library:
-  source-dirs: src
-  ghc-options:
-    - -Wall
-    - -O2
 
 executables:
   kantour:
@@ -62,25 +56,3 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Main
-    dependencies:
-      - kantour
-
-tests:
-  hspec:
-    main: Spec.hs
-    source-dirs:
-      - test
-    dependencies:
-      - kantour
-      - hspec
-      - hspec-megaparsec
-      - megaparsec
-      - QuickCheck
-      - heredoc
-    ghc-options:
-      - -Wall
-      - -O2
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
-      - -main-is Spec
