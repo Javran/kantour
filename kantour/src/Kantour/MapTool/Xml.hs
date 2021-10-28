@@ -12,7 +12,7 @@ import Text.XML.HXT.Core hiding (when)
 import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
 import Linear
 import Kantour.MapTool.Types
-import Kantour.Utils
+import Kantour.Core.Utils
 import Control.Exception
 
 -- type for the full document

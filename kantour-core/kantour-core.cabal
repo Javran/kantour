@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4f43a57a9e97e001663557f6842ad71048f08ee125ad3bdb24dd46aac31789f1
+-- hash: ffec59969cb042d9500e09d9dd1b53fc922842e30ef9ef7f127e5fe7e5e257ca
 
 name:           kantour-core
 version:        0.2.0.0
@@ -24,15 +24,15 @@ source-repository head
 
 library
   exposed-modules:
-      Kantour.GameResource.Magic
-      Kantour.KcData.Map.Background
-      Kantour.KcData.Map.Enemy
-      Kantour.KcData.Map.Image
-      Kantour.KcData.Map.Info
-      Kantour.KcData.Map.Spot
-      Kantour.KcData.Map.Sprite
-      Kantour.KcData.Map.Xywh
-      Kantour.Utils
+      Kantour.Core.GameResource.Magic
+      Kantour.Core.KcData.Map.Background
+      Kantour.Core.KcData.Map.Enemy
+      Kantour.Core.KcData.Map.Image
+      Kantour.Core.KcData.Map.Info
+      Kantour.Core.KcData.Map.Spot
+      Kantour.Core.KcData.Map.Sprite
+      Kantour.Core.KcData.Map.Xywh
+      Kantour.Core.Utils
   other-modules:
       Paths_kantour_core
   hs-source-dirs:
@@ -51,8 +51,8 @@ test-suite hspec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Kantour.GameResource.MagicSpec
-      Kantour.UtilsSpec
+      Kantour.Core.GameResource.MagicSpec
+      Kantour.Core.UtilsSpec
       Paths_kantour_core
   hs-source-dirs:
       test

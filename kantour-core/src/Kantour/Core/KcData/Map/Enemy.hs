@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Kantour.KcData.Map.Enemy where
+module Kantour.Core.KcData.Map.Enemy where
 
 import Data.Aeson
 import qualified Data.Text as T

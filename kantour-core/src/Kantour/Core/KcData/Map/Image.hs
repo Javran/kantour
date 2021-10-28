@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveGeneric #-}
-module Kantour.KcData.Map.Image where
+module Kantour.Core.KcData.Map.Image where
 
 import Data.Aeson
 import GHC.Generics
 import qualified Data.HashMap.Strict as HM
-import Kantour.KcData.Map.Sprite
+import Kantour.Core.KcData.Map.Sprite
 import qualified Data.Text as T
 
 data Image = Image

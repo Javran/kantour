@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Kantour.GameResource.Magic
+module Kantour.Core.GameResource.Magic
   ( servers
   , magicCode
   )

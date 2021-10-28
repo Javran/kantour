@@ -1,13 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Kantour.KcData.Map.Info where
+module Kantour.Core.KcData.Map.Info where
 
 import Data.Aeson
 import qualified Data.Vector as V
 import GHC.Generics
-import Kantour.KcData.Map.Background
-import Kantour.KcData.Map.Enemy
-import Kantour.KcData.Map.Spot
+import Kantour.Core.KcData.Map.Background
+import Kantour.Core.KcData.Map.Enemy
+import Kantour.Core.KcData.Map.Spot
 
 data Info = Info
   { spots :: V.Vector Spot

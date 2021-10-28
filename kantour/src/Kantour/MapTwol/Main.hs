@@ -20,13 +20,13 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Graphics.Image as Img
-import qualified Kantour.KcData.Map.Background as Bg
-import qualified Kantour.KcData.Map.Enemy as Enemy
-import qualified Kantour.KcData.Map.Image as KcImage
-import qualified Kantour.KcData.Map.Info as KcInfo
-import qualified Kantour.KcData.Map.Spot as Spot
-import qualified Kantour.KcData.Map.Sprite as Sprite
-import qualified Kantour.KcData.Map.Xywh as Xywh
+import qualified Kantour.Core.KcData.Map.Background as Bg
+import qualified Kantour.Core.KcData.Map.Enemy as Enemy
+import qualified Kantour.Core.KcData.Map.Image as KcImage
+import qualified Kantour.Core.KcData.Map.Info as KcInfo
+import qualified Kantour.Core.KcData.Map.Spot as Spot
+import qualified Kantour.Core.KcData.Map.Sprite as Sprite
+import qualified Kantour.Core.KcData.Map.Xywh as Xywh
 import Kantour.MapTwol.Superimpose
 import Kantour.Subcommand
 import System.Environment

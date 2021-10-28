@@ -1,7 +1,7 @@
-module Kantour.GameResource.MagicSpec where
+module Kantour.Core.GameResource.MagicSpec where
 
 import Test.Hspec
-import Kantour.GameResource.Magic
+import Kantour.Core.GameResource.Magic
 
 spec :: Spec
 spec =

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Kantour.KcData.Map.Xywh where
+module Kantour.Core.KcData.Map.Xywh where
 
 import Data.Aeson
 

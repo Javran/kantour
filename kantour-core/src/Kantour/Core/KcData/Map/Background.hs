@@ -2,7 +2,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Kantour.KcData.Map.Background where
+module Kantour.Core.KcData.Map.Background where
 
 import Control.Applicative
 import Data.Aeson

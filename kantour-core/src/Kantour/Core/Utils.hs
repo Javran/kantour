@@ -1,5 +1,5 @@
 {-# LANGUAGE PartialTypeSignatures #-}
-module Kantour.Utils where
+module Kantour.Core.Utils where
 
 import Data.Foldable
 import Control.Monad

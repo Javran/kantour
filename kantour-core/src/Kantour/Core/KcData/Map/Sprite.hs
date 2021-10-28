@@ -3,11 +3,11 @@
  -}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Kantour.KcData.Map.Sprite where
+module Kantour.Core.KcData.Map.Sprite where
 
 import Data.Aeson
 import GHC.Generics
-import Kantour.KcData.Map.Xywh
+import Kantour.Core.KcData.Map.Xywh
 
 data Sprite = Sprite
   { frame :: Xywh Int

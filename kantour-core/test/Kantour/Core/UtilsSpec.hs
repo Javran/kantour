@@ -1,12 +1,10 @@
-module Kantour.UtilsSpec where
+module Kantour.Core.UtilsSpec where
 
 import Test.Hspec
-import Kantour.Utils
+import Kantour.Core.Utils
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
 import Control.Monad
-
-{-# ANN module "HLint: ignore Redundant do" #-}
 
 spec :: Spec
 spec = do
