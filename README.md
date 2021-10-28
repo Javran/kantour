@@ -4,9 +4,18 @@
 
 A set of tools for KanColle-related developments.
 
-Most of them are just re-implementation of existing stuff - another purpose of this repo
-is to see how helpful could Haskell be for dealing with real problem beyond parsing,
-implementing simple interpreters and online programming contests.
+## Overview
+
+(TODO: migration is not yet done)
+
+This repo consists of two packages:
+
+- `kantour-core`: the majority of code. The future plan is to keep core library small
+  so that other project could depend on it without pulling in all sorts of other libraries.
+- `kantour`: currently just a wrapper around core library. The future plan is to shift mosta
+  of the CLI-only code and dependencies to this package.
+
+## Commands
 
 With the help of [stack](https://docs.haskellstack.org/), you don't have to actually install
 the package globally. For all commands listed below,
@@ -14,7 +23,7 @@ prefixing `stack build && stack exec --` in front
 of it to keep binaries sync with their source codes and run command in that isolated enviroment.
 (e.g. for `maptool a.xml`, you might actually run `stack build && stack exec -- maptool a.xml`).
 
-## maptool
+### maptool
 
 For loading swf map resources and draw nodes and edges for it.
 
@@ -29,11 +38,11 @@ Usage: `maptool <main xml> [extra xml] [-- <arguments to diagrams>]`
 - a full example: `maptool map.xml extra.xml -- -o test.svg -w 2000`
   (assuming `map.xml` and `extra.xml` (optional) has been prepared properly).
 
-## coded
+### coded
 
 For decoding `Core.swf`
 
-## quotefetch
+### quotefetch
 
 For fetching quotes from [kcwiki](https://zh.kcwiki.moe/).
 The output file is always `kcwiki.json` under the directory where you execute the program.
@@ -47,7 +56,7 @@ Usage: `quotefetch <optinal link>`.
     - `quotefetch '季节性/2017年女儿节'`
     - `quotefetch '季节性/2017年白色情人节'`
 
-## dropcalc
+### dropcalc
 
 For computing statistics according to a drop rate.
 
@@ -58,7 +67,7 @@ Usage: `dropcalc <rate> <# of experiments>`
   the specified drop rate under the assumption that the result complies with uniform
   distribution.
 
-## Notes about map drawing
+### Notes about map drawing
 
 - Decrypt `Core.swf`
 
