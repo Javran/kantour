@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Kantour.Core.GameResource.Magic
-  ( servers
+  ( defaultServer
+  , servers
   , magicCode
   )
 where
