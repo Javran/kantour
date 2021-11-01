@@ -50,5 +50,5 @@ defaultMain =
         forM_ (sortOn fst ceExtra) $ \(k, v) -> do
           putStrLn $ "- " <> T.unpack k
           putStrLn "Truncated sample: "
-          putStrLn (T.unpack $ T.take 200 $ decodeUtf8 $ BSL.toStrict $ encode v)
+          putStrLn (T.unpack $ T.take 2000 $ decodeUtf8 $ BSL.toStrict $ encode v)
     _ -> die "<subcmd> [http]<source>"
