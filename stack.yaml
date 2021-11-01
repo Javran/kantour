@@ -9,3 +9,4 @@ extra-deps:
 - hip-1.5.6.0
 - repa-3.4.1.4
 - deriving-aeson-0.2.7
+- shower-0.2.0.2

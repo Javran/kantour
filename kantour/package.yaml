@@ -36,6 +36,7 @@ dependencies:
 - pretty
 - primitive
 - random
+- shower
 - statistics
 - template-haskell
 - text
