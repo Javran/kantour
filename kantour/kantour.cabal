@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ffcb2915f0ce4786682d585a4b1cebafc51db63a98c39b101294dfadfbf325ba
+-- hash: 33d886ddd12003cfa9281f936c4a816e93cf435fecf23fbc9713ef33841688dc
 
 name:           kantour
 version:        0.2.0.0
@@ -24,6 +24,7 @@ source-repository head
 
 library
   exposed-modules:
+      Kantour.ApiParser
       Kantour.AswEquip
       Kantour.Coded
       Kantour.DecMapUrl

@@ -15,6 +15,7 @@ dependencies:
 - text
 - vector
 - unordered-containers
+- deriving-aeson
 
 library:
   source-dirs: src

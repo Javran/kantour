@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ffec59969cb042d9500e09d9dd1b53fc922842e30ef9ef7f127e5fe7e5e257ca
+-- hash: 4cf2ccb09e2bef0af5167a3e3e28623246882e565ee2b084feef86dc4b2d43de
 
 name:           kantour-core
 version:        0.2.0.0
@@ -32,6 +32,9 @@ library
       Kantour.Core.KcData.Map.Spot
       Kantour.Core.KcData.Map.Sprite
       Kantour.Core.KcData.Map.Xywh
+      Kantour.Core.KcData.Master.Common
+      Kantour.Core.KcData.Master.Root
+      Kantour.Core.KcData.Master.Ship
       Kantour.Core.Utils
   other-modules:
       Paths_kantour_core
@@ -42,6 +45,7 @@ library
       aeson
     , base
     , containers
+    , deriving-aeson
     , text
     , unordered-containers
     , vector
@@ -62,6 +66,7 @@ test-suite hspec
     , aeson
     , base
     , containers
+    , deriving-aeson
     , hspec
     , kantour-core
     , text

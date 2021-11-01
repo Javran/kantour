@@ -9,14 +9,15 @@ where
 import Control.Monad
 import Data.CaseInsensitive
 import Data.Proxy
+import Kantour.ApiParser ()
 import Kantour.AswEquip ()
 import Kantour.Coded ()
 import Kantour.DecMapUrl ()
 import Kantour.DropCalc ()
 import Kantour.MapRedraw ()
 import Kantour.MapTool.Main ()
-import Kantour.MapTwol.Main ()
 import Kantour.MapToolFast.Main ()
+import Kantour.MapTwol.Main ()
 import Kantour.MiniJson.Main ()
 import Kantour.ShipStat.Main ()
 import Kantour.Subcommand
