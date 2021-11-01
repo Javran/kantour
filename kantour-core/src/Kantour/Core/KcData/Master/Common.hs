@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -8,6 +9,7 @@ module Kantour.Core.KcData.Master.Common
   , KcConvention
   , CollectExtra (..)
   , HasKnownFields (..)
+  , kcFields
   )
 where
 
@@ -31,8 +33,12 @@ instance StringModifier KcApiField where
   This works by having the type in question specify a set of known fields
   so that CollectExtra collects rest of it from the object.
 
-  Note that this is just for making it easier for development,
-  once all fields are accounted for, use RejectUnknownFields to consolidate.
+  A datatype should be marked as incomplete if any of the fields are
+  not yet supported.
+
+  TODO: RejectUnknownFields doesn't seem to play well with deriving-aeson,
+  I suspect this is due to all those string modification not beknown to
+  aeson. we need to look into this.
  -}
 data CollectExtra a = CollectExtra
   { ceValue :: a
@@ -46,6 +52,9 @@ class HasKnownFields a where
 
   knownFields :: forall p. p a -> [T.Text]
   knownFields p = S.toList (knownFieldsSet p)
+
+kcFields :: T.Text -> [T.Text]
+kcFields xs = ("api_" <>) <$> T.words xs
 
 instance (FromJSON a, HasKnownFields a) => FromJSON (CollectExtra a) where
   parseJSON = withObject "CollectExtra" $ \obj -> do

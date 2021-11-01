@@ -14,6 +14,8 @@ import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Ship
 import Kantour.Core.KcData.Master.Shipgraph
 import Kantour.Core.KcData.Master.Slotitem
+import Kantour.Core.KcData.Master.Bgm
+import Kantour.Core.KcData.Master.ItemShop
 
 {-
   Root object of master data.
@@ -22,6 +24,9 @@ data MasterRoot = MasterRoot
   { mstSlotitem :: [Slotitem]
   , mstShipgraph :: [Shipgraph]
   , mstShip :: [Ship]
+  , mstEquipExslot :: [Int]
+  , mstBgm :: [Bgm]
+  , mstItemShop :: ItemShop
   }
   deriving stock (Generic, Show)
   deriving
@@ -32,7 +37,6 @@ data MasterRoot = MasterRoot
 
 instance HasKnownFields MasterRoot where
   knownFields _ =
-    [ "api_mst_slotitem"
-    , "api_mst_shipgraph"
-    , "api_mst_ship"
-    ]
+    kcFields
+      "mst_equip_exslot \
+      \mst_bgm mst_item_shop"

@@ -47,7 +47,7 @@ defaultMain =
       printer (head $ mstShip r)
       unless (null ceExtra) $ do
         putStrLn "Following fields are not yet accounted for:"
-        forM_ ceExtra $ \(k, v) -> do
+        forM_ (sortOn fst ceExtra) $ \(k, v) -> do
           putStrLn $ "- " <> T.unpack k
           putStrLn "Truncated sample: "
           putStrLn (T.unpack $ T.take 200 $ decodeUtf8 $ BSL.toStrict $ encode v)

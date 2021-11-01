@@ -11,6 +11,7 @@ where
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Common
 
+-- status: incomplete
 data Slotitem = Slotitem
   { slotId :: Int
   }

@@ -12,6 +12,7 @@ import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Common
 
+-- status: incomplete
 data Ship = Ship
   { shipId :: Int
   }
