@@ -1,12 +1,16 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.ApiParser where
 
+import Control.Monad
 import Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as BSL
 import Data.List
+import qualified Data.Text as T
+import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Root
 import Kantour.Subcommand
 import Network.HTTP.Client
@@ -34,8 +38,14 @@ defaultMain =
     [fileOrUrlSrc] -> do
       mgr <- newManager tlsManagerSettings
       rawJson <- loadFromSource mgr fileOrUrlSrc
-      parsed <- case Aeson.eitherDecode @MasterRoot rawJson of
-        Left msg -> die ("parse error: " <> msg)
-        Right r -> pure $ head $ mstShip r
-      printer parsed
+      CollectExtra {ceValue = r, ceExtra} <-
+        case Aeson.eitherDecode @(CollectExtra MasterRoot) rawJson of
+          Left msg -> die ("parse error: " <> msg)
+          Right r -> pure r
+      putStrLn "Ship sample:"
+      printer (head $ mstShip r)
+      unless (null ceExtra) $ do
+        putStrLn "Following fields are not yet accounted for:"
+        forM_ ceExtra $ \(k, _v) -> do
+          putStrLn $ "- " <> T.unpack k
     _ -> die "<subcmd> [http]<source>"

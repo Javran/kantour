@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Kantour.Core.KcData.Master.Root
   ( MasterRoot (..)
@@ -8,8 +9,6 @@ module Kantour.Core.KcData.Master.Root
 where
 
 import Data.Aeson as Aeson
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Ship
@@ -30,3 +29,10 @@ data MasterRoot = MasterRoot
     via CustomJSON
           '[FieldLabelModifier KcConvention]
           MasterRoot
+
+instance HasKnownFields MasterRoot where
+  knownFields _ =
+    [ "api_mst_slotitem"
+    , "api_mst_shipgraph"
+    , "api_mst_ship"
+    ]
