@@ -15,6 +15,7 @@ import Kantour.Core.KcData.Master.Root
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
+import Data.Text.Encoding
 import Shower
 import System.Environment
 import System.Exit
@@ -46,6 +47,8 @@ defaultMain =
       printer (head $ mstShip r)
       unless (null ceExtra) $ do
         putStrLn "Following fields are not yet accounted for:"
-        forM_ ceExtra $ \(k, _v) -> do
+        forM_ ceExtra $ \(k, v) -> do
           putStrLn $ "- " <> T.unpack k
+          putStrLn "Truncated sample: "
+          putStrLn (T.unpack $ T.take 200 $ decodeUtf8 $ BSL.toStrict $ encode v)
     _ -> die "<subcmd> [http]<source>"

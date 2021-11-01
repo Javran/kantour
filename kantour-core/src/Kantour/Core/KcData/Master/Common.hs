@@ -31,6 +31,8 @@ instance StringModifier KcApiField where
   This works by having the type in question specify a set of known fields
   so that CollectExtra collects rest of it from the object.
 
+  Note that this is just for making it easier for development,
+  once all fields are accounted for, use RejectUnknownFields to consolidate.
  -}
 data CollectExtra a = CollectExtra
   { ceValue :: a
