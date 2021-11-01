@@ -33,12 +33,18 @@ instance StringModifier KcApiField where
   This works by having the type in question specify a set of known fields
   so that CollectExtra collects rest of it from the object.
 
-  A datatype should be marked as incomplete if any of the fields are
-  not yet supported.
+  A datatype is considered incomplete if either of the following is true:
+  - any of the fields are not yet supported.
+  - no KnownFields instance.
 
   TODO: RejectUnknownFields doesn't seem to play well with deriving-aeson,
   I suspect this is due to all those string modification not beknown to
   aeson. we need to look into this.
+
+  TODO: tests to make sure all fields are covered.
+
+  TODO: there are some fixed-length lists that can be converted to tuples.
+
  -}
 data CollectExtra a = CollectExtra
   { ceValue :: a

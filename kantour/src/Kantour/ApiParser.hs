@@ -10,12 +10,13 @@ import Data.Aeson as Aeson
 import qualified Data.ByteString.Lazy as BSL
 import Data.List
 import qualified Data.Text as T
+import Data.Text.Encoding
+import qualified Data.Vector as V
 import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Root
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
-import Data.Text.Encoding
 import Shower
 import System.Environment
 import System.Exit
@@ -49,6 +50,12 @@ defaultMain =
         putStrLn "Following fields are not yet accounted for:"
         forM_ (sortOn fst ceExtra) $ \(k, v) -> do
           putStrLn $ "- " <> T.unpack k
-          putStrLn "Truncated sample: "
-          putStrLn (T.unpack $ T.take 2000 $ decodeUtf8 $ BSL.toStrict $ encode v)
+          let valToStr = T.unpack . decodeUtf8 . BSL.toStrict . encode
+          case v of
+            Array xs -> do
+              putStrLn "Value is an array, showing first 2 elements:"
+              mapM_ (putStrLn . valToStr) (V.take 2 xs)
+            _ -> do
+              putStrLn "Truncated sample: "
+              putStrLn (take 2000 $ valToStr v)
     _ -> die "<subcmd> [http]<source>"

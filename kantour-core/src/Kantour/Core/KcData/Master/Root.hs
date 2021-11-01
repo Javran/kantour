@@ -25,16 +25,11 @@ import Kantour.Core.KcData.Master.Mission
 import Kantour.Core.KcData.Master.Payitem
 import Kantour.Core.KcData.Master.Ship
 import Kantour.Core.KcData.Master.Shipgraph
+import Kantour.Core.KcData.Master.Shipupgrade
 import Kantour.Core.KcData.Master.Slotitem
-
-{- TODO: replace those with concrete ones -}
-type Shipupgrade = Value
-
-type SlotitemEquiptype = Value
-
-type Stype = Value
-
-type Useitem = Value
+import Kantour.Core.KcData.Master.SlotitemEquiptype
+import Kantour.Core.KcData.Master.Stype
+import Kantour.Core.KcData.Master.Useitem
 
 {-
   Root object of master data.
@@ -73,4 +68,5 @@ instance HasKnownFields MasterRoot where
     kcFields
       "mst_const mst_equip_exslot_ship mst_equip_ship mst_equip_exslot \
       \mst_furniture mst_furnituregraph mst_maparea mst_mapbgm mst_mapinfo \
-      \mst_bgm mst_item_shop mst_mission mst_payitem"
+      \mst_bgm mst_item_shop mst_mission mst_payitem mst_ship mst_shipgraph \
+      \mst_shipupgrade mst_slotitem mst_slotitem_equiptype mst_stype mst_useitem"
