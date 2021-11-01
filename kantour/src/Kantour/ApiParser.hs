@@ -36,6 +36,6 @@ defaultMain =
       rawJson <- loadFromSource mgr fileOrUrlSrc
       parsed <- case Aeson.eitherDecode @MasterRoot rawJson of
         Left msg -> die ("parse error: " <> msg)
-        Right r -> pure r
+        Right r -> pure $ head $ mstShip r
       printer parsed
     _ -> die "<subcmd> [http]<source>"
