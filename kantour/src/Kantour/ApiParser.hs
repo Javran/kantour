@@ -16,6 +16,7 @@ import Data.Text.Encoding
 import qualified Data.Vector as V
 import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Root
+import Kantour.FetchMasterData
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
@@ -28,18 +29,6 @@ data SubCmdApiParser
 instance Subcommand SubCmdApiParser where
   name _ = "ApiParser"
   main _ = defaultMain
-
-
-{-
-  TODO: subcommands can share Managers probably?
- -}
-
-loadFromSource :: Manager -> String -> IO BSL.ByteString
-loadFromSource mgr src
-  | "http" `isPrefixOf` src = do
-    req <- parseRequest src
-    responseBody <$> httpLbs req mgr
-  | otherwise = BSL.readFile src
 
 {-
   TODO:
