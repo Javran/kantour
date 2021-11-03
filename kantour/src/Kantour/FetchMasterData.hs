@@ -16,7 +16,6 @@ import Kantour.Core.KcData.Master.Root
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
-import Shower
 import System.Environment
 import System.Exit
 
@@ -49,10 +48,23 @@ fetchMasterData mgr src =
       Left msg -> die ("parse error: " <> msg)
       Right r -> pure r
 
+{-
+  TODO: do this later proper.
+
+  Plan:
+  - current reference impl is: https://github.com/Javran/subtender/blob/23d6f4d9e03cf81ffa0d070ed2bded46afbd1eae/src/poi/selectors.js#L67-L128
+    and we want to re-implement it here
+  - explore option on how to loop-break a circular chain (would be some combination of api_sortno, api_sort_id and api_id).
+  - backport.
+
+ -}
+remodelChainExperiment :: MasterRoot -> IO ()
+remodelChainExperiment _ = _todo
+
 defaultMain :: IO ()
 defaultMain =
   getArgs >>= \case
     [fileOrUrlSrc] -> do
       mgr <- newManager tlsManagerSettings
-      fetchMasterData mgr fileOrUrlSrc >>= printer
+      fetchMasterData mgr fileOrUrlSrc >>= remodelChainExperiment
     _ -> die "<subcmd> [http]<source>"
