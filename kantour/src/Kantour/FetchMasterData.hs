@@ -1,51 +1,22 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
 
-module Kantour.ApiParser
-  ( SubCmdApiParser
-  )
-where
 
-import Control.Monad
-import Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as BSL
-import Data.List
-import qualified Data.Text as T
-import Data.Text.Encoding
-import qualified Data.Vector as V
-import Kantour.Core.KcData.Master.Common
-import Kantour.Core.KcData.Master.Root
+module Kantour.FetchMasterData where
 import Kantour.Subcommand
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-import Shower
-import System.Environment
-import System.Exit
+data SubCmdFetchMasterData
 
-data SubCmdApiParser
+{-
+  TODO: the need of getting and parsing api_start2
+  comes up so often that it might worth making into enviroment variables.
+ -}
 
-instance Subcommand SubCmdApiParser where
-  name _ = "ApiParser"
+instance Subcommand SubCmdFetchMasterData where
+  name _ = "FetchMasterData"
   main _ = defaultMain
 
-
-{-
-  TODO: subcommands can share Managers probably?
- -}
-
-loadFromSource :: Manager -> String -> IO BSL.ByteString
-loadFromSource mgr src
-  | "http" `isPrefixOf` src = do
-    req <- parseRequest src
-    responseBody <$> httpLbs req mgr
-  | otherwise = BSL.readFile src
-
-{-
-  TODO:
-  We need a test suite that collects for each type and verify that
-  we have left nothing unconsumed.
- -}
 defaultMain :: IO ()
 defaultMain =
   getArgs >>= \case
