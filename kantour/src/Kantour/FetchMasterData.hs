@@ -134,9 +134,9 @@ remodelChainExperiment MasterRoot {mstShip} = do
     [v] -> putStrLn $ "Singleton: " <> show v
     _ ->
       do
-        let sorted1 = sortOn (\s -> rem (Ship.sortId s) 10) vs
-            sorted2 = sortOn Ship.sortno vs
-        unless (fmap Ship.shipId sorted1 == fmap Ship.shipId sorted2) $ do
+        let sortedBySortId = sortOn (\s -> rem (Ship.sortId s) 10) vs
+            sortedBySortNo = sortOn Ship.sortno vs
+        unless (fmap Ship.shipId sortedBySortId == fmap Ship.shipId sortedBySortNo) $ do
           let ppr xs =
                 T.putStrLn $
                   T.unwords
@@ -144,10 +144,10 @@ remodelChainExperiment MasterRoot {mstShip} = do
                         let ps x = T.pack (show x)
                          in Ship.name s <> "(" <> ps (Ship.shipId s) <> "," <> ps (rem (Ship.sortId s) 10) <> "," <> ps (fromJust $ Ship.sortno s) <> ")")
                        <$> xs)
-          putStr "Inconsistent: "
-          ppr sorted2
-          putStr "> sort_id: "
-          ppr sorted1
+          ppr sortedBySortId
+          let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sortedBySortId
+          unless (sortIdLastDigits == nub sortIdLastDigits) $
+            T.putStrLn $ "> " <> T.unwords (fmap (\s -> T.pack $ show s) sortIdLastDigits)
 
 defaultMain :: IO ()
 defaultMain =
