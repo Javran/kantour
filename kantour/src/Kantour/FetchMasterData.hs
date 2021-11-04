@@ -99,8 +99,8 @@ remodelChainExperiment MasterRoot {mstShip} = do
         where
           allyShips = filter ((<= 1500) . Ship.shipId) mstShip
       (shipKs, shipVs) = unzip $ IM.toAscList ships
-      remodelChains :: IM.IntMap [Ship]
-      remodelChains = runST $ do
+      remodelClusters :: IM.IntMap [Ship]
+      remodelClusters = runST $ do
         pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) shipKs
         let points = IM.fromList pointsPre
         forM_ (IM.elems ships) $ \ship ->
@@ -130,7 +130,7 @@ remodelChainExperiment MasterRoot {mstShip} = do
       unattached ids should be alerted.
 
    -}
-  forM_ (IM.toList remodelChains) $ \(_k, vs) -> do
+  forM_ (IM.toList remodelClusters) $ \(_k, vs) -> do
     T.putStrLn $ T.unwords ((\s -> Ship.name s <> "(" <> T.pack (show $ Ship.shipId s) <> ")") <$> sortOn Ship.sortno vs)
 
 defaultMain :: IO ()
