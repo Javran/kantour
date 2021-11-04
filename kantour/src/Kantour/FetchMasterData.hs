@@ -99,8 +99,8 @@ remodelChainExperiment MasterRoot {mstShip} = do
         where
           allyShips = filter ((<= 1500) . Ship.shipId) mstShip
       (shipKs, shipVs) = unzip $ IM.toAscList ships
+      remodelChains :: IM.IntMap [Ship]
       remodelChains = runST $ do
-        -- TODO: use vector.
         pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) shipKs
         let points = IM.fromList pointsPre
         forM_ (IM.elems ships) $ \ship ->
