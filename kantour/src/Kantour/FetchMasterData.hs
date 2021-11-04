@@ -98,18 +98,18 @@ remodelChainExperiment MasterRoot {mstShip} = do
           $ fmap (\s -> (Ship.shipId s, s)) allyShips
         where
           allyShips = filter ((<= 1500) . Ship.shipId) mstShip
+      (shipKs, shipVs) = unzip $ IM.toAscList ships
       remodelChains = runST $ do
         -- TODO: use vector.
-        -- TODO: use IM.toList once rather than relying on IM.keys and IM.elems being consistent on ordering.
-        pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) (IM.keys ships)
+        pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) shipKs
         let points = IM.fromList pointsPre
         forM_ (IM.elems ships) $ \ship ->
           case afterShipIdToMaybe . Ship.aftershipid $ ship of
             Nothing -> pure ()
             Just afterId -> do
               UF.union (points IM.! Ship.shipId ship) (points IM.! afterId)
-        cluster $ zip (fmap snd pointsPre) (IM.elems ships)
-      noInDegShips = IS.difference (IM.keysSet ships) afterShipIds
+        cluster $ zip (fmap snd pointsPre) shipVs
+      noInDegShips = IS.difference (IS.fromList shipKs) afterShipIds
         where
           afterShipIds =
             IS.fromList
@@ -131,8 +131,7 @@ remodelChainExperiment MasterRoot {mstShip} = do
 
    -}
   forM_ (IM.toList remodelChains) $ \(_k, vs) -> do
-    T.putStrLn $ T.unwords (fmap (\s -> Ship.name s <> "(" <> T.pack (show $ Ship.shipId s) <> ")") $ sortOn Ship.sortno vs)
-  print (afterShipIdToMaybe . Ship.aftershipid <$> IM.elems ships)
+    T.putStrLn $ T.unwords ((\s -> Ship.name s <> "(" <> T.pack (show $ Ship.shipId s) <> ")") <$> sortOn Ship.sortno vs)
 
 defaultMain :: IO ()
 defaultMain =
