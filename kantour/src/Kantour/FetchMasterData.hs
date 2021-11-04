@@ -130,8 +130,24 @@ remodelChainExperiment MasterRoot {mstShip} = do
       unattached ids should be alerted.
 
    -}
-  forM_ (IM.toList remodelClusters) $ \(_k, vs) -> do
-    T.putStrLn $ T.unwords ((\s -> Ship.name s <> "(" <> T.pack (show $ Ship.shipId s) <> ")") <$> sortOn Ship.sortno vs)
+  forM_ (IM.toList remodelClusters) $ \(_k, vs) -> case vs of
+    [v] -> putStrLn $ "Singleton: " <> show v
+    _ ->
+      do
+        let sorted1 = sortOn (\s -> rem (Ship.sortId s) 10) vs
+            sorted2 = sortOn Ship.sortno vs
+        unless (fmap Ship.shipId sorted1 == fmap Ship.shipId sorted2) $ do
+          let ppr xs =
+                T.putStrLn $
+                  T.unwords
+                    ((\s ->
+                        let ps x = T.pack (show x)
+                         in Ship.name s <> "(" <> ps (Ship.shipId s) <> "," <> ps (rem (Ship.sortId s) 10) <> "," <> ps (fromJust $ Ship.sortno s) <> ")")
+                       <$> xs)
+          putStr "Inconsistent: "
+          ppr sorted2
+          putStr "> sort_id: "
+          ppr sorted1
 
 defaultMain :: IO ()
 defaultMain =
