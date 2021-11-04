@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 907155756598bc2df8d418e1f8eb298038f815ae321d8679ac9f19edb263d804
+-- hash: 788bf51e43ccb213c640a62ad7eb9e703f8aac37c75a9c5541ad16a6fd90eb86
 
 name:           kantour
 version:        0.2.0.0
@@ -94,6 +94,7 @@ library
     , statistics
     , template-haskell
     , text
+    , union-find
     , unordered-containers
     , vector
     , vector-algorithms
@@ -140,6 +141,7 @@ executable kantour
     , statistics
     , template-haskell
     , text
+    , union-find
     , unordered-containers
     , vector
     , vector-algorithms
