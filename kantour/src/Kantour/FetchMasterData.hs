@@ -109,6 +109,8 @@ remodelChainExperiment MasterRoot {mstShip} = do
             Just afterId -> do
               UF.union (points IM.! Ship.shipId ship) (points IM.! afterId)
         cluster $ zip (fmap snd pointsPre) shipVs
+      sortRemodel :: [Ship] -> [Ship]
+      sortRemodel = sortOn (\s -> (rem (Ship.sortId s) 10, Ship.sortno s, Ship.shipId s))
       noInDegShips = IS.difference (IS.fromList shipKs) afterShipIds
         where
           afterShipIds =
@@ -130,13 +132,14 @@ remodelChainExperiment MasterRoot {mstShip} = do
       unattached ids should be alerted.
 
    -}
+  let handleShipCluster xs baseShipId = do
+        putStrLn $ "TODO: base: " <> show baseShipId <> ", full set: " <> show (fmap Ship.shipId xs)
   forM_ (IM.toList remodelClusters) $ \(_k, vs) -> case vs of
     [v] -> putStrLn $ "Singleton: " <> show v
     _ ->
-      do
-        let sortedBySortId = sortOn (\s -> rem (Ship.sortId s) 10) vs
-            sortedBySortNo = sortOn Ship.sortno vs
-        unless (fmap Ship.shipId sortedBySortId == fmap Ship.shipId sortedBySortNo) $ do
+      case filter ((`IS.member` noInDegShips) . Ship.shipId) vs of
+        [] -> do
+          let sorted = sortRemodel vs
           let ppr xs =
                 T.putStrLn $
                   T.unwords
@@ -144,10 +147,16 @@ remodelChainExperiment MasterRoot {mstShip} = do
                         let ps x = T.pack (show x)
                          in Ship.name s <> "(" <> ps (Ship.shipId s) <> "," <> ps (rem (Ship.sortId s) 10) <> "," <> ps (fromJust $ Ship.sortno s) <> ")")
                        <$> xs)
-          ppr sortedBySortId
-          let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sortedBySortId
+          ppr sorted
+          let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sorted
           unless (sortIdLastDigits == nub sortIdLastDigits) $
             T.putStrLn $ "> " <> T.unwords (fmap (\s -> T.pack $ show s) sortIdLastDigits)
+          handleShipCluster vs (Ship.shipId $ head sorted)
+        [baseShipId] ->
+          handleShipCluster vs (Ship.shipId baseShipId)
+        xs -> do
+          putStrLn "Warning: multiple base ship?"
+          print xs
 
 defaultMain :: IO ()
 defaultMain =
