@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22dbe7844619271f056677093c4ff3a8d1ba7ad1627352513e5d537e93761ad8
+-- hash: 24c0b5700189ef2b2914d6340d2a85b4285f6430d22c5abcda7ff3fb3073f40b
 
 name:           kantour-core
 version:        0.2.0.0
@@ -17,6 +17,8 @@ maintainer:     Javran.C@gmail.com
 copyright:      Copyright: (c) 2016-Present Javran Cheng
 license:        BSD3
 build-type:     Simple
+data-files:
+    data/api_start2.json.xz
 
 source-repository head
   type: git
@@ -24,6 +26,7 @@ source-repository head
 
 library
   exposed-modules:
+      Kantour.Core.DataFiles
       Kantour.Core.GameResource.Magic
       Kantour.Core.KcData.Map.Background
       Kantour.Core.KcData.Map.Enemy
@@ -62,8 +65,10 @@ library
   build-depends:
       aeson
     , base
+    , bytestring
     , containers
     , deriving-aeson
+    , lzma
     , text
     , unordered-containers
     , vector
@@ -74,6 +79,7 @@ test-suite hspec
   main-is: Spec.hs
   other-modules:
       Kantour.Core.GameResource.MagicSpec
+      Kantour.Core.KcData.Master.CompletenessSpec
       Kantour.Core.UtilsSpec
       Paths_kantour_core
   hs-source-dirs:
@@ -81,13 +87,7 @@ test-suite hspec
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
   build-depends:
       QuickCheck
-    , aeson
     , base
-    , containers
-    , deriving-aeson
     , hspec
     , kantour-core
-    , text
-    , unordered-containers
-    , vector
   default-language: Haskell2010

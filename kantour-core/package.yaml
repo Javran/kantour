@@ -9,16 +9,23 @@ copyright: "Copyright: (c) 2016-Present Javran Cheng"
 category: Web
 
 dependencies:
-- aeson
 - base
-- containers
-- text
-- vector
-- unordered-containers
-- deriving-aeson
+
+data-files:
+- data/api_start2.json.xz
 
 library:
   source-dirs: src
+  dependencies:
+    - aeson
+    - containers
+    - text
+    - vector
+    - unordered-containers
+    - deriving-aeson
+    - lzma
+    - bytestring
+
   ghc-options:
     - -Wall
     - -O2
@@ -39,4 +46,3 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
       - -main-is Spec
-      
