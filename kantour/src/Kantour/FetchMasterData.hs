@@ -73,15 +73,8 @@ cluster ps =
       ps
 
 {-
-  TODO: do this later proper.
+  TODO: hijacking FetchMasterData to do other stuff. do this properly later.
   TODO: we should probably have NFData on MasterRoot.
-
-  Plan:
-  - current reference impl is: https://github.com/Javran/subtender/blob/23d6f4d9e03cf81ffa0d070ed2bded46afbd1eae/src/poi/selectors.js#L67-L128
-    and we want to re-implement it here
-  - explore option on how to loop-break a circular chain (would be some combination of api_sortno, api_sort_id and api_id).
-  - backport.
-
  -}
 remodelChainExperiment :: MasterRoot -> IO ()
 remodelChainExperiment MasterRoot {mstShip} = do
@@ -129,20 +122,6 @@ remodelChainExperiment MasterRoot {mstShip} = do
               . mapMaybe (afterShipIdToMaybe . Ship.aftershipid)
               . IM.elems
               $ ships
-  {-
-    TODO: new algorithm:
-
-    - screw it, let's do disjoint set. this ensures that all elements are accounted for.
-    - also keep track of set of ship ids that have nothing pointing to them.
-    - remove singletons
-    - for each set, we want to find the base:
-      + if one has no in-degree, it is the base.
-      + otherwise we have to tie-break.
-    - after base is determined, form the chain by BFS,
-      (prefer BFS over DFS just in case there are branching remodels in the future)
-      unattached ids should be alerted.
-
-   -}
   let shipToText s =
         let ps x = T.pack (show x)
          in Ship.name s <> "("
