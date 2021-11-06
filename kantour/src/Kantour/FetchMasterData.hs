@@ -13,7 +13,9 @@ where
 
 import Control.Monad
 import Control.Monad.ST
+import Control.Monad.State
 import Data.Aeson as Aeson
+import Data.Bifunctor
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS
@@ -21,6 +23,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import Data.Tuple
 import qualified Data.UnionFind.ST as UF
 import Kantour.Core.KcData.Master.Root
 import Kantour.Core.KcData.Master.Ship as Ship
@@ -140,8 +143,39 @@ remodelChainExperiment MasterRoot {mstShip} = do
       unattached ids should be alerted.
 
    -}
-  let handleShipCluster xs baseShipId = do
-        putStrLn $ "TODO: base: " <> show baseShipId <> ", full set: " <> show (fmap Ship.shipId xs)
+  let shipToText s =
+        let ps x = T.pack (show x)
+         in Ship.name s <> "("
+              <> ps (Ship.shipId s)
+              <> ","
+              <> ps (rem (Ship.sortId s) 10)
+              <> ","
+              <> ps (fromJust $ Ship.sortno s)
+              <> ")"
+      handleShipCluster xs baseShipId = do
+        -- TODO: verify that we indeed collects all (xs is not used for now)
+        let collectRemodels :: Int -> Int -> State (IM.IntMap Int) ()
+            collectRemodels sId depth = do
+              md <- gets (IM.!? sId)
+              case md of
+                Nothing -> do
+                  modify (IM.insert sId depth)
+                  case remodelGraph IM.!? sId of
+                    Nothing -> pure ()
+                    Just nexts ->
+                      forM_ (IS.toList nexts) $ \nextId ->
+                        collectRemodels nextId (depth + 1)
+                Just _ -> pure ()
+            depthGroupped :: [(Int, [Ship])]
+            depthGroupped =
+              (fmap . second) (sortRemodel . fmap (ships IM.!))
+                . IM.toAscList
+                . IM.fromListWith (<>)
+                . fmap (\(k, v) -> (v, [k]))
+                . IM.toList
+                $ execState (collectRemodels baseShipId 0) IM.empty
+            flattened = concatMap snd depthGroupped
+        T.putStrLn (T.intercalate " > " (fmap shipToText flattened))
   forM_ (IM.toList remodelClusters) $ \(_k, vs) -> case vs of
     [v] -> putStrLn $ "Singleton: " <> show v
     _ ->
@@ -151,9 +185,7 @@ remodelChainExperiment MasterRoot {mstShip} = do
           let ppr xs =
                 T.putStrLn $
                   T.unwords
-                    ((\s ->
-                        let ps x = T.pack (show x)
-                         in Ship.name s <> "(" <> ps (Ship.shipId s) <> "," <> ps (rem (Ship.sortId s) 10) <> "," <> ps (fromJust $ Ship.sortno s) <> ")")
+                    (shipToText
                        <$> xs)
           ppr sorted
           let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sorted
