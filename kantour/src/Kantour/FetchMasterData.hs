@@ -99,6 +99,14 @@ remodelChainExperiment MasterRoot {mstShip} = do
         where
           allyShips = filter ((<= 1500) . Ship.shipId) mstShip
       (shipKs, shipVs) = unzip $ IM.toAscList ships
+      remodelGraph :: IM.IntMap IS.IntSet
+      remodelGraph =
+        IM.fromListWith IS.union $
+          mapMaybe
+            (\(sId, s) -> do
+               afterShipId <- afterShipIdToMaybe (Ship.aftershipid s)
+               pure (sId, IS.singleton afterShipId))
+            $ IM.toList ships
       remodelClusters :: IM.IntMap [Ship]
       remodelClusters = runST $ do
         pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) shipKs
