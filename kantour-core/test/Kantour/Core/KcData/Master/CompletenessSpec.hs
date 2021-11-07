@@ -26,7 +26,6 @@ import Kantour.Core.DataFiles
 import Kantour.Core.KcData.Master.Bgm
 import Kantour.Core.KcData.Master.Common
 import Kantour.Core.KcData.Master.Const
-import Kantour.Core.KcData.Master.Root
 import Kantour.Core.KcData.Master.EquipExslotShip
 import Kantour.Core.KcData.Master.EquipShip
 import Kantour.Core.KcData.Master.Furniture
@@ -37,6 +36,7 @@ import Kantour.Core.KcData.Master.Mapbgm
 import Kantour.Core.KcData.Master.Mapinfo
 import Kantour.Core.KcData.Master.Mission
 import Kantour.Core.KcData.Master.Payitem
+import Kantour.Core.KcData.Master.Root
 import Kantour.Core.KcData.Master.Ship
 import Kantour.Core.KcData.Master.Shipgraph
 import Kantour.Core.KcData.Master.Shipupgrade
@@ -60,7 +60,7 @@ loadMaster =
 
 spec :: Spec
 spec = describe "Completeness" $
-  before loadMaster $ do
+  beforeAll loadMaster $ do
     let mkTest
           :: forall p a d f.
           ( FromJSON a
@@ -70,12 +70,12 @@ spec = describe "Completeness" $
           , Datatype d
           )
           => p a
-          -> [T.Text]
+          -> (Value -> [Value])
           -> SpecWith Value
         mkTest _ty selector =
           let dName = datatypeName (from @a undefined)
            in specify dName $ \rawMst -> do
-                let xs = (rawMst |-- selector :: [Value])
+                let xs = selector rawMst
                     ys :: [CollectExtra a]
                     ys = fmap (getResult . fromJSON @(CollectExtra a)) xs
                       where
@@ -98,24 +98,27 @@ spec = describe "Completeness" $
                           T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
                     pendingWith $
                       "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
+    let sel x v = v |-- [x]
+        sel' x v = [sel x v]
 
-    mkTest (Proxy @Slotitem) ["api_mst_slotitem"]
-    mkTest (Proxy @Shipgraph) ["api_mst_shipgraph"]
-    mkTest (Proxy @Ship) ["api_mst_ship"]
-    mkTest (Proxy @Bgm) ["api_mst_bgm"]
-    mkTest (Proxy @EquipExslotShip) ["api_mst_equip_exslot_ship"]
-    mkTest (Proxy @EquipShip) ["api_mst_equip_ship"]
-    mkTest (Proxy @Furniture) ["api_mst_furniture"]
-    mkTest (Proxy @Furnituregraph) ["api_mst_furnituregraph"]
-    mkTest (Proxy @Maparea) ["api_mst_maparea"]
-    mkTest (Proxy @Mapbgm) ["api_mst_mapbgm"]
-    mkTest (Proxy @Mapinfo) ["api_mst_mapinfo"]
-    mkTest (Proxy @Mission) ["api_mst_mission"]
-    mkTest (Proxy @Payitem) ["api_mst_payitem"]
-    mkTest (Proxy @Shipupgrade) ["api_mst_shipupgrade"]
-    mkTest (Proxy @SlotitemEquiptype) ["api_mst_slotitem_equiptype"]
-    mkTest (Proxy @Stype) ["api_mst_stype"]
-    mkTest (Proxy @Useitem) ["api_mst_useitem"]
-    {-
-      TODO: handle Const ItemShop Root
-     -}
+    mkTest (Proxy @Slotitem) $ sel "api_mst_slotitem"
+    mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
+    mkTest (Proxy @Ship) $ sel "api_mst_ship"
+    mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
+    mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
+    mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
+    mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
+    mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
+    mkTest (Proxy @Maparea) $ sel "api_mst_maparea"
+    mkTest (Proxy @Mapbgm) $ sel "api_mst_mapbgm"
+    mkTest (Proxy @Mapinfo) $ sel "api_mst_mapinfo"
+    mkTest (Proxy @Mission) $ sel "api_mst_mission"
+    mkTest (Proxy @Payitem) $ sel "api_mst_payitem"
+    mkTest (Proxy @Shipupgrade) $ sel "api_mst_shipupgrade"
+    mkTest (Proxy @SlotitemEquiptype) $ sel "api_mst_slotitem_equiptype"
+    mkTest (Proxy @Stype) $ sel "api_mst_stype"
+    mkTest (Proxy @Useitem) $ sel "api_mst_useitem"
+
+    mkTest (Proxy @Const) $ sel' "api_mst_const"
+    mkTest (Proxy @ItemShop) $ sel' "api_mst_item_shop"
+    mkTest (Proxy @MasterRoot) pure
