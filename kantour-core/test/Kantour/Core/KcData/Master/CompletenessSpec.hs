@@ -1,11 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Kantour.Core.KcData.Master.CompletenessSpec
   ( spec
@@ -30,6 +28,11 @@ import qualified Kantour.Core.KcData.Master.Ship as Ship
 import qualified Kantour.Core.KcData.Master.Slotitem as Slotitem
 import Test.Hspec
 
+{-
+  This module verifies that all fields in source master data
+  are properly parsed and signal unknown fields if any.
+ -}
+
 loadMaster :: IO Value
 loadMaster =
   loadDataFile "data/api_start2.json.xz" >>= \raw ->
@@ -37,34 +40,22 @@ loadMaster =
       Left msg -> fail $ "Cannot parse data: " <> msg
       Right v -> pure v
 
-{-
-  from: https://stackoverflow.com/a/48179707/315302
- -}
-datatyName :: (HasDatatype (Rep a), Generic a) => a -> String
-datatyName = gDatatyName . from
-
-class HasDatatype (f :: * -> *) where
-  gDatatyName :: f x -> String
-
-instance Datatype c => HasDatatype (M1 D c f) where
-  gDatatyName = datatypeName
-
-{-
-  This module verifies that all fields in source master data
-  are being recognized properly.
- -}
-
 spec :: Spec
 spec = describe "Completeness" $
   before loadMaster $ do
     let mkTest
-          :: forall p a.
-          (FromJSON a, HasKnownFields a, Generic a, HasDatatype (Rep a))
+          :: forall p a d f.
+          ( FromJSON a
+          , HasKnownFields a
+          , Generic a
+          , Rep a ~ M1 D d f
+          , Datatype d
+          )
           => p a
           -> [T.Text]
           -> SpecWith Value
         mkTest _ty selector =
-          let dName = datatyName (undefined :: a)
+          let dName = datatypeName (from @a undefined)
            in specify dName $ \rawMst -> do
                 let xs = (rawMst |-- selector :: [Value])
                     ys :: [CollectExtra a]
