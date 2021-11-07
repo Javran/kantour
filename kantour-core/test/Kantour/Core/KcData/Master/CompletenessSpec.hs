@@ -6,8 +6,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 
 module Kantour.Core.KcData.Master.CompletenessSpec
   ( spec
@@ -42,21 +40,14 @@ loadMaster =
 {-
   from: https://stackoverflow.com/a/48179707/315302
  -}
-constrName :: (HasConstructor (Rep a), Generic a) => a -> String
-constrName = genericConstrName . from
+datatyName :: (HasDatatype (Rep a), Generic a) => a -> String
+datatyName = gDatatyName . from
 
-class HasConstructor (f :: * -> *) where
-  genericConstrName :: f x -> String
+class HasDatatype (f :: * -> *) where
+  gDatatyName :: f x -> String
 
-instance HasConstructor f => HasConstructor (D1 c f) where
-  genericConstrName (M1 x) = genericConstrName x
-
-instance (HasConstructor x, HasConstructor y) => HasConstructor (x :+: y) where
-  genericConstrName (L1 l) = genericConstrName l
-  genericConstrName (R1 r) = genericConstrName r
-
-instance Constructor c => HasConstructor (C1 c f) where
-  genericConstrName x = conName x
+instance Datatype c => HasDatatype (M1 D c f) where
+  gDatatyName = datatypeName
 
 {-
   This module verifies that all fields in source master data
@@ -68,12 +59,12 @@ spec = describe "Completeness" $
   before loadMaster $ do
     let mkTest
           :: forall p a.
-          (FromJSON a, HasKnownFields a, Generic a, HasConstructor (Rep a))
+          (FromJSON a, HasKnownFields a, Generic a, HasDatatype (Rep a))
           => p a
           -> [T.Text]
           -> SpecWith Value
         mkTest _ty selector =
-          let dName = constrName (undefined :: a)
+          let dName = datatyName (undefined :: a)
            in specify dName $ \rawMst -> do
                 let xs = (rawMst |-- selector :: [Value])
                     ys :: [CollectExtra a]
