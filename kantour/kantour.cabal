@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 788bf51e43ccb213c640a62ad7eb9e703f8aac37c75a9c5541ad16a6fd90eb86
+-- hash: 1ba645a0b409bc782a57d463b0e430173574222ef7d1ef669ae4ce58d0c95413
 
 name:           kantour
 version:        0.2.0.0
@@ -42,9 +42,6 @@ library
       Kantour.MapToolFast.Main
       Kantour.MapTwol.Main
       Kantour.MapTwol.Superimpose
-      Kantour.MiniJson.Main
-      Kantour.MiniJson.Parser
-      Kantour.MiniJson.Types
       Kantour.ShipStat.Core
       Kantour.ShipStat.Main
       Kantour.ShipStat.ProcessDump

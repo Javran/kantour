@@ -19,7 +19,6 @@ import Kantour.MapRedraw ()
 import Kantour.MapTool.Main ()
 import Kantour.MapToolFast.Main ()
 import Kantour.MapTwol.Main ()
-import Kantour.MiniJson.Main ()
 import Kantour.ShipStat.Main ()
 import Kantour.Subcommand
 import Kantour.TH
