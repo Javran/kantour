@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
-module Kantour.FetchMasterData
+module Kantour.MasterLab
   ( SubCmdFetchMasterData
   , fetchMasterData
   , loadFromSource

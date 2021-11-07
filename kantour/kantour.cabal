@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1ba645a0b409bc782a57d463b0e430173574222ef7d1ef669ae4ce58d0c95413
+-- hash: 51b23bffe29909a819960b46ef8ef5550006cf791a59ef3ff7331e7ee477e7c6
 
 name:           kantour
 version:        0.2.0.0
@@ -24,12 +24,10 @@ source-repository head
 
 library
   exposed-modules:
-      Kantour.ApiParser
       Kantour.AswEquip
       Kantour.Coded
       Kantour.DecMapUrl
       Kantour.DropCalc
-      Kantour.FetchMasterData
       Kantour.Kcwiki.EquipmentInfo
       Kantour.Kcwiki.ShipInfo
       Kantour.Main
@@ -42,6 +40,7 @@ library
       Kantour.MapToolFast.Main
       Kantour.MapTwol.Main
       Kantour.MapTwol.Superimpose
+      Kantour.MasterLab
       Kantour.ShipStat.Core
       Kantour.ShipStat.Main
       Kantour.ShipStat.ProcessDump
