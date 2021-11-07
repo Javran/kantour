@@ -42,6 +42,10 @@ data Ship = Ship
   , afterlv :: Maybe Int
   , soku :: Maybe Int
   , stype :: Maybe Int
+  , maxeq :: Maybe [Int]
+  , powup :: Maybe [Int]
+  , raig :: Maybe [Int]
+  , tais :: Maybe [Int]
   }
   deriving stock (Generic, Show)
   deriving
@@ -56,4 +60,4 @@ instance HasKnownFields Ship where
       "id ctype name slot_num sort_id tyku buildtime leng \
       \backs voicef houg getmes bull_max fuel_max luck \
       \afterfuel aftershipid afterbull sortno yomi souk broken \
-      \taik afterlv soku stype"
+      \taik afterlv soku stype maxeq powup raig tais"
