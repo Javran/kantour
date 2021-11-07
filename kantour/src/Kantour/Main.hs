@@ -9,7 +9,6 @@ where
 import Control.Monad
 import Data.CaseInsensitive
 import Data.Proxy
-import Kantour.ApiParser ()
 import Kantour.AswEquip ()
 import Kantour.Coded ()
 import Kantour.DecMapUrl ()
