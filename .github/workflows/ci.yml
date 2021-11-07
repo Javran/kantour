@@ -37,11 +37,6 @@ jobs:
           path: ~/.stack
           key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
 
-      - name: Variables
-        id: variables
-        run: |
-          echo ::set-output name=pkg_name::$(cat *.cabal | grep "name:" | sed "s/name:\s*\(.*\)/\1/")
-
       - name: Build Snapshot
         if: steps.cache.outputs.cache-hit != 'true'
         run: |

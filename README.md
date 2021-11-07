@@ -1,6 +1,6 @@
 # kantour
 
-[![Build Status](https://travis-ci.org/Javran/kantour.svg?branch=master)](https://travis-ci.org/Javran/kantour)
+![CI Status](https://github.com/Javran/kantour/actions/workflows/ci.yml/badge.svg)
 
 A set of tools for KanColle-related developments.
 
