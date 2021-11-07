@@ -9,7 +9,12 @@ copyright: "Copyright: (c) 2016-Present Javran Cheng"
 category: Web
 
 dependencies:
+- aeson
 - base
+- bytestring
+- unordered-containers
+- containers
+- text
 
 data-files:
 - data/api_start2.json.xz
@@ -17,15 +22,9 @@ data-files:
 library:
   source-dirs: src
   dependencies:
-    - aeson
-    - containers
-    - text
     - vector
-    - unordered-containers
     - deriving-aeson
     - lzma
-    - bytestring
-
   ghc-options:
     - -Wall
     - -O2
@@ -36,6 +35,7 @@ tests:
     source-dirs:
       - test
     dependencies:
+      - aeson-picker
       - kantour-core
       - hspec
       - QuickCheck

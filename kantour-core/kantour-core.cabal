@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 24c0b5700189ef2b2914d6340d2a85b4285f6430d22c5abcda7ff3fb3073f40b
+-- hash: 9cad57e40de7e58199c09e74421064c75193e6f9c9417b26ebfcf4a03c1d4fb8
 
 name:           kantour-core
 version:        0.2.0.0
@@ -87,7 +87,13 @@ test-suite hspec
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
   build-depends:
       QuickCheck
+    , aeson
+    , aeson-picker
     , base
+    , bytestring
+    , containers
     , hspec
     , kantour-core
+    , text
+    , unordered-containers
   default-language: Haskell2010

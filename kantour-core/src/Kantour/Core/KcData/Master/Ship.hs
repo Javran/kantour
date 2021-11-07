@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Ship
@@ -48,3 +49,11 @@ data Ship = Ship
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Ship
+
+instance HasKnownFields Ship where
+  knownFields _ =
+    kcFields
+      "id ctype name slot_num sort_id tyku buildtime leng \
+      \backs voicef houg getmes bull_max fuel_max luck \
+      \afterfuel aftershipid afterbull sortno yomi souk broken \
+      \taik afterlv soku stype"
