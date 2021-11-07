@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators, OverloadedStrings #-}
 
 module Kantour.Core.KcData.Master.Shipgraph
   ( Shipgraph (..)
@@ -43,3 +43,9 @@ data Shipgraph = Shipgraph
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Shipgraph
+instance HasKnownFields Shipgraph where
+  knownFields _ =
+    kcFields
+      "ensyue_n kaisyu_n version kaisyu_d wedb ensyuf_d battle_d \
+      \filename pab sortno ensyuf_n battle_n boko_n id \
+      \map_n kaizo_d boko_d weda map_d kaizo_n pa"

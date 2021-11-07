@@ -23,9 +23,27 @@ import Data.Text.Encoding
 import qualified Data.Text.IO as T
 import GHC.Generics
 import Kantour.Core.DataFiles
+import Kantour.Core.KcData.Master.Bgm
 import Kantour.Core.KcData.Master.Common
-import qualified Kantour.Core.KcData.Master.Ship as Ship
-import qualified Kantour.Core.KcData.Master.Slotitem as Slotitem
+import Kantour.Core.KcData.Master.Const
+import Kantour.Core.KcData.Master.Root
+import Kantour.Core.KcData.Master.EquipExslotShip
+import Kantour.Core.KcData.Master.EquipShip
+import Kantour.Core.KcData.Master.Furniture
+import Kantour.Core.KcData.Master.Furnituregraph
+import Kantour.Core.KcData.Master.ItemShop
+import Kantour.Core.KcData.Master.Maparea
+import Kantour.Core.KcData.Master.Mapbgm
+import Kantour.Core.KcData.Master.Mapinfo
+import Kantour.Core.KcData.Master.Mission
+import Kantour.Core.KcData.Master.Payitem
+import Kantour.Core.KcData.Master.Ship
+import Kantour.Core.KcData.Master.Shipgraph
+import Kantour.Core.KcData.Master.Shipupgrade
+import Kantour.Core.KcData.Master.Slotitem
+import Kantour.Core.KcData.Master.SlotitemEquiptype
+import Kantour.Core.KcData.Master.Stype
+import Kantour.Core.KcData.Master.Useitem
 import Test.Hspec
 
 {-
@@ -81,5 +99,23 @@ spec = describe "Completeness" $
                     pendingWith $
                       "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
 
-    mkTest (Proxy @Ship.Ship) ["api_mst_ship"]
-    mkTest (Proxy @Slotitem.Slotitem) ["api_mst_slotitem"]
+    mkTest (Proxy @Slotitem) ["api_mst_slotitem"]
+    mkTest (Proxy @Shipgraph) ["api_mst_shipgraph"]
+    mkTest (Proxy @Ship) ["api_mst_ship"]
+    mkTest (Proxy @Bgm) ["api_mst_bgm"]
+    mkTest (Proxy @EquipExslotShip) ["api_mst_equip_exslot_ship"]
+    mkTest (Proxy @EquipShip) ["api_mst_equip_ship"]
+    mkTest (Proxy @Furniture) ["api_mst_furniture"]
+    mkTest (Proxy @Furnituregraph) ["api_mst_furnituregraph"]
+    mkTest (Proxy @Maparea) ["api_mst_maparea"]
+    mkTest (Proxy @Mapbgm) ["api_mst_mapbgm"]
+    mkTest (Proxy @Mapinfo) ["api_mst_mapinfo"]
+    mkTest (Proxy @Mission) ["api_mst_mission"]
+    mkTest (Proxy @Payitem) ["api_mst_payitem"]
+    mkTest (Proxy @Shipupgrade) ["api_mst_shipupgrade"]
+    mkTest (Proxy @SlotitemEquiptype) ["api_mst_slotitem_equiptype"]
+    mkTest (Proxy @Stype) ["api_mst_stype"]
+    mkTest (Proxy @Useitem) ["api_mst_useitem"]
+    {-
+      TODO: handle Const ItemShop Root
+     -}

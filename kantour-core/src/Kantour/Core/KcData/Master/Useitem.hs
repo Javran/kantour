@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Useitem
@@ -27,3 +28,8 @@ data Useitem = Useitem
           '[ FieldLabelModifier (Rename "uId" "id" : KcConvention)
            ]
           Useitem
+
+instance HasKnownFields Useitem where
+  knownFields _ =
+    kcFields
+      "usetype category price id name description"

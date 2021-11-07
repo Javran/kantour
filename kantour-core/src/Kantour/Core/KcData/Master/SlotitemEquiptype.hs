@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.SlotitemEquiptype
@@ -26,3 +27,8 @@ data SlotitemEquiptype = SlotitemEquiptype
                )
            ]
           SlotitemEquiptype
+
+instance HasKnownFields SlotitemEquiptype where
+  knownFields _ =
+    kcFields
+      "id show_flg name"

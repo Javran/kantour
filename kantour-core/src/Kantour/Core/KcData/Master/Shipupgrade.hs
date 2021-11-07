@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Shipupgrade
@@ -32,3 +33,10 @@ data Shipupgrade = Shipupgrade
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Shipupgrade
+
+instance HasKnownFields Shipupgrade where
+  knownFields _ =
+    kcFields
+      "id aviation_mat_count upgrade_type drawing_count \
+      \upgrade_level current_ship_id original_ship_id arms_mat_count \
+      \sortno report_count catapult_count"
