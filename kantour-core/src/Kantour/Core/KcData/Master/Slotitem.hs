@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Slotitem
@@ -8,9 +9,9 @@ module Kantour.Core.KcData.Master.Slotitem
   )
 where
 
+import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Common
-import qualified Data.Text as T
 
 data Slotitem = Slotitem
   { slotId :: Int
@@ -29,7 +30,6 @@ data Slotitem = Slotitem
   , sType :: [Int]
   , raig :: Int
   , baku :: Int
-  , soku :: Int
   , souk :: Int
   , broken :: [Int]
   , taik :: Int
@@ -39,11 +39,23 @@ data Slotitem = Slotitem
   , atap :: Int
   , rare :: Int
   , houk :: Int
+  , cost :: Maybe Int
+  , distance :: Maybe Int
+  , soku :: Int
   }
   deriving stock (Generic, Show)
   deriving
     (FromJSON)
     via CustomJSON
-          '[FieldLabelModifier (
-               Rename "slotId" "id" : Rename "sType" "type" : KcConvention)]
+          '[ FieldLabelModifier
+               ( Rename "slotId" "id" : Rename "sType" "type" : KcConvention
+               )
+           ]
           Slotitem
+
+instance HasKnownFields Slotitem where
+  knownFields _ =
+    kcFields
+      "id sakb bakk tyku leng houg version tais houm saku luck raik \
+      \sortno type raig baku souk broken taik raim name usebull atap \
+      \rare houk cost distance soku"

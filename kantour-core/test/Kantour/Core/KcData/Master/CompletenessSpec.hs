@@ -1,6 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Kantour.Core.KcData.Master.CompletenessSpec
   ( spec
@@ -14,12 +16,14 @@ import Data.Aeson.Picker
 import qualified Data.ByteString.Lazy as BSL
 import Data.Containers.ListUtils
 import qualified Data.Map.Strict as M
+import Data.Proxy
 import qualified Data.Text as T
 import Data.Text.Encoding
 import qualified Data.Text.IO as T
 import Kantour.Core.DataFiles
 import Kantour.Core.KcData.Master.Common
-import Kantour.Core.KcData.Master.Ship
+import qualified Kantour.Core.KcData.Master.Ship as Ship
+import qualified Kantour.Core.KcData.Master.Slotitem as Slotitem
 import Test.Hspec
 
 loadMaster :: IO Value
@@ -36,28 +40,38 @@ loadMaster =
 
 spec :: Spec
 spec = describe "Completeness" $
-  before loadMaster $
-    specify "Ship" $ \rawMst -> do
-      let xs = (rawMst |-- ["api_mst_ship"] :: [Value])
-          ys :: [CollectExtra Ship]
-          ys = fmap (getResult . fromJSON) xs
-            where
-              getResult = \case
-                Error msg -> error msg
-                Success v -> v
-          unknownFields = M.fromListWith (<>) $ do
-            CollectExtra {ceExtra} <- ys
-            (k, v) <- ceExtra
-            pure (k, [v])
-      if unknownFields == M.empty
-        then () `shouldBe` ()
-        else do
-          liftIO $ do
-            putStrLn "Unknown fields detected for Ship:"
-            forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
-              let vs = take 5 $ nubOrd $ fmap encode vsPre
-              T.putStrLn $ "  Samples for " <> k <> ":"
-              forM_ vs $ \v ->
-                T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
-          pendingWith $
-            "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
+  before loadMaster $ do
+    let mkTest
+          :: forall p a.
+          (FromJSON a, HasKnownFields a)
+          => p a
+          -> String
+          -> [T.Text]
+          -> SpecWith Value
+        mkTest _ty dName selector = specify dName $ \rawMst -> do
+          let xs = (rawMst |-- selector :: [Value])
+              ys :: [CollectExtra a]
+              ys = fmap (getResult . fromJSON @(CollectExtra a)) xs
+                where
+                  getResult = \case
+                    Error msg -> error msg
+                    Success v -> v
+              unknownFields = M.fromListWith (<>) $ do
+                CollectExtra {ceExtra} <- ys
+                (k, v) <- ceExtra
+                pure (k, [v])
+          if unknownFields == M.empty
+            then () `shouldBe` ()
+            else do
+              liftIO $ do
+                putStrLn $ "Unknown fields detected for " <> dName <> ":"
+                forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
+                  let vs = take 5 $ nubOrd $ fmap encode vsPre
+                  T.putStrLn $ "  Samples for " <> k <> ":"
+                  forM_ vs $ \v ->
+                    T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
+              pendingWith $
+                "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
+
+    mkTest (Proxy @Ship.Ship) "Ship" ["api_mst_ship"]
+    mkTest (Proxy @Slotitem.Slotitem) "Slotitem" ["api_mst_slotitem"]
