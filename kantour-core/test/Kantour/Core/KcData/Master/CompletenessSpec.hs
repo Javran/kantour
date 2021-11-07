@@ -86,18 +86,16 @@ spec = describe "Completeness" $
                       CollectExtra {ceExtra} <- ys
                       (k, v) <- ceExtra
                       pure (k, [v])
-                if unknownFields == M.empty
-                  then () `shouldBe` ()
-                  else do
-                    liftIO $ do
-                      putStrLn $ "Unknown fields detected for " <> dName <> ":"
-                      forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
-                        let vs = take 5 $ nubOrd $ fmap encode vsPre
-                        T.putStrLn $ "  Samples for " <> k <> ":"
-                        forM_ vs $ \v ->
-                          T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
-                    pendingWith $
-                      "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
+                unless (unknownFields == M.empty) $ do
+                  liftIO $ do
+                    putStrLn $ "Unknown fields detected for " <> dName <> ":"
+                    forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
+                      let vs = take 5 $ nubOrd $ fmap encode vsPre
+                      T.putStrLn $ "  Samples for " <> k <> ":"
+                      forM_ vs $ \v ->
+                        T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
+                  pendingWith $
+                    "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
     let sel x v = v |-- [x]
         sel' x v = [sel x v]
 
