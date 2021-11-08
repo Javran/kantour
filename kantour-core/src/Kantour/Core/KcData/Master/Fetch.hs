@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.Core.KcData.Master.Fetch
@@ -51,6 +53,9 @@ where
 
  -}
 
+import Data.Aeson
+import Data.List
+import qualified Data.Text as T
 import System.Environment
 import System.Exit
 import Text.ParserCombinators.ReadP
@@ -65,6 +70,25 @@ data DataSource
       }
   | DsUrl String
   | DsFile FilePath
+
+instance Show DataSource where
+  show = \case
+    DsStock -> "stock"
+    DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} ->
+      intercalate ":" [dsgUser, dsgRepo, dsgBranch, dsgPath]
+    DsUrl v -> "url:" <> v
+    DsFile v -> "file:" <> v
+
+instance Read DataSource where
+  readsPrec _ = readP_to_S dataSourceP
+
+instance FromJSON DataSource where
+  parseJSON = withText "DataSource" $ \t -> do
+    [(v, "")] <- pure (reads (T.unpack t))
+    pure v
+
+instance ToJSON DataSource where
+  toJSON = String . T.pack . show
 
 dataSourceP :: ReadP DataSource
 dataSourceP =
@@ -91,3 +115,8 @@ dataSourceFromEnv =
     case readP_to_S (dataSourceP <* eof) raw of
       [(v, "")] -> pure v
       _ -> die "parse error on data source"
+
+data FileMetadata = FileMetadata
+  { fmSource :: DataSource
+  , fmCommit :: T.Text
+  }
