@@ -15,6 +15,7 @@ dependencies:
 - unordered-containers
 - containers
 - text
+- aeson-picker
 
 data-files:
 - data/api_start2.json.xz
@@ -39,7 +40,6 @@ tests:
     source-dirs:
       - test
     dependencies:
-      - aeson-picker
       - kantour-core
       - hspec
       - QuickCheck

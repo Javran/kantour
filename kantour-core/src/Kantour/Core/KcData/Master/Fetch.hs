@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.Core.KcData.Master.Fetch
@@ -59,6 +60,7 @@ where
 
 import Control.Monad
 import Data.Aeson
+import Data.Aeson.Picker
 import qualified Data.ByteString.Lazy as BSL
 import Data.List
 import Data.Maybe
@@ -178,7 +180,22 @@ fetchRawFromEnv mMgr =
     DsStock -> loadDataFile "data/api_start2.json.xz"
     DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} -> do
       mgr <- ensureManager
-      sha <- _get_sha
+      sha <- do
+        let url =
+              intercalate
+                "/"
+                [ "https://api.github.com/repos"
+                , dsgUser
+                , dsgRepo
+                , "branches"
+                , dsgBranch
+                ]
+        req <- parseRequest url
+        resp <- httpLbs req mgr
+        repoInfo <- case eitherDecode' @Value (responseBody resp) of
+          Left msg -> die $ "error when resolving GitHub commit: " <> msg
+          Right v -> pure v
+        pure $ repoInfo |-- ["commit", "sha"]
       let url =
             intercalate
               "/"
