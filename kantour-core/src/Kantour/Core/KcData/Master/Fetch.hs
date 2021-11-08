@@ -190,7 +190,13 @@ fetchRawFromEnv mMgr =
                 , "branches"
                 , dsgBranch
                 ]
-        req <- parseRequest url
+        reqPre <- parseRequest url
+        let req =
+              reqPre
+                { requestHeaders =
+                    ("Accept", "application/vnd.github.v3+json") :
+                    requestHeaders reqPre
+                }
         resp <- httpLbs req mgr
         repoInfo <- case eitherDecode' @Value (responseBody resp) of
           Left msg -> die $ "error when resolving GitHub commit: " <> msg
