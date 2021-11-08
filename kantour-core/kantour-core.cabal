@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 870747494c5b45bcb440b73af5ebdadb78dcde2a87ad6aea9aae87affe7f3c9d
+-- hash: 64cff83f461ff0effd9ce6bd7b4e4c2adbb75d2287bf7e09b6bc22d267e7a39f
 
 name:           kantour-core
 version:        0.2.0.0
@@ -69,10 +69,14 @@ library
     , bytestring
     , containers
     , deriving-aeson
+    , directory
+    , http-client
+    , http-client-tls
     , lzma
     , text
     , unordered-containers
     , vector
+    , yaml
   default-language: Haskell2010
 
 test-suite hspec

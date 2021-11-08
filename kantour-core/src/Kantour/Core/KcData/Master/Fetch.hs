@@ -1,11 +1,15 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.Core.KcData.Master.Fetch
   ( DataSource (..)
   , dataSourceP
   , dataSourceFromEnv
+  , FileMetadata (..)
+  , cacheBaseFromEnv
+  , fetchRawFromEnv
   )
 where
 
@@ -53,9 +57,16 @@ where
 
  -}
 
+import Control.Monad
 import Data.Aeson
+import qualified Data.ByteString.Lazy as BSL
 import Data.List
+import Data.Maybe
 import qualified Data.Text as T
+import Kantour.Core.DataFiles
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
+import System.Directory
 import System.Environment
 import System.Exit
 import Text.ParserCombinators.ReadP
@@ -116,7 +127,78 @@ dataSourceFromEnv =
       [(v, "")] -> pure v
       _ -> die "parse error on data source"
 
+{-
+  datatype invariant:
+  - source can only be github or url
+  - commit required if and only if we have github source
+ -}
 data FileMetadata = FileMetadata
   { fmSource :: DataSource
-  , fmCommit :: T.Text
+  , fmCommit :: Maybe T.Text
   }
+
+instance FromJSON FileMetadata where
+  parseJSON = withObject "FileMetadata" $ \o -> do
+    v@FileMetadata {fmSource, fmCommit} <-
+      FileMetadata <$> o .: "source"
+        <*> o .:? "commit"
+    case fmSource of
+      DsGitHub {} ->
+        when (isNothing fmCommit) $
+          fail "`commit` field required for `github:` source"
+      DsUrl {} ->
+        when (isJust fmCommit) $
+          fail "`commit` field should not appear for `url:`"
+      _ -> fail "only `github:` or `url:` is allowed as file metadata"
+    pure v
+
+cacheBaseFromEnv :: IO (Maybe FilePath)
+cacheBaseFromEnv =
+  lookupEnv "KANTOUR_CACHE_BASE" >>= \case
+    Nothing -> pure Nothing
+    Just cacheBase -> do
+      do
+        b <- doesPathExist cacheBase
+        unless b $ fail $ cacheBase <> " does not exist."
+      do
+        b <- doesDirectoryExist cacheBase
+        unless b $ fail $ cacheBase <> " is not a directory."
+      pure (Just cacheBase)
+
+{-
+  TODO:
+
+  - ignore cache for now
+  - implement caching
+
+ -}
+fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
+fetchRawFromEnv mMgr =
+  dataSourceFromEnv >>= \case
+    DsStock -> loadDataFile "data/api_start2.json.xz"
+    DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} -> do
+      mgr <- ensureManager
+      sha <- _get_sha
+      let url =
+            intercalate
+              "/"
+              [ "https://raw.githubusercontent.com"
+              , dsgUser
+              , dsgRepo
+              , T.unpack sha
+              , dsgPath
+              ]
+      req <- parseRequest url
+      resp <- httpLbs req mgr
+      pure (responseBody resp)
+    DsUrl url -> do
+      mgr <- ensureManager
+      req <- parseRequest url
+      resp <- httpLbs req mgr
+      pure (responseBody resp)
+    DsFile fp -> BSL.readFile fp
+  where
+    ensureManager :: IO Manager
+    ensureManager = case mMgr of
+      Just m -> pure m
+      Nothing -> newManager tlsManagerSettings

@@ -25,6 +25,10 @@ library:
     - vector
     - deriving-aeson
     - lzma
+    - yaml
+    - http-client
+    - http-client-tls
+    - directory
   ghc-options:
     - -Wall
     - -O2
