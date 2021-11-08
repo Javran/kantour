@@ -1,5 +1,9 @@
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
+
 module Kantour.Core.KcData.Master.Fetch
-  (
+  ( DataSource (..)
+  , dataSourceP
+  , dataSourceFromEnv
   )
 where
 
@@ -35,10 +39,55 @@ where
     one of:
     + stock (from data shipped with this lib)
       (no caching)
-    + github:kcwiki/kancolle-data:master/api/api_start2.json
+    + github:kcwiki:kancolle-data:master:api/api_start2.json
       fetches from latest commit as specified
     + url:<url address>
       use this if we want to pin down a specific version somewhere
     + file:<filepath> load it locally, no caching.
 
+  Note: to find latest commit:
+
+  > curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/kcwiki/kancolle-data/branches/master | jq '.commit.sha'
+
  -}
+
+import System.Environment
+import System.Exit
+import Text.ParserCombinators.ReadP
+
+data DataSource
+  = DsStock
+  | DsGitHub
+      { dsgUser :: String
+      , dsgRepo :: String
+      , dsgBranch :: String
+      , dsgPath :: FilePath
+      }
+  | DsUrl String
+  | DsFile FilePath
+
+dataSourceP :: ReadP DataSource
+dataSourceP =
+  (DsStock <$ string "stock")
+    <++ (string "github:" *> githubP)
+    <++ (string "url:" *> (DsUrl <$> takeAll1))
+    <++ (string "file:" *> (DsFile <$> takeAll1))
+  where
+    takeAll1 = munch1 (const True)
+
+    githubP =
+      DsGitHub
+        <$> chunk1
+        <*> chunk1
+        <*> chunk1
+        <*> takeAll1
+      where
+        chunk1 :: ReadP String
+        chunk1 = munch1 (/= ':') <* char ':'
+
+dataSourceFromEnv :: IO DataSource
+dataSourceFromEnv =
+  getEnv "KANTOUR_MASTER_DATA_SOURCE" >>= \raw ->
+    case readP_to_S (dataSourceP <* eof) raw of
+      [(v, "")] -> pure v
+      _ -> die "parse error on data source"
