@@ -62,6 +62,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Picker
 import qualified Data.ByteString.Lazy as BSL
+import Data.Char
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
@@ -157,8 +158,7 @@ instance FromJSON FileMetadata where
 cacheBaseFromEnv :: IO (Maybe FilePath)
 cacheBaseFromEnv =
   lookupEnv "KANTOUR_CACHE_BASE" >>= \case
-    Nothing -> pure Nothing
-    Just cacheBase -> do
+    Just cacheBase | not (all isSpace cacheBase) -> do
       do
         b <- doesPathExist cacheBase
         unless b $ fail $ cacheBase <> " does not exist."
@@ -166,6 +166,7 @@ cacheBaseFromEnv =
         b <- doesDirectoryExist cacheBase
         unless b $ fail $ cacheBase <> " is not a directory."
       pure (Just cacheBase)
+    _ -> pure Nothing
 
 {-
   TODO:
