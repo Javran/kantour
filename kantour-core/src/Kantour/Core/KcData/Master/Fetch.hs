@@ -197,6 +197,7 @@ fetchRawFromEnv mMgr =
               reqPre
                 { requestHeaders =
                     ("Accept", "application/vnd.github.v3+json") :
+                    ("User-Agent", "github/Javran/kantour") :
                     requestHeaders reqPre
                 }
         resp <- httpLbs req mgr
