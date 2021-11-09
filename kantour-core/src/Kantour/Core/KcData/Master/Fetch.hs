@@ -66,6 +66,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
+import Data.Text.Encoding
 import Kantour.Core.DataFiles
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
@@ -212,14 +213,10 @@ fetchRawFromEnv mMgr =
               , T.unpack sha
               , dsgPath
               ]
-      req <- parseRequest url
-      resp <- httpLbs req mgr
-      pure (responseBody resp)
+      getResourceFromUrl mgr url
     DsUrl url -> do
       mgr <- ensureManager
-      req <- parseRequest url
-      resp <- httpLbs req mgr
-      pure (responseBody resp)
+      getResourceFromUrl mgr url
     DsFile fp ->
       toPlainData fp <$> BSL.readFile fp
   where
@@ -227,3 +224,8 @@ fetchRawFromEnv mMgr =
     ensureManager = case mMgr of
       Just m -> pure m
       Nothing -> newManager tlsManagerSettings
+    getResourceFromUrl mgr url = do
+      req <- parseRequest url
+      let reqPath = T.unpack $ decodeUtf8 $ path req
+      resp <- httpLbs req mgr
+      pure (toPlainData reqPath $ responseBody resp)
