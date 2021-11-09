@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 51b23bffe29909a819960b46ef8ef5550006cf791a59ef3ff7331e7ee477e7c6
+-- hash: 20e60bec376aba8795a59bab9bbe23f9d994bbb7c52f7155c7968bd2e4850397
 
 name:           kantour
 version:        0.2.0.0
@@ -58,7 +58,8 @@ library
       src
   ghc-options: -Wall -O2
   build-depends:
-      aeson
+      SHA
+    , aeson
     , aeson-pretty
     , attoparsec
     , base
@@ -105,7 +106,8 @@ executable kantour
       mains
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
   build-depends:
-      aeson
+      SHA
+    , aeson
     , aeson-pretty
     , attoparsec
     , base

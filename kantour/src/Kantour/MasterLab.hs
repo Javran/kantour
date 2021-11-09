@@ -17,6 +17,7 @@ import Control.Monad.State
 import Data.Aeson as Aeson
 import Data.Bifunctor
 import qualified Data.ByteString.Lazy as BSL
+import Data.Digest.Pure.SHA
 import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS
 import Data.List
@@ -25,8 +26,8 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Tuple
 import qualified Data.UnionFind.ST as UF
-import Kantour.Core.KcData.Master.Root
 import Kantour.Core.KcData.Master.Fetch
+import Kantour.Core.KcData.Master.Root
 import Kantour.Core.KcData.Master.Ship as Ship
 import Kantour.Subcommand
 import Network.HTTP.Client
@@ -185,6 +186,7 @@ defaultMain =
       mgr <- newManager tlsManagerSettings
       raw <- fetchRawFromEnv (Just mgr)
       print (BSL.length raw)
+      print (sha256 raw)
     [fileOrUrlSrc] -> do
       mgr <- newManager tlsManagerSettings
       fetchMasterData mgr fileOrUrlSrc >>= remodelChainExperiment
