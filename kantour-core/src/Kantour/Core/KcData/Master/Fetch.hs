@@ -220,7 +220,8 @@ fetchRawFromEnv mMgr =
       req <- parseRequest url
       resp <- httpLbs req mgr
       pure (responseBody resp)
-    DsFile fp -> BSL.readFile fp
+    DsFile fp ->
+      toPlainData fp <$> BSL.readFile fp
   where
     ensureManager :: IO Manager
     ensureManager = case mMgr of
