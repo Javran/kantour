@@ -26,6 +26,7 @@ import qualified Data.Text.IO as T
 import Data.Tuple
 import qualified Data.UnionFind.ST as UF
 import Kantour.Core.KcData.Master.Root
+import Kantour.Core.KcData.Master.Fetch
 import Kantour.Core.KcData.Master.Ship as Ship
 import Kantour.Subcommand
 import Network.HTTP.Client
@@ -180,6 +181,10 @@ remodelChainExperiment MasterRoot {mstShip} = do
 defaultMain :: IO ()
 defaultMain =
   getArgs >>= \case
+    ["fetch"] -> do
+      mgr <- newManager tlsManagerSettings
+      raw <- fetchRawFromEnv (Just mgr)
+      print (BSL.length raw)
     [fileOrUrlSrc] -> do
       mgr <- newManager tlsManagerSettings
       fetchMasterData mgr fileOrUrlSrc >>= remodelChainExperiment
