@@ -5,7 +5,7 @@
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.MasterLab
-  ( SubCmdFetchMasterData
+  ( SubCmdMasterLab
   , fetchMasterData
   , loadFromSource
   )
@@ -33,15 +33,15 @@ import Network.HTTP.Client.TLS
 import System.Environment
 import System.Exit
 
-data SubCmdFetchMasterData
+data SubCmdMasterLab
 
 {-
   TODO: the need of getting and parsing api_start2
   comes up so often that it might worth making into enviroment variables.
  -}
 
-instance Subcommand SubCmdFetchMasterData where
-  name _ = "FetchMasterData"
+instance Subcommand SubCmdMasterLab where
+  name _ = "MasterLab"
   main _ = defaultMain
 
 {-
