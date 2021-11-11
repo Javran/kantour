@@ -8,7 +8,10 @@ module Kantour.Core.KcData.Master.Fetch
   ( DataSource (..)
   , dataSourceP
   , dataSourceFromEnv
-  , FileMetadata (..)
+  , FileMetadata
+  , fmSource
+  , fmCommit
+  , toFileMetadata
   , cacheBaseFromEnv
   , fetchRawFromEnv
   )
@@ -134,29 +137,33 @@ dataSourceFromEnv =
       _ -> die "parse error on data source"
 
 {-
+
   datatype invariant:
   - source can only be github or url
   - commit required if and only if we have github source
+
+  use `toFileMetadata` to enforce those invariants.
  -}
 data FileMetadata = FileMetadata
   { fmSource :: DataSource
   , fmCommit :: Maybe T.Text
   }
 
+toFileMetadata :: MonadFail m => DataSource -> Maybe T.Text -> m FileMetadata
+toFileMetadata fmSource fmCommit = do
+  case fmSource of
+    DsGitHub {} ->
+      when (isNothing fmCommit) $
+        fail "`commit` field required for `github:` source"
+    DsUrl {} ->
+      when (isJust fmCommit) $
+        fail "`commit` field should not appear for `url:`"
+    _ -> fail "only `github:` or `url:` is allowed as file metadata"
+  pure $ FileMetadata {fmSource, fmCommit}
+
 instance FromJSON FileMetadata where
-  parseJSON = withObject "FileMetadata" $ \o -> do
-    v@FileMetadata {fmSource, fmCommit} <-
-      FileMetadata <$> o .: "source"
-        <*> o .:? "commit"
-    case fmSource of
-      DsGitHub {} ->
-        when (isNothing fmCommit) $
-          fail "`commit` field required for `github:` source"
-      DsUrl {} ->
-        when (isJust fmCommit) $
-          fail "`commit` field should not appear for `url:`"
-      _ -> fail "only `github:` or `url:` is allowed as file metadata"
-    pure v
+  parseJSON = withObject "FileMetadata" $ \o ->
+    join (toFileMetadata <$> o .: "source" <*> o .:? "commit")
 
 cacheBaseFromEnv :: IO (Maybe FilePath)
 cacheBaseFromEnv =
