@@ -178,16 +178,9 @@ cacheBaseFromEnv =
       pure (Just cacheBase)
     _ -> pure Nothing
 
-{-
-  TODO:
-
-  - ignore cache for now
-  - implement caching
-
- -}
 fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
 fetchRawFromEnv mMgr =
-  dataSourceFromEnv >>= \case
+  dataSourceFromEnv >>= \src -> case src of
     DsStock -> loadDataFile "data/api_start2.json.xz"
     DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} -> do
       mgr <- ensureManager
@@ -223,10 +216,12 @@ fetchRawFromEnv mMgr =
               , T.unpack sha
               , dsgPath
               ]
-      getResourceFromUrl mgr url
+      newMd <- toFileMetadata src (Just sha)
+      getResourceFromUrl mgr url newMd
     DsUrl url -> do
       mgr <- ensureManager
-      getResourceFromUrl mgr url
+      newMd <- toFileMetadata src Nothing
+      getResourceFromUrl mgr url newMd
     DsFile fp ->
       toPlainData fp <$> BSL.readFile fp
   where
@@ -234,7 +229,14 @@ fetchRawFromEnv mMgr =
     ensureManager = case mMgr of
       Just m -> pure m
       Nothing -> newManager tlsManagerSettings
-    getResourceFromUrl mgr url = do
+    getResourceFromUrl :: Manager -> String -> FileMetadata -> IO BSL.ByteString
+    getResourceFromUrl mgr url _newMd = do
+      {-
+        TODO: impl caching:
+        - read old metadata
+        - compare with new metadata
+        - save file on disk.
+       -}
       req <- parseRequest url
       let reqPath = T.unpack $ decodeUtf8 $ path req
       resp <- httpLbs req mgr
