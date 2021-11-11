@@ -56,6 +56,8 @@ where
 
   > curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/kcwiki/kancolle-data/branches/master | jq '.commit.sha'
 
+  Note: etag header on githubusercontent is not reliable, don't use it.
+
  -}
 
 import Control.Monad
