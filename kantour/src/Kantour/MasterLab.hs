@@ -1,20 +1,16 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.MasterLab
   ( SubCmdMasterLab
-  , fetchMasterData
-  , loadFromSource
   )
 where
 
 import Control.Monad
 import Control.Monad.ST
 import Control.Monad.State
-import Data.Aeson as Aeson
 import Data.Bifunctor
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.Pure.SHA
@@ -24,7 +20,6 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Tuple
 import qualified Data.UnionFind.ST as UF
 import Kantour.Core.KcData.Master.Fetch
 import Kantour.Core.KcData.Master.Root
@@ -49,20 +44,6 @@ instance Subcommand SubCmdMasterLab where
 {-
   TODO: subcommands can share Managers probably?
  -}
-
-loadFromSource :: Manager -> String -> IO BSL.ByteString
-loadFromSource mgr src
-  | "http" `isPrefixOf` src = do
-    req <- parseRequest src
-    responseBody <$> httpLbs req mgr
-  | otherwise = BSL.readFile src
-
-fetchMasterData :: Manager -> String -> IO MasterRoot
-fetchMasterData mgr src =
-  loadFromSource mgr src >>= \rawJson ->
-    case Aeson.eitherDecode @MasterRoot rawJson of
-      Left msg -> die ("parse error: " <> msg)
-      Right r -> pure r
 
 -- cargoculting from myself: https://github.com/nominolo/union-find/issues/12#issuecomment-647090797
 cluster :: [(UF.Point s Int, b)] -> ST s (IM.IntMap [b])
@@ -187,7 +168,7 @@ defaultMain =
       raw <- fetchRawFromEnv (Just mgr)
       print (BSL.length raw)
       print (sha256 raw)
-    [fileOrUrlSrc] -> do
+    ["remodel-exp"] -> do
       mgr <- newManager tlsManagerSettings
-      fetchMasterData mgr fileOrUrlSrc >>= remodelChainExperiment
+      fetchFromEnv (Just mgr) >>= remodelChainExperiment
     _ -> die "<subcmd> [http]<source>"

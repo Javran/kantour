@@ -14,6 +14,9 @@ module Kantour.Core.KcData.Master.Fetch
   , cacheBaseFromEnv
   , fetchRawFromEnv
   , fetchRaw
+  , parseRoot
+  , fetch
+  , fetchFromEnv
   )
 where
 
@@ -70,6 +73,7 @@ import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Yaml as Yaml
 import Kantour.Core.DataFiles
+import Kantour.Core.KcData.Master.Root
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import System.Directory
@@ -295,3 +299,15 @@ fetchRawFromEnv mMgr =
     fetchRaw mMgr
       <$> dataSourceFromEnv
       <*> cacheBaseFromEnv
+
+parseRoot :: BSL.ByteString -> IO MasterRoot
+parseRoot raw =
+  case Data.Aeson.eitherDecode raw of
+    Left msg -> die ("parse error: " <> msg)
+    Right r -> pure r
+
+fetch :: Maybe Manager -> DataSource -> Maybe FilePath -> IO MasterRoot
+fetch mMgr src mCacheBase = fetchRaw mMgr src mCacheBase >>= parseRoot
+
+fetchFromEnv :: Maybe Manager -> IO MasterRoot
+fetchFromEnv mMgr = fetchRawFromEnv mMgr >>= parseRoot
