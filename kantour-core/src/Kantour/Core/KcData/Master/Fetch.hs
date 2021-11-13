@@ -186,16 +186,20 @@ cacheBaseFromEnv =
       pure (Just cacheBase)
     _ -> pure Nothing
 
+cacheBaseToDataPath, cacheBaseToMetadataPath :: FilePath -> FilePath
+cacheBaseToDataPath = (</> "api_start2.json")
+cacheBaseToMetadataPath = (</> "api_start2.source.yaml")
+
 loadFileMetadata :: FilePath -> IO (Maybe FileMetadata)
-loadFileMetadata cacheBase = runMaybeT $ do
+loadFileMetadata cb = runMaybeT $ do
   -- for the data file itself, we simply just require it to exist.
   True <-
     lift $
-      doesFileExist (cacheBase </> "api_start2.json")
+      doesFileExist (cacheBaseToDataPath cb)
   -- load metadata, validation of its format is done by calling the smart constructor in FromJSON instance.
   Right v <-
     lift $
-      Yaml.decodeFileEither @FileMetadata (cacheBase </> "api_start2.source.yaml")
+      Yaml.decodeFileEither @FileMetadata (cacheBaseToMetadataPath cb)
   pure v
 
 fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
@@ -261,14 +265,14 @@ fetchRawFromEnv mMgr =
             (,mCb) <$> loadFileMetadata cacheBase
       let cacheIsValid = Just newMd == mCurMd
       if isJust mCacheBase && cacheIsValid
-        then BSL.readFile (fromJust mCacheBase </> "api_start2.json")
+        then BSL.readFile (cacheBaseToDataPath $ fromJust mCacheBase)
         else do
           req <- parseRequest url
           let reqPath = T.unpack $ decodeUtf8 $ path req
           resp <- httpLbs req mgr
           let rawContent = toPlainData reqPath $ responseBody resp
           when (isJust mCacheBase) $ do
-            let cacheBase = fromJust mCacheBase
-            BSL.writeFile (cacheBase </> "api_start2.json") rawContent
-            Yaml.encodeFile (cacheBase </> "api_start2.source.yaml") newMd
+            let cb = fromJust mCacheBase
+            BSL.writeFile (cacheBaseToDataPath cb) rawContent
+            Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd
           pure rawContent
