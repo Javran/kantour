@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Kantour.Core.KcData.Master.Fetch
@@ -14,6 +13,7 @@ module Kantour.Core.KcData.Master.Fetch
   , toFileMetadata
   , cacheBaseFromEnv
   , fetchRawFromEnv
+  , fetchRaw
   )
 where
 
@@ -202,52 +202,60 @@ loadFileMetadata cb = runMaybeT $ do
       Yaml.decodeFileEither @FileMetadata (cacheBaseToMetadataPath cb)
   pure v
 
-fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
-fetchRawFromEnv mMgr =
-  dataSourceFromEnv >>= \src -> case src of
-    DsStock -> loadDataFile "data/api_start2.json.xz"
-    DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} -> do
-      mgr <- ensureManager
-      sha <- do
-        let url =
-              intercalate
-                "/"
-                [ "https://api.github.com/repos"
-                , dsgUser
-                , dsgRepo
-                , "branches"
-                , dsgBranch
-                ]
-        reqPre <- parseRequest url
-        let req =
-              reqPre
-                { requestHeaders =
-                    ("Accept", "application/vnd.github.v3+json") :
-                    ("User-Agent", "github/Javran/kantour") :
-                    requestHeaders reqPre
-                }
-        resp <- httpLbs req mgr
-        repoInfo <- case eitherDecode' @Value (responseBody resp) of
-          Left msg -> die $ "error when resolving GitHub commit: " <> msg
-          Right v -> pure v
-        pure $ repoInfo |-- ["commit", "sha"]
+{-
+  Fetches raw api_start2.json.
+
+  - mMgr: optional Manager, this package will use its own if not provided.
+  - src: DataSource to indicate where to download
+  - mCacheBase: where should we read / write cache from / to.
+    caching is disable when this is Nothing.
+
+ -}
+fetchRaw :: Maybe Manager -> DataSource -> Maybe FilePath -> IO BSL.ByteString
+fetchRaw mMgr src mCacheBase = case src of
+  DsStock -> loadDataFile "data/api_start2.json.xz"
+  DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} -> do
+    mgr <- ensureManager
+    sha <- do
       let url =
             intercalate
               "/"
-              [ "https://raw.githubusercontent.com"
+              [ "https://api.github.com/repos"
               , dsgUser
               , dsgRepo
-              , T.unpack sha
-              , dsgPath
+              , "branches"
+              , dsgBranch
               ]
-      newMd <- toFileMetadata src (Just sha)
-      getResourceFromUrl mgr url newMd
-    DsUrl url -> do
-      mgr <- ensureManager
-      newMd <- toFileMetadata src Nothing
-      getResourceFromUrl mgr url newMd
-    DsFile fp ->
-      toPlainData fp <$> BSL.readFile fp
+      reqPre <- parseRequest url
+      let req =
+            reqPre
+              { requestHeaders =
+                  ("Accept", "application/vnd.github.v3+json") :
+                  ("User-Agent", "github/Javran/kantour") :
+                  requestHeaders reqPre
+              }
+      resp <- httpLbs req mgr
+      repoInfo <- case eitherDecode' @Value (responseBody resp) of
+        Left msg -> die $ "error when resolving GitHub commit: " <> msg
+        Right v -> pure v
+      pure $ repoInfo |-- ["commit", "sha"]
+    let url =
+          intercalate
+            "/"
+            [ "https://raw.githubusercontent.com"
+            , dsgUser
+            , dsgRepo
+            , T.unpack sha
+            , dsgPath
+            ]
+    newMd <- toFileMetadata src (Just sha)
+    getResourceFromUrl mgr url newMd
+  DsUrl url -> do
+    mgr <- ensureManager
+    newMd <- toFileMetadata src Nothing
+    getResourceFromUrl mgr url newMd
+  DsFile fp ->
+    toPlainData fp <$> BSL.readFile fp
   where
     ensureManager :: IO Manager
     ensureManager = case mMgr of
@@ -255,15 +263,13 @@ fetchRawFromEnv mMgr =
       Nothing -> newManager tlsManagerSettings
     getResourceFromUrl :: Manager -> String -> FileMetadata -> IO BSL.ByteString
     getResourceFromUrl mgr url newMd = do
-      (mCacheBase, mCurMd) <- do
-        mCb <- cacheBaseFromEnv
-        (mCb,)
-          <$> maybe
-            -- environment is not set, disable caching entirely.
-            (pure Nothing)
-            -- should use cache, but metadata could be malformed.
-            loadFileMetadata
-            mCb
+      mCurMd <-
+        maybe
+          -- environment is not set, disable caching entirely.
+          (pure Nothing)
+          -- should use cache, but metadata could be malformed.
+          loadFileMetadata
+          mCacheBase
       if Just newMd == mCurMd
         then {-
                note: `isJust mCurMd` implies `isJust mCacheBase`,
@@ -282,3 +288,10 @@ fetchRawFromEnv mMgr =
                Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd)
             mCacheBase
           pure rawContent
+
+fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
+fetchRawFromEnv mMgr =
+  join $
+    fetchRaw mMgr
+      <$> dataSourceFromEnv
+      <*> cacheBaseFromEnv
