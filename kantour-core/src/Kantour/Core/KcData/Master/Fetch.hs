@@ -255,24 +255,30 @@ fetchRawFromEnv mMgr =
       Nothing -> newManager tlsManagerSettings
     getResourceFromUrl :: Manager -> String -> FileMetadata -> IO BSL.ByteString
     getResourceFromUrl mgr url newMd = do
-      (mCurMd, mCacheBase) <-
-        cacheBaseFromEnv >>= \mCb -> case mCb of
-          Nothing ->
+      (mCacheBase, mCurMd) <- do
+        mCb <- cacheBaseFromEnv
+        (mCb,)
+          <$> maybe
             -- environment is not set, disable caching entirely.
-            pure (Nothing, mCb)
-          Just cacheBase ->
+            (pure Nothing)
             -- should use cache, but metadata could be malformed.
-            (,mCb) <$> loadFileMetadata cacheBase
-      let cacheIsValid = Just newMd == mCurMd
-      if isJust mCacheBase && cacheIsValid
-        then BSL.readFile (cacheBaseToDataPath $ fromJust mCacheBase)
+            loadFileMetadata
+            mCb
+      if Just newMd == mCurMd
+        then {-
+               note: `isJust mCurMd` implies `isJust mCacheBase`,
+               so `fromJust mCacheBase` is safe.
+              -}
+          BSL.readFile (cacheBaseToDataPath $ fromJust mCacheBase)
         else do
           req <- parseRequest url
           let reqPath = T.unpack $ decodeUtf8 $ path req
           resp <- httpLbs req mgr
           let rawContent = toPlainData reqPath $ responseBody resp
-          when (isJust mCacheBase) $ do
-            let cb = fromJust mCacheBase
-            BSL.writeFile (cacheBaseToDataPath cb) rawContent
-            Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd
+          maybe
+            (pure ())
+            (\cb -> do
+               BSL.writeFile (cacheBaseToDataPath cb) rawContent
+               Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd)
+            mCacheBase
           pure rawContent
