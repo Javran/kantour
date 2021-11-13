@@ -1,8 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Kantour.Core.KcData.Master.Fetch
   ( DataSource (..)
@@ -64,6 +64,8 @@ where
  -}
 
 import Control.Monad
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Maybe
 import Data.Aeson
 import Data.Aeson.Picker
 import qualified Data.ByteString.Lazy as BSL
@@ -72,12 +74,14 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
+import Data.Yaml as Yaml
 import Kantour.Core.DataFiles
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import System.Directory
 import System.Environment
 import System.Exit
+import System.FilePath.Posix
 import Text.ParserCombinators.ReadP
 
 data DataSource
@@ -90,12 +94,13 @@ data DataSource
       }
   | DsUrl String
   | DsFile FilePath
+  deriving (Eq)
 
 instance Show DataSource where
   show = \case
     DsStock -> "stock"
     DsGitHub {dsgUser, dsgRepo, dsgBranch, dsgPath} ->
-      intercalate ":" [dsgUser, dsgRepo, dsgBranch, dsgPath]
+      intercalate ":" ["github", dsgUser, dsgRepo, dsgBranch, dsgPath]
     DsUrl v -> "url:" <> v
     DsFile v -> "file:" <> v
 
@@ -142,12 +147,14 @@ dataSourceFromEnv =
   - source can only be github or url
   - commit required if and only if we have github source
 
-  use `toFileMetadata` to enforce those invariants.
+  avoid direct construction but use `toFileMetadata` to enforce those invariants.
+
  -}
 data FileMetadata = FileMetadata
   { fmSource :: DataSource
   , fmCommit :: Maybe T.Text
   }
+  deriving (Eq, Show)
 
 toFileMetadata :: MonadFail m => DataSource -> Maybe T.Text -> m FileMetadata
 toFileMetadata fmSource fmCommit = do
@@ -165,6 +172,9 @@ instance FromJSON FileMetadata where
   parseJSON = withObject "FileMetadata" $ \o ->
     join (toFileMetadata <$> o .: "source" <*> o .:? "commit")
 
+instance ToJSON FileMetadata where
+  toJSON FileMetadata {fmSource, fmCommit} = object ["source" .= fmSource, "commit" .= fmCommit]
+
 cacheBaseFromEnv :: IO (Maybe FilePath)
 cacheBaseFromEnv =
   lookupEnv "KANTOUR_CACHE_BASE" >>= \case
@@ -177,6 +187,18 @@ cacheBaseFromEnv =
         unless b $ fail $ cacheBase <> " is not a directory."
       pure (Just cacheBase)
     _ -> pure Nothing
+
+loadFileMetadata :: FilePath -> IO (Maybe FileMetadata)
+loadFileMetadata cacheBase = runMaybeT $ do
+  -- for the data file itself, we simply just require it to exist.
+  True <-
+    lift $
+      doesFileExist (cacheBase </> "api_start2.json")
+  -- load metadata, validation of its format is done by calling the smart constructor in FromJSON instance.
+  Right v <-
+    lift $
+      Yaml.decodeFileEither @FileMetadata (cacheBase </> "api_start2.source.yaml")
+  pure v
 
 fetchRawFromEnv :: Maybe Manager -> IO BSL.ByteString
 fetchRawFromEnv mMgr =
@@ -230,14 +252,31 @@ fetchRawFromEnv mMgr =
       Just m -> pure m
       Nothing -> newManager tlsManagerSettings
     getResourceFromUrl :: Manager -> String -> FileMetadata -> IO BSL.ByteString
-    getResourceFromUrl mgr url _newMd = do
+    getResourceFromUrl mgr url newMd = do
       {-
         TODO: impl caching:
         - read old metadata
         - compare with new metadata
         - save file on disk.
        -}
-      req <- parseRequest url
-      let reqPath = T.unpack $ decodeUtf8 $ path req
-      resp <- httpLbs req mgr
-      pure (toPlainData reqPath $ responseBody resp)
+      (mCurMd, mCacheBase) <-
+        cacheBaseFromEnv >>= \mCb -> case mCb of
+          Nothing ->
+            -- environment is not set, disable caching entirely.
+            pure (Nothing, mCb)
+          Just cacheBase ->
+            -- should use cache, but metadata could be malformed.
+            (,mCb) <$> loadFileMetadata cacheBase
+      let cacheIsValid = Just newMd == mCurMd
+      if isJust mCacheBase && cacheIsValid
+        then BSL.readFile (fromJust mCacheBase </> "api_start2.json")
+        else do
+          req <- parseRequest url
+          let reqPath = T.unpack $ decodeUtf8 $ path req
+          resp <- httpLbs req mgr
+          let rawContent = toPlainData reqPath $ responseBody resp
+          when (isJust mCacheBase) $ do
+            let cacheBase = fromJust mCacheBase
+            BSL.writeFile (cacheBase </> "api_start2.json") rawContent
+            Yaml.encodeFile (cacheBase </> "api_start2.source.yaml") newMd
+          pure rawContent
