@@ -18,7 +18,6 @@ module Kantour.Core.KcData.Master.Fetch
 where
 
 {-
-  TODO: WIP
   Fetches master data (api_start2).
 
   Environment variables:
@@ -46,6 +45,7 @@ where
     successful retrieve.
 
   - KANTOUR_MASTER_DATA_SOURCE:
+
     one of:
     + stock (from data shipped with this lib)
       (no caching)
@@ -54,12 +54,6 @@ where
     + url:<url address>
       use this if we want to pin down a specific version somewhere
     + file:<filepath> load it locally, no caching.
-
-  Note: to find latest commit:
-
-  > curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/kcwiki/kancolle-data/branches/master | jq '.commit.sha'
-
-  Note: etag header on githubusercontent is not reliable, don't use it.
 
  -}
 
@@ -148,6 +142,10 @@ dataSourceFromEnv =
   - commit required if and only if we have github source
 
   avoid direct construction but use `toFileMetadata` to enforce those invariants.
+
+  Note: we can probably detect changes in HTTP [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag)
+    to figure out whether the data has been changed.
+    Unfortunately githubusercontent does not seem to update this even when content is changed.
 
  -}
 data FileMetadata = FileMetadata
@@ -253,12 +251,6 @@ fetchRawFromEnv mMgr =
       Nothing -> newManager tlsManagerSettings
     getResourceFromUrl :: Manager -> String -> FileMetadata -> IO BSL.ByteString
     getResourceFromUrl mgr url newMd = do
-      {-
-        TODO: impl caching:
-        - read old metadata
-        - compare with new metadata
-        - save file on disk.
-       -}
       (mCurMd, mCacheBase) <-
         cacheBaseFromEnv >>= \mCb -> case mCb of
           Nothing ->
