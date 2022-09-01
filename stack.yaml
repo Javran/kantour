@@ -1,4 +1,4 @@
-resolver: lts-18.20
+resolver: lts-19.20
 
 packages:
 - kantour-core
@@ -21,3 +21,7 @@ extra-deps:
 - statestack-0.3
 - svg-builder-0.1.1
 - SVGFonts-1.7.0.1
+- lens-aeson-1.2.2
+- aeson-picker-0.1.0.6
+
+allow-newer: true

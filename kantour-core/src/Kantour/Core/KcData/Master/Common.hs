@@ -14,11 +14,13 @@ module Kantour.Core.KcData.Master.Common
 where
 
 import Data.Aeson
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Aeson.Key
+import qualified Data.Aeson.KeyMap as KM
 import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
 import Deriving.Aeson
+import Data.Bifunctor
 
 type KcConvention = [CamelToSnake, KcApiField]
 
@@ -67,6 +69,7 @@ instance (FromJSON a, HasKnownFields a) => FromJSON (CollectExtra a) where
     (ceValue :: a) <- parseJSON (Object obj)
     let ceExtra =
           filter ((`S.notMember` knownFieldsSet (Proxy :: Proxy a)) . fst)
-            . HM.toList
+            . (fmap . first) Data.Aeson.Key.toText
+            . KM.toList
             $ obj
     pure $ CollectExtra {ceValue, ceExtra}

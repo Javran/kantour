@@ -7,6 +7,7 @@ module Kantour.WhoCallsTheFleet.Types.Ship where
 
 import Data.Aeson
 import Data.Aeson.Types
+import qualified Data.Aeson.Key as K
 import Control.Monad
 import qualified Data.Vector as V
 import qualified Data.Text as T
@@ -96,8 +97,8 @@ data Modernization = Modernization
 
 parseRange :: FromJSON a => T.Text -> Object -> Parser (StatRange a)
 parseRange fieldName v = StatRange
-    <$> v .: fieldName
-    <*> v .: fieldNameMax
+    <$> v .: K.fromText fieldName
+    <*> v .: K.fromText fieldNameMax
   where
     fieldNameMax = fieldName <> "_max"
 
