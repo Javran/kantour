@@ -5,23 +5,12 @@ packages:
 - kantour
 
 extra-deps:
-- Chart-diagrams-1.9.3
-- SVGFonts-1.7.0.1
-- active-0.2.0.15
+- Chart-diagrams-1.9.4
 - aeson-picker-0.1.0.6
-- diagrams-core-1.5.0
-- diagrams-lib-1.4.5.1
 - diagrams-postscript-1.5.1
-- diagrams-rasterific-1.4.2.2
-- diagrams-svg-1.4.3.1
-- dual-tree-0.2.3.0
 - hip-1.5.6.0
-- json-0.10
 - lens-aeson-1.2.2
-- monoid-extras-0.6.1
-- repa-3.4.1.4
 - shower-0.2.0.2
-- statestack-0.3
-- svg-builder-0.1.1
+- statestack-0.3.1
 
 allow-newer: true
