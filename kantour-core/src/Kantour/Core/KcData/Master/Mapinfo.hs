@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Mapinfo
-  ( Mapinfo (..)
-  )
-where
+module Kantour.Core.KcData.Master.Mapinfo (
+  Mapinfo (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
@@ -32,8 +27,8 @@ data Mapinfo = Mapinfo
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "mId" "id" : KcConvention
-               )
+              ( Rename "mId" "id" : KcConvention
+              )
            ]
           Mapinfo
 

@@ -1,12 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE TypeOperators, OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Shipgraph
-  ( Shipgraph (..)
-  )
-where
+module Kantour.Core.KcData.Master.Shipgraph (
+  Shipgraph (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE

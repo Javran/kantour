@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 module Kantour.MapTwol.Superimpose where
 
@@ -7,16 +5,19 @@ import Graphics.Image
 import Graphics.Image.Interface
 
 -- https://github.com/lehins/hip/issues/33
-superimpose'
-  :: ( Array arr RGBA e
-     , AlphaSpace RGBA e
-     , Fractional e
-     , Ord e
-     )
-  => (Int, Int) -- ^ @(i, j)@ starting index from within a source image.
-  -> Image arr RGBA e -- ^ Image to be positioned above the source image.
-  -> Image arr RGBA e -- ^ Source image.
-  -> Image arr RGBA e
+superimpose' ::
+  ( Array arr RGBA e
+  , AlphaSpace RGBA e
+  , Fractional e
+  , Ord e
+  ) =>
+  -- | @(i, j)@ starting index from within a source image.
+  (Int, Int) ->
+  -- | Image to be positioned above the source image.
+  Image arr RGBA e ->
+  -- | Source image.
+  Image arr RGBA e ->
+  Image arr RGBA e
 superimpose' (!i0, !j0) !imgA !imgB = traverse2 imgB imgA const newPx
   where
     !(m, n) = dims imgA
@@ -27,11 +28,11 @@ superimpose' (!i0, !j0) !imgA !imgB = traverse2 imgB imgA const newPx
        in if i' >= 0 && j' >= 0 && i' < m && j' < n then overlayAlpha old new else old
 
 -- https://en.wikipedia.org/wiki/Alpha_compositing
-overlayAlpha
-  :: (Elevator e, Ord e, Fractional e)
-  => Pixel RGBA e
-  -> Pixel RGBA e
-  -> Pixel RGBA e
+overlayAlpha ::
+  (Elevator e, Ord e, Fractional e) =>
+  Pixel RGBA e ->
+  Pixel RGBA e ->
+  Pixel RGBA e
 overlayAlpha bPxa oPxa =
   addAlpha rAlp (liftPx2 f (dropAlpha bPxa) (dropAlpha oPxa))
   where

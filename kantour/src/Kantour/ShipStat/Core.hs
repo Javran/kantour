@@ -1,15 +1,15 @@
-module Kantour.ShipStat.Core
-  ( StatInfo(..)
-  , mkStatInfo
-  , computeStat
-  , getStat
-  , getPossibleStatInfo
-  , elimStatInfo
-  , computeStatInfo
-  ) where
+module Kantour.ShipStat.Core (
+  StatInfo (..),
+  mkStatInfo,
+  computeStat,
+  getStat,
+  getPossibleStatInfo,
+  elimStatInfo,
+  computeStatInfo,
+) where
 
-import Data.Function
 import Control.Monad
+import Data.Function
 import qualified Data.IntMap.Strict as IM
 
 -- | compute stat at certain level given base stat and max stat (at Lv. 99)
@@ -25,7 +25,8 @@ computeStat (StatInfo baseSt stDiff) level = baseSt + floor lvlBonus
 data StatInfo = StatInfo
   { _baseSt :: Int
   , _stDiff :: Int
-  } deriving Show
+  }
+  deriving (Show)
 
 mkStatInfo :: Int -> Int -> StatInfo
 mkStatInfo baseSt maxSt = StatInfo baseSt (maxSt - baseSt)
@@ -101,36 +102,36 @@ leaving a small search space to work with
 -- (see comment above) computes an initial search space for StatInfo
 getPossibleStatInfo :: (Int, Int) -> (Int, Int) -> [] StatInfo
 getPossibleStatInfo (level1, curSt1) (level2, curSt2)
-      -- enforcing invariant
-    | level2 > level1 && curSt2 >= curSt1 = do
-        let fDiv :: Int -> Int -> Double
-            fDiv = (/) `on` fromIntegral
-            stDiffUpper, stDiffLower :: Double
-            stDiffLower = (((curSt2 - curSt1) - 1) * 99) `fDiv` (level2 - level1)
-            stDiffUpper = (((curSt2 - curSt1) + 1) * 99) `fDiv` (level2 - level1)
-        stDiff <- dropWhile (< 0) [floor stDiffLower .. ceiling stDiffUpper]
-        let baseSt1 = curSt1 - floor((stDiff * level1) `fDiv` 99)
-            baseSt2 = curSt2 - floor((stDiff * level2) `fDiv` 99)
-        guard $ baseSt1 >= 0 && baseSt1 == baseSt2
-        pure (StatInfo baseSt1 stDiff)
-    | otherwise = []
+  -- enforcing invariant
+  | level2 > level1 && curSt2 >= curSt1 = do
+    let fDiv :: Int -> Int -> Double
+        fDiv = (/) `on` fromIntegral
+        stDiffUpper, stDiffLower :: Double
+        stDiffLower = (((curSt2 - curSt1) - 1) * 99) `fDiv` (level2 - level1)
+        stDiffUpper = (((curSt2 - curSt1) + 1) * 99) `fDiv` (level2 - level1)
+    stDiff <- dropWhile (< 0) [floor stDiffLower .. ceiling stDiffUpper]
+    let baseSt1 = curSt1 - floor ((stDiff * level1) `fDiv` 99)
+        baseSt2 = curSt2 - floor ((stDiff * level2) `fDiv` 99)
+    guard $ baseSt1 >= 0 && baseSt1 == baseSt2
+    pure (StatInfo baseSt1 stDiff)
+  | otherwise = []
 
 -- use evidence to eliminate inconsistent results from a StatInfo search space
 elimStatInfo :: (Int, Int) -> [] StatInfo -> [] StatInfo
 elimStatInfo (level, stat)
-    | level == 1 = filter (\(StatInfo baseSt _) -> baseSt == stat)
-    | level == 99 = filter (\(StatInfo baseSt stDiff) -> baseSt + stDiff == stat)
-    | otherwise =
-        filter (\si -> stat == computeStat si level)
+  | level == 1 = filter (\(StatInfo baseSt _) -> baseSt == stat)
+  | level == 99 = filter (\(StatInfo baseSt stDiff) -> baseSt + stDiff == stat)
+  | otherwise =
+    filter (\si -> stat == computeStat si level)
 
 -- pairs should be given as IntMap to ensure uniqueness on level
 computeStatInfo :: IM.IntMap Int -> [] StatInfo
 computeStatInfo pairs
-      -- at least 2 pairs to figure out an initial search space
-    | IM.size pairs >= 2 =
-        -- remove min, max level value from pairs
-        let Just ((levelMin, stMin), pairs') = IM.minViewWithKey pairs
-            Just ((levelMax, stMax), pairs'') = IM.maxViewWithKey pairs'
-            initSearchSpace = getPossibleStatInfo (levelMin, stMin) (levelMax, stMax)
-        in foldl (flip elimStatInfo) initSearchSpace (IM.toList pairs'')
-    | otherwise = []
+  -- at least 2 pairs to figure out an initial search space
+  | IM.size pairs >= 2 =
+    -- remove min, max level value from pairs
+    let Just ((levelMin, stMin), pairs') = IM.minViewWithKey pairs
+        Just ((levelMax, stMax), pairs'') = IM.maxViewWithKey pairs'
+        initSearchSpace = getPossibleStatInfo (levelMin, stMin) (levelMax, stMax)
+     in foldl (flip elimStatInfo) initSearchSpace (IM.toList pairs'')
+  | otherwise = []

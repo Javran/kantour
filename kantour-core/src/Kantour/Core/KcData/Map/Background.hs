@@ -1,7 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Kantour.Core.KcData.Map.Background where
 
 import Control.Applicative
@@ -19,17 +15,19 @@ instance FromJSON Background where
   parseJSON v =
     withText
       "Background.Str"
-      (\img ->
-         pure $
-           Background
-             { img
-             , name = Nothing
-             })
+      ( \img ->
+          pure $
+            Background
+              { img
+              , name = Nothing
+              }
+      )
       v
       <|> withObject
         "Background.Obj"
-        (\o -> do
-           img <- o .: "img"
-           name <- o .: "name"
-           pure $ Background {img, name})
+        ( \o -> do
+            img <- o .: "img"
+            name <- o .: "name"
+            pure $ Background {img, name}
+        )
         v

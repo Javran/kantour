@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Slotitem
-  ( Slotitem (..)
-  )
-where
+module Kantour.Core.KcData.Master.Slotitem (
+  Slotitem (..),
+) where
 
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -48,8 +43,8 @@ data Slotitem = Slotitem
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "slotId" "id" : Rename "sType" "type" : KcConvention
-               )
+              ( Rename "slotId" "id" : Rename "sType" "type" : KcConvention
+              )
            ]
           Slotitem
 

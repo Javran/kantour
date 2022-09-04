@@ -1,26 +1,19 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-
-module Kantour.Core.KcData.Master.Common
-  ( KcApiField
-  , KcConvention
-  , CollectExtra (..)
-  , HasKnownFields (..)
-  , kcFields
-  )
-where
+module Kantour.Core.KcData.Master.Common (
+  KcApiField,
+  KcConvention,
+  CollectExtra (..),
+  HasKnownFields (..),
+  kcFields,
+) where
 
 import Data.Aeson
 import qualified Data.Aeson.Key
 import qualified Data.Aeson.KeyMap as KM
+import Data.Bifunctor
 import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
 import Deriving.Aeson
-import Data.Bifunctor
 
 type KcConvention = [CamelToSnake, KcApiField]
 

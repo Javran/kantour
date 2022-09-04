@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Maparea
-  ( Maparea (..)
-  )
-where
+module Kantour.Core.KcData.Master.Maparea (
+  Maparea (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
@@ -24,9 +19,9 @@ data Maparea = Maparea
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "mType" "type"
-                   : Rename "mId" "id" : KcConvention
-               )
+              ( Rename "mType" "type"
+                  : Rename "mId" "id" : KcConvention
+              )
            ]
           Maparea
 

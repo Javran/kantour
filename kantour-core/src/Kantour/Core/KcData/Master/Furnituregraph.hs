@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Furnituregraph
-  ( Furnituregraph (..)
-  )
-where
+module Kantour.Core.KcData.Master.Furnituregraph (
+  Furnituregraph (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
@@ -26,9 +21,9 @@ data Furnituregraph = Furnituregraph
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "fgType" "type"
-                   : Rename "fgId" "id" : KcConvention
-               )
+              ( Rename "fgType" "type"
+                  : Rename "fgId" "id" : KcConvention
+              )
            ]
           Furnituregraph
 

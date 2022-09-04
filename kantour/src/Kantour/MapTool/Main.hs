@@ -1,5 +1,3 @@
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -fwarn-partial-type-signatures #-}
 
@@ -203,14 +201,15 @@ mkPointMap beginNodes xs = M.union beginNodeNames endNodeNames
     endNodeNames =
       M.map
         getMin
-        (M.fromListWith
-           (++)
-           (map convert xs))
+        ( M.fromListWith
+            (++)
+            (map convert xs)
+        )
 
     getMin = minimumBy (\x y -> compare (length x) (length y) <> compare x y)
     lineToInt l = read (simpleLName l)
     nodeNameFromInt v
-      | v -1 < length ns = ns !! (v -1)
+      | v - 1 < length ns = ns !! (v - 1)
       | otherwise = show v
       where
         ns = map (: []) ['A' .. 'Z']

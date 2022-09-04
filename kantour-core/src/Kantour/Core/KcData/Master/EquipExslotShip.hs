@@ -1,12 +1,6 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
-
-module Kantour.Core.KcData.Master.EquipExslotShip
-  ( EquipExslotShip (..)
-  )
-where
+module Kantour.Core.KcData.Master.EquipExslotShip (
+  EquipExslotShip (..),
+) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson

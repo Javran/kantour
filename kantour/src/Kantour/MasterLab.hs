@@ -1,12 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
-module Kantour.MasterLab
-  ( SubCmdMasterLab
-  )
-where
+module Kantour.MasterLab (
+  SubCmdMasterLab,
+) where
 
 import Control.Monad
 import Control.Monad.ST
@@ -50,9 +46,10 @@ cluster :: [(UF.Point s Int, b)] -> ST s (IM.IntMap [b])
 cluster ps =
   IM.map ($ []) . IM.fromListWith (flip (.))
     <$> mapM
-      (\(uf, c) -> do
-         cRep <- UF.descriptor =<< UF.repr uf
-         pure (cRep, (c :)))
+      ( \(uf, c) -> do
+          cRep <- UF.descriptor =<< UF.repr uf
+          pure (cRep, (c :))
+      )
       ps
 
 {-
@@ -69,11 +66,12 @@ remodelChainExperiment MasterRoot {mstShip} = do
         pure v
       ships =
         IM.fromListWithKey
-          (\k _ _ ->
-             {-
-               with Strict IntMap any error shall raise before the data structure is constructed.
-              -}
-             error $ "duplicated key: " <> show k)
+          ( \k _ _ ->
+              {-
+                with Strict IntMap any error shall raise before the data structure is constructed.
+               -}
+              error $ "duplicated key: " <> show k
+          )
           $ fmap (\s -> (Ship.shipId s, s)) allyShips
         where
           allyShips = filter ((<= 1500) . Ship.shipId) mstShip
@@ -82,9 +80,10 @@ remodelChainExperiment MasterRoot {mstShip} = do
       remodelGraph =
         IM.fromListWith IS.union $
           mapMaybe
-            (\(sId, s) -> do
-               afterShipId <- afterShipIdToMaybe (Ship.aftershipid s)
-               pure (sId, IS.singleton afterShipId))
+            ( \(sId, s) -> do
+                afterShipId <- afterShipIdToMaybe (Ship.aftershipid s)
+                pure (sId, IS.singleton afterShipId)
+            )
             $ IM.toList ships
       remodelClusters :: IM.IntMap [Ship]
       remodelClusters = runST $ do
@@ -147,8 +146,9 @@ remodelChainExperiment MasterRoot {mstShip} = do
           let ppr xs =
                 T.putStrLn $
                   T.unwords
-                    (shipToText
-                       <$> xs)
+                    ( shipToText
+                        <$> xs
+                    )
           ppr sorted
           let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sorted
           unless (sortIdLastDigits == nub sortIdLastDigits) $

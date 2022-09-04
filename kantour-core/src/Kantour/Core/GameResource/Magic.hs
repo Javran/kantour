@@ -1,11 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
-module Kantour.Core.GameResource.Magic
-  ( defaultServer
-  , servers
-  , magicCode
-  )
-where
+module Kantour.Core.GameResource.Magic (
+  defaultServer,
+  servers,
+  magicCode,
+) where
 
 import Data.Char
 import qualified Data.IntMap.Strict as IM

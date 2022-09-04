@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Mission
-  ( Mission (..)
-  )
-where
+module Kantour.Core.KcData.Master.Mission (
+  Mission (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
@@ -38,8 +33,8 @@ data Mission = Mission
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "mId" "id" : KcConvention
-               )
+              ( Rename "mId" "id" : KcConvention
+              )
            ]
           Mission
 

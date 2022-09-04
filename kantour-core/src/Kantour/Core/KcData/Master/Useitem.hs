@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Useitem
-  ( Useitem (..)
-  )
-where
+module Kantour.Core.KcData.Master.Useitem (
+  Useitem (..),
+) where
 
 import qualified Data.Text as T
 import Deriving.Aeson

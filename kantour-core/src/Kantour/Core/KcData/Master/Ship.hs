@@ -1,14 +1,9 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Ship
-  ( Ship (..)
-  )
-where
+module Kantour.Core.KcData.Master.Ship (
+  Ship (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T

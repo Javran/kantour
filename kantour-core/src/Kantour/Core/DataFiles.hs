@@ -1,9 +1,8 @@
-module Kantour.Core.DataFiles
-  ( loadDataFile
-  , loadDataFileStrict
-  , toPlainData
-  )
-where
+module Kantour.Core.DataFiles (
+  loadDataFile,
+  loadDataFileStrict,
+  toPlainData,
+) where
 
 import qualified Codec.Compression.Lzma as Lzma
 import qualified Data.ByteString as BS

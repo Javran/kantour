@@ -1,4 +1,3 @@
-{-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
@@ -84,7 +83,7 @@ genEquips = compact . genEquips' aswEquips
     genEquips' _ 0 = pure []
     genEquips' eqs n = do
       (e, eqs') <- pickOne eqs
-      remained <- genEquips' eqs' (n -1)
+      remained <- genEquips' eqs' (n - 1)
       pure (e : remained)
 
     compact = nub . (sort <$>)

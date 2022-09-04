@@ -1,14 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-
-module Kantour.Core.KcData.Master.CompletenessSpec
-  ( spec
-  )
-where
+module Kantour.Core.KcData.Master.CompletenessSpec (
+  spec,
+) where
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -61,17 +53,17 @@ loadMaster =
 spec :: Spec
 spec = describe "Completeness" $
   beforeAll loadMaster $ do
-    let mkTest
-          :: forall p a d f.
+    let mkTest ::
+          forall p a d f.
           ( FromJSON a
           , HasKnownFields a
           , Generic a
           , Rep a ~ M1 D d f
           , Datatype d
-          )
-          => p a
-          -> (Value -> [Value])
-          -> SpecWith Value
+          ) =>
+          p a ->
+          (Value -> [Value]) ->
+          SpecWith Value
         mkTest _ty selector =
           let dName = datatypeName (from @a undefined)
            in specify dName $ \rawMst -> do

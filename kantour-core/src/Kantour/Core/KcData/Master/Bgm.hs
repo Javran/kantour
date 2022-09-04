@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Bgm
-  ( Bgm (..)
-  )
-where
+module Kantour.Core.KcData.Master.Bgm (
+  Bgm (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T

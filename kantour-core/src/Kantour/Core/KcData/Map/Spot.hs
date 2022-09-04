@@ -1,12 +1,10 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Kantour.Core.KcData.Map.Spot where
 
 import Data.Aeson
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import GHC.Generics
 import Kantour.Core.KcData.Map.Xywh
-import qualified Data.HashMap.Strict as HM
 
 data Spot = Spot
   { no :: Int

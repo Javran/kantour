@@ -1,20 +1,20 @@
 module Kantour.MapToolFast.Main where
 
-import System.Environment
 import qualified Data.ByteString as BS
+import System.Environment
 
-import qualified Text.XML.Hexml as Xml
 import Kantour.Subcommand
+import qualified Text.XML.Hexml as Xml
 
 data SubCmdMapToolFast
 
 instance Subcommand SubCmdMapToolFast where
-    name _ = "MapToolFast"
-    main _ = defaultMain
+  name _ = "MapToolFast"
+  main _ = defaultMain
 
 defaultMain :: IO ()
 defaultMain = do
-    [fName] <- getArgs
-    content <- BS.readFile fName
-    let Right n = Xml.parse content
-    mapM_ print (Xml.name <$> (Xml.children $ (Xml.children n) !! 1))
+  [fName] <- getArgs
+  content <- BS.readFile fName
+  let Right n = Xml.parse content
+  mapM_ print (Xml.name <$> (Xml.children $ (Xml.children n) !! 1))

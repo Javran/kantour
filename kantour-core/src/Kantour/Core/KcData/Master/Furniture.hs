@@ -1,13 +1,8 @@
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 
-module Kantour.Core.KcData.Master.Furniture
-  ( Furniture (..)
-  )
-where
+module Kantour.Core.KcData.Master.Furniture (
+  Furniture (..),
+) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T

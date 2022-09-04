@@ -1,19 +1,16 @@
-{-# LANGUAGE
-    Arrows
-  , PartialTypeSignatures
-  , ScopedTypeVariables
-  #-}
+{-# LANGUAGE Arrows #-}
+
 module Kantour.MapTool.Xml where
 
+import Control.Exception
 import Control.Lens hiding (deep)
 import Data.Coerce
 import Data.List
-import Text.XML.HXT.Core hiding (when)
-import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
-import Linear
-import Kantour.MapTool.Types
 import Kantour.Core.Utils
-import Control.Exception
+import Kantour.MapTool.Types
+import Linear
+import Text.XML.HXT.Arrow.XmlState.RunIOStateArrow
+import Text.XML.HXT.Core hiding (when)
 
 -- type for the full document
 newtype XmlDoc = XmlDoc XmlTree
@@ -23,18 +20,20 @@ newtype XmlSprite = XmlSprite XmlTree
 
 getIntPair :: ArrowXml arr => String -> String -> (Int -> Int -> a) -> arr XmlTree a
 getIntPair fstName sndName resultF =
-    (   (getAttrValue fstName >>> arr read)
-    &&& (getAttrValue sndName >>> arr read)
-    ) >>> arr (uncurry resultF)
+  ( (getAttrValue fstName >>> arr read)
+      &&& (getAttrValue sndName >>> arr read)
+  )
+    >>> arr (uncurry resultF)
 
 loadSubMatrixAndId :: ArrowXml arr => arr XmlTree (V2 Int, String)
 loadSubMatrixAndId = proc tree -> do
-    pt <- loadSubMatrix -< tree
-    charId <- getAttrValue "characterId" -< tree
-    this -< (pt,charId)
+  pt <- loadSubMatrix -< tree
+  charId <- getAttrValue "characterId" -< tree
+  this -< (pt, charId)
   where
     loadSubMatrix :: ArrowXml arr => arr XmlTree (V2 Int)
-    loadSubMatrix = this
+    loadSubMatrix =
+      this
         /> hasName "matrix"
         >>> getIntPair "translateX" "translateY" V2
 
@@ -43,76 +42,86 @@ docDeep f = arr coerce >>> deep f
 
 findShapeBounds :: ArrowXml arr => String -> arr XmlDoc ShapeBounds
 findShapeBounds shapeId = proc doc -> do
-    shape <-
-        docDeep (hasName "item" >>>
-                   hasAttrValue "shapeId" (== shapeId) />
-                   hasName "shapeBounds")
-             -< doc
-    xMaxMin <- getIntPair "Xmax" "Xmin" (,) -< shape
-    yMaxMin <- getIntPair "Ymax" "Ymin" (,) -< shape
-    this -< (xMaxMin, yMaxMin)
+  shape <-
+    docDeep
+      ( hasName "item"
+          >>> hasAttrValue "shapeId" (== shapeId)
+          /> hasName "shapeBounds"
+      )
+      -<
+        doc
+  xMaxMin <- getIntPair "Xmax" "Xmin" (,) -< shape
+  yMaxMin <- getIntPair "Ymax" "Ymin" (,) -< shape
+  this -< (xMaxMin, yMaxMin)
 
 findSprite :: ArrowXml arr => String -> arr XmlDoc XmlSprite
 findSprite spriteId =
-    docDeep (hasName "item" >>> hasAttrValue "spriteId" (== spriteId))
+  docDeep (hasName "item" >>> hasAttrValue "spriteId" (== spriteId))
     >>> arr XmlSprite
 
 findMapSpriteId :: ArrowXml arr => arr XmlDoc String
 findMapSpriteId =
-    docDeep
-        (hasName "item"
-         >>> hasAttrValue "name" (== "map")
-         >>> getAttrValue "characterId")
+  docDeep
+    ( hasName "item"
+        >>> hasAttrValue "name" (== "map")
+        >>> getAttrValue "characterId"
+    )
 
 findHiddenSpriteIds :: ArrowXml arr => String -> arr XmlDoc [String]
 findHiddenSpriteIds searchTag =
-    docDeep (hasName "item"
-             >>> hasAttrValue "type" (== "SymbolClassTag"))
-    >>> (listA (this /> (hasName "tags" /> getItem)) &&&
-         listA (this /> (hasName "names" /> getItem)))
+  docDeep
+    ( hasName "item"
+        >>> hasAttrValue "type" (== "SymbolClassTag")
+    )
+    >>> ( listA (this /> (hasName "tags" /> getItem))
+            &&& listA (this /> (hasName "names" /> getItem))
+        )
     >>> arr (uncurry findHiddenRoots)
   where
     getItem = hasName "item" /> getText
     findHiddenRoots :: [String] -> [String] -> [String]
     findHiddenRoots tags names
-        | equalLength tags names =
-            -- TODO: sometimes the extra data comes directly from SallyMain,
-            -- in which case we need to have a more specific filter
-            -- (it's 383_17 and 383_29 for 38-3) .. perhaps finding a better parameter syntax would help
-            let fullSearchTag = "scene.sally.mc.MCCellSP" ++ searchTag
-                isExtraRoot (_, s) =
-                    fullSearchTag `isPrefixOf` s
-                    -- "scene.sally.mc.MCCellSP383_17" `isPrefixOf` s
-            in case filter isExtraRoot (zip tags names) of
-                   xs@(_:_) -> map fst xs
-                   [] -> error "cell root not found"
-        | otherwise = error "tags & names length differs"
+      | equalLength tags names =
+        -- TODO: sometimes the extra data comes directly from SallyMain,
+        -- in which case we need to have a more specific filter
+        -- (it's 383_17 and 383_29 for 38-3) .. perhaps finding a better parameter syntax would help
+        let fullSearchTag = "scene.sally.mc.MCCellSP" ++ searchTag
+            isExtraRoot (_, s) =
+              fullSearchTag `isPrefixOf` s
+         in -- "scene.sally.mc.MCCellSP383_17" `isPrefixOf` s
+            case filter isExtraRoot (zip tags names) of
+              xs@(_ : _) -> map fst xs
+              [] -> error "cell root not found"
+      | otherwise = error "tags & names length differs"
 
-findHiddenSpriteRoots :: ArrowXml arr => arr XmlDoc [(String,String)]
+findHiddenSpriteRoots :: ArrowXml arr => arr XmlDoc [(String, String)]
 findHiddenSpriteRoots =
-    docDeep (hasName "item"
-             >>> hasAttrValue "type" (== "SymbolClassTag"))
-    >>> (listA (this /> (hasName "tags" /> getItem)) &&&
-         listA (this /> (hasName "names" /> getItem)))
+  docDeep
+    ( hasName "item"
+        >>> hasAttrValue "type" (== "SymbolClassTag")
+    )
+    >>> ( listA (this /> (hasName "tags" /> getItem))
+            &&& listA (this /> (hasName "names" /> getItem))
+        )
     >>> arr (uncurry findHiddenRoots)
   where
     getItem = hasName "item" /> getText
-    findHiddenRoots :: [String] -> [String] -> [(String,String)]
+    findHiddenRoots :: [String] -> [String] -> [(String, String)]
     findHiddenRoots tags names
-        | equalLength tags names =
-            let isExtraRoot (_, s) =
-                    "scene.sally.mc.MCCellSP" `isPrefixOf` s
-            in filter isExtraRoot (zip tags names)
-        | otherwise = error "tags & names length differs"
+      | equalLength tags names =
+        let isExtraRoot (_, s) =
+              "scene.sally.mc.MCCellSP" `isPrefixOf` s
+         in filter isExtraRoot (zip tags names)
+      | otherwise = error "tags & names length differs"
 
-findLineShapeInfo :: ArrowXml arr => String -> arr XmlDoc (ShapeBounds,V2 Int)
+findLineShapeInfo :: ArrowXml arr => String -> arr XmlDoc (ShapeBounds, V2 Int)
 findLineShapeInfo lineId = proc doc -> do
-    sprite <- findSprite lineId -<< doc
-    -- shape should be a child of sprite (the line)
-    shapeRef <- getSpriteChild >>> hasAttr "characterId" -< sprite
-    (sh,shapeId) <- loadSubMatrixAndId -< shapeRef
-    sb <- findShapeBounds shapeId -<< doc
-    this -< (sb,sh)
+  sprite <- findSprite lineId -<< doc
+  -- shape should be a child of sprite (the line)
+  shapeRef <- getSpriteChild >>> hasAttr "characterId" -< sprite
+  (sh, shapeId) <- loadSubMatrixAndId -< shapeRef
+  sb <- findShapeBounds shapeId -<< doc
+  this -< (sb, sh)
 
 getSpriteChild :: ArrowXml arr => arr XmlSprite XmlTree
 getSpriteChild = arr coerce /> hasName "subTags" /> hasName "item"
@@ -125,99 +134,108 @@ guessStartPoint ptEnd sh ((xMax, xMin), (yMax, yMin)) = ptEnd + V2 dx dy
 
 getMainSprite :: ArrowXml arr => arr XmlDoc XmlSprite
 getMainSprite = proc doc -> do
-    mapSpriteId <- findMapSpriteId -< doc
-    findSprite mapSpriteId -<< doc
+  mapSpriteId <- findMapSpriteId -< doc
+  findSprite mapSpriteId -<< doc
 
 getExtraRoute :: forall arr. ArrowXml arr => arr (XmlSprite, XmlDoc) MyLine
 getExtraRoute = proc (spriteRoot, doc) -> do
-    (ptExEnd,extraId) <-
-            getSpriteChild
-        >>> hasAttrValue "name" ("extra" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< spriteRoot
-    (lineName, (ptEnd',spriteId)) <-
-        findSprite extraId
-        >>> getSpriteChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -<< doc
-    let ptEnd = ptEnd' ^+^ ptExEnd
-    (sb,sh) <- findLineShapeInfo spriteId -<< doc
-    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
+  (ptExEnd, extraId) <-
+    getSpriteChild
+      >>> hasAttrValue "name" ("extra" `isPrefixOf`)
+      >>> loadSubMatrixAndId
+      -<
+        spriteRoot
+  (lineName, (ptEnd', spriteId)) <-
+    findSprite extraId
+      >>> getSpriteChild
+      >>> hasAttrValue "name" ("line" `isPrefixOf`)
+      >>> getAttrValue "name" &&& loadSubMatrixAndId
+      -<<
+        doc
+  let ptEnd = ptEnd' ^+^ ptExEnd
+  (sb, sh) <- findLineShapeInfo spriteId -<< doc
+  this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 getMapBeginNode :: ArrowXml arr => arr (XmlSprite, XmlDoc) (V2 Int)
 getMapBeginNode = proc (spriteRoot, doc) -> do
-    -- load line info
-    (ptEnd,spriteId) <-
-            getSpriteChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> loadSubMatrixAndId -< spriteRoot
-    -- select lines whose childrens are without ids
-    findSprite spriteId
-        >>> arr coerce
-        >>> ((this /> hasName "subTags")
-             `notContaining`
-             (this /> hasAttr "characterId")) -<< doc
-    this -< ptEnd
+  -- load line info
+  (ptEnd, spriteId) <-
+    getSpriteChild
+      >>> hasAttrValue "name" ("line" `isPrefixOf`)
+      >>> loadSubMatrixAndId
+      -<
+        spriteRoot
+  -- select lines whose childrens are without ids
+  findSprite spriteId
+    >>> arr coerce
+    >>> ( (this /> hasName "subTags")
+            `notContaining` (this /> hasAttr "characterId")
+        )
+    -<<
+      doc
+  this -< ptEnd
 
 getRoute :: ArrowXml arr => arr (XmlSprite, XmlDoc) MyLine
 getRoute = proc (spriteRoot, doc) -> do
-    (lineName,(ptEnd,lineId)) <-
-        getSpriteChild
-        >>> hasAttrValue "name" ("line" `isPrefixOf`)
-        >>> getAttrValue "name" &&& loadSubMatrixAndId -< spriteRoot
-    (sb,sh) <- findLineShapeInfo lineId -<< doc
-    this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
+  (lineName, (ptEnd, lineId)) <-
+    getSpriteChild
+      >>> hasAttrValue "name" ("line" `isPrefixOf`)
+      >>> getAttrValue "name" &&& loadSubMatrixAndId
+      -<
+        spriteRoot
+  (sb, sh) <- findLineShapeInfo lineId -<< doc
+  this -< MyLine lineName (guessStartPoint ptEnd sh sb) ptEnd
 
 extractFromMain :: ArrowXml arr => arr XmlDoc ([MyLine], [V2 Int])
 extractFromMain = proc doc -> do
-    mainSprite <- getMainSprite -< doc
-    let d' = (mainSprite, doc)
-    rs <- listA getRoute -< d'
-    extraRs <- listA getExtraRoute -< d'
-    begins <- listA getMapBeginNode -< d'
-    this -< (rs ++ extraRs, begins)
+  mainSprite <- getMainSprite -< doc
+  let d' = (mainSprite, doc)
+  rs <- listA getRoute -< d'
+  extraRs <- listA getExtraRoute -< d'
+  begins <- listA getMapBeginNode -< d'
+  this -< (rs ++ extraRs, begins)
 
 extractSingle :: ArrowXml arr => String -> arr XmlDoc ([MyLine], [V2 Int])
 extractSingle spriteId = proc doc -> do
-    extraSprite <- findSprite spriteId -<< doc
-    listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc)
+  extraSprite <- findSprite spriteId -<< doc
+  listA getRoute &&& listA getMapBeginNode -< (extraSprite, doc)
 
 extractFromHidden :: ArrowXml arr => String -> arr XmlDoc ([MyLine], [V2 Int])
 extractFromHidden searchTag = proc doc -> do
-    spriteIds <- findHiddenSpriteIds searchTag -< doc
-    result <- catA (extractSingle <$> spriteIds) -<< doc
-    this -< result
+  spriteIds <- findHiddenSpriteIds searchTag -< doc
+  result <- catA (extractSingle <$> spriteIds) -<< doc
+  this -< result
 
-parseXmlDoc
-    :: IOSLA (XIOState ()) XmlDoc a
-    -> String
-    -> IO (Either String [a])
+parseXmlDoc ::
+  IOSLA (XIOState ()) XmlDoc a ->
+  String ->
+  IO (Either String [a])
 parseXmlDoc arrExtract fp = do
-    lDoc <- runX (readDocument [] fp)
-    case lDoc of
-        [doc] ->
-            (Right <$> runWithDoc_ arrExtract doc)
-                 `catches`
-            [ Handler (\(e :: IOException) -> pure (Left (show e)))
-            , Handler (\(e :: ErrorCall) -> pure (Left (show e)))
-            ]
-        _ -> pure $ Left $ "error when parsing: " ++ fp
+  lDoc <- runX (readDocument [] fp)
+  case lDoc of
+    [doc] ->
+      (Right <$> runWithDoc_ arrExtract doc)
+        `catches` [ Handler (\(e :: IOException) -> pure (Left (show e)))
+                  , Handler (\(e :: ErrorCall) -> pure (Left (show e)))
+                  ]
+    _ -> pure $ Left $ "error when parsing: " ++ fp
 
-collapseToOne :: (Monoid a, Monoid b) => [(a,b)] -> (a,b)
+collapseToOne :: (Monoid a, Monoid b) => [(a, b)] -> (a, b)
 collapseToOne xs = (mconcat as, mconcat bs)
   where
-    (as,bs) = unzip xs
+    (as, bs) = unzip xs
 
-safeParseXmlDoc
-    :: IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int])
-    -> String
-    -> IO ([MyLine], [V2 Int])
+safeParseXmlDoc ::
+  IOSLA (XIOState ()) XmlDoc ([MyLine], [V2 Int]) ->
+  String ->
+  IO ([MyLine], [V2 Int])
 safeParseXmlDoc arrExtract fp = do
-    parsed <- right collapseToOne <$> parseXmlDoc arrExtract fp
-    case parsed of
-        Left errMsg -> do
-            putStrLn $ "Parse error: " ++ errMsg
-            pure ([], [])
-        Right v -> pure v
+  parsed <- right collapseToOne <$> parseXmlDoc arrExtract fp
+  case parsed of
+    Left errMsg -> do
+      putStrLn $ "Parse error: " ++ errMsg
+      pure ([], [])
+    Right v -> pure v
 
 runWithDoc_ :: IOSLA (XIOState ()) XmlDoc a -> XmlTree -> IO [a]
 runWithDoc_ (IOSLA f) doc = snd <$> f (initialState ()) (XmlDoc doc)

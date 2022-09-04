@@ -1,20 +1,19 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 module Kantour.WhoCallsTheFleet.Fetch where
 
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import Network.HTTP.Types
 
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Lazy.Char8 as LBS
 
-import Data.Word
 import Data.Char
 import Data.MonoTraversable
+import Data.Word
 
-import Kantour.WhoCallsTheFleet.Types
 import Data.Aeson
+import Kantour.WhoCallsTheFleet.Types
 
 import Data.Maybe
 
@@ -31,36 +30,36 @@ repoBase = "https://raw.githubusercontent.com/Diablohu/KanColle-JSON-Database/ma
 
 fetchURL :: String -> IO LBS.ByteString
 fetchURL url = do
-    mgr <- getGlobalManager
-    req <- parseRequest url
-    resp <- httpLbs req mgr
-    let st = responseStatus resp
-    if st == ok200
-        then pure (responseBody resp)
-        else fail $ "error with status code: " ++ show (statusCode st)
+  mgr <- getGlobalManager
+  req <- parseRequest url
+  resp <- httpLbs req mgr
+  let st = responseStatus resp
+  if st == ok200
+    then pure (responseBody resp)
+    else fail $ "error with status code: " ++ show (statusCode st)
 
 fetchShipsRaw :: IO [BS.ByteString]
 fetchShipsRaw = splitLines <$> fetchURL (repoBase ++ "ships.json")
 
 fetchShips :: IO [Ship]
 fetchShips = do
-    raws <- fetchShipsRaw
-    catMaybes <$> mapM verboseParse raws
+  raws <- fetchShipsRaw
+  catMaybes <$> mapM verboseParse raws
 
 fetchEquipmentsRaw :: IO [BS.ByteString]
 fetchEquipmentsRaw = splitLines <$> fetchURL (repoBase ++ "items.json")
 
 verboseParse :: forall a. FromJSON a => BS.ByteString -> IO (Maybe a)
 verboseParse raw' = do
-    let result = eitherDecodeStrict' raw' :: Either String a
-    -- BSC.putStrLn raw
-    case result of
-        Right m -> pure (Just m)
-        Left msg -> do
-            putStrLn $ "parsing failed: " <> msg
-            pure Nothing
+  let result = eitherDecodeStrict' raw' :: Either String a
+  -- BSC.putStrLn raw
+  case result of
+    Right m -> pure (Just m)
+    Left msg -> do
+      putStrLn $ "parsing failed: " <> msg
+      pure Nothing
 
 fetchEquipments :: IO [Equipment]
 fetchEquipments = do
-    raws <- fetchEquipmentsRaw
-    catMaybes <$> mapM verboseParse raws
+  raws <- fetchEquipmentsRaw
+  catMaybes <$> mapM verboseParse raws

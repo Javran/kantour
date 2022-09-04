@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Kantour.Core.KcData.Map.Enemy where
 
 import Data.Aeson

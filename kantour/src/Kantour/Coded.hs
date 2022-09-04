@@ -1,11 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TupleSections #-}
-
-module Kantour.Coded
-  ( defaultMain
-  , SubCmdCoded
-  )
-where
+module Kantour.Coded (
+  defaultMain,
+  SubCmdCoded,
+) where
 
 import Control.Monad.State
 import Data.ByteString (ByteString)

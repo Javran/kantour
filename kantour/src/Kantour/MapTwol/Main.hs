@@ -1,9 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
-
 module Kantour.MapTwol.Main where
 
 {-
@@ -134,22 +128,24 @@ defaultMain =
                 , Spot.offsets = ms
                 } =
                 fmap
-                  (\(k, (Xywh.Xy (dx, dy))) ->
-                     let (Sprite.Sprite {Sprite.sourceSize = Xywh.Wh (w, h)}, img) =
-                           mapMainImgs IM.! (spotPointMap IM.! (read $ T.unpack k))
-                      in ( -- Note: this appears to work but I'm not entirely sure if it's correct.
-                           Xywh.Xy (spX + dx - w `div` 2, spY + dy - h `div` 2)
-                         , img
-                         ))
+                  ( \(k, (Xywh.Xy (dx, dy))) ->
+                      let (Sprite.Sprite {Sprite.sourceSize = Xywh.Wh (w, h)}, img) =
+                            mapMainImgs IM.! (spotPointMap IM.! (read $ T.unpack k))
+                       in ( -- Note: this appears to work but I'm not entirely sure if it's correct.
+                            Xywh.Xy (spX + dx - w `div` 2, spY + dy - h `div` 2)
+                          , img
+                          )
+                  )
                   $ maybe [] HM.toList $ ms
             extraSpotImgs :: [(Xywh.Xy Int, Img.Image Img.VS Img.RGBA Double)]
             extraSpotImgs = foldMap spotToImgs $ KcInfo.spots mapInfo
             bgs =
               concatMap
-                (\b ->
-                   [ snd $ imgs HM.! Bg.img b
-                   | Bg.name b /= Just "red" || containRed
-                   ])
+                ( \b ->
+                    [ snd $ imgs HM.! Bg.img b
+                    | Bg.name b /= Just "red" || containRed
+                    ]
+                )
                 . Vec.toList
                 . fromJust
                 . KcInfo.bg
@@ -161,10 +157,11 @@ defaultMain =
             ems = maybe [] Vec.toList (KcInfo.enemies mapInfo)
             withEnemies =
               foldl
-                (\acc e ->
-                   let Enemy.Enemy {Enemy.x, Enemy.y, Enemy.img = iK} = e
-                       (_, i) = imgs HM.! iK
-                    in superimpose' (y, x) i acc)
+                ( \acc e ->
+                    let Enemy.Enemy {Enemy.x, Enemy.y, Enemy.img = iK} = e
+                        (_, i) = imgs HM.! iK
+                     in superimpose' (y, x) i acc
+                )
                 combinedBg
                 ems
         Img.writeImageExact Img.PNG [] (dstDir </> "gen_background.png") combinedBg
@@ -183,8 +180,8 @@ stripSpriteKeyPrefix m =
         (k, _) = head (HM.toList m)
         Just i = T.findIndex (== '_') k
 
-extractSpriteFromFilePrefix
-  :: FilePath -> IO (HM.HashMap T.Text (Sprite.Sprite, Img.Image Img.VS Img.RGBA Double))
+extractSpriteFromFilePrefix ::
+  FilePath -> IO (HM.HashMap T.Text (Sprite.Sprite, Img.Image Img.VS Img.RGBA Double))
 extractSpriteFromFilePrefix srcPrefix = do
   Right img <-
     Img.readImageExact
@@ -196,11 +193,11 @@ extractSpriteFromFilePrefix srcPrefix = do
       imgs = extractSprite img sprites
   pure imgs
 
-extractSprite
-  :: Img.Array arr cs e
-  => Img.Image arr cs e
-  -> HM.HashMap k Sprite.Sprite
-  -> HM.HashMap k (Sprite.Sprite, Img.Image arr cs e)
+extractSprite ::
+  Img.Array arr cs e =>
+  Img.Image arr cs e ->
+  HM.HashMap k Sprite.Sprite ->
+  HM.HashMap k (Sprite.Sprite, Img.Image arr cs e)
 extractSprite img = HM.map (id &&& convert)
   where
     convert sp = Img.crop (y, x) (h, w) img

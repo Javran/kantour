@@ -1,7 +1,6 @@
 {-
   Reference: https://gamedev.stackexchange.com/a/116000
  -}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Kantour.Core.KcData.Map.Sprite where
 

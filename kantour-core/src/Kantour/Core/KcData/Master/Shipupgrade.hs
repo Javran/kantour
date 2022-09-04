@@ -1,14 +1,9 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Shipupgrade
-  ( Shipupgrade (..)
-  )
-where
+module Kantour.Core.KcData.Master.Shipupgrade (
+  Shipupgrade (..),
+) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson

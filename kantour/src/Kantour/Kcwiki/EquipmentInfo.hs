@@ -14,4 +14,3 @@ data EquipmentInfo = EquipmentInfo
   , compatibleTypes :: ()
   , extra :: ()
   }
-

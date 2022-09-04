@@ -1,25 +1,18 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE DeriveGeneric #-}
-
-module Kantour.Core.KcData.Master.Fetch
-  ( DataSource (..)
-  , dataSourceP
-  , dataSourceFromEnv
-  , FileMetadata
-  , fmSource
-  , fmCommit
-  , toFileMetadata
-  , cacheBaseFromEnv
-  , fetchRawFromEnv
-  , fetchRaw
-  , parseRoot
-  , fetch
-  , fetchFromEnv
-  )
-where
+module Kantour.Core.KcData.Master.Fetch (
+  DataSource (..),
+  dataSourceP,
+  dataSourceFromEnv,
+  FileMetadata,
+  fmSource,
+  fmCommit,
+  toFileMetadata,
+  cacheBaseFromEnv,
+  fetchRawFromEnv,
+  fetchRaw,
+  parseRoot,
+  fetch,
+  fetchFromEnv,
+) where
 
 {-
   Fetches master data (api_start2).
@@ -73,6 +66,8 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Yaml as Yaml
+import qualified Dhall as D
+import GHC.Generics (Generic)
 import Kantour.Core.DataFiles
 import Kantour.Core.KcData.Master.Root
 import Network.HTTP.Client
@@ -82,8 +77,6 @@ import System.Environment
 import System.Exit
 import System.FilePath.Posix
 import Text.ParserCombinators.ReadP
-import qualified Dhall as D
-import GHC.Generics (Generic)
 
 data DataSource
   = DsStock
@@ -292,9 +285,10 @@ fetchRaw mMgr src mCacheBase = case src of
           let rawContent = toPlainData reqPath $ responseBody resp
           maybe
             (pure ())
-            (\cb -> do
-               BSL.writeFile (cacheBaseToDataPath cb) rawContent
-               Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd)
+            ( \cb -> do
+                BSL.writeFile (cacheBaseToDataPath cb) rawContent
+                Yaml.encodeFile (cacheBaseToMetadataPath cb) newMd
+            )
             mCacheBase
           pure rawContent
 

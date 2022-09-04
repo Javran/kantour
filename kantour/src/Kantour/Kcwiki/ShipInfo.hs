@@ -29,7 +29,7 @@ data ShipClass = ShipClass
   , sDesination :: Int
   }
 
-type Ranged a = (a,a)
+type Ranged a = (a, a)
 
 data ShipStats = ShipStats
   { hitPoints :: Ranged Int

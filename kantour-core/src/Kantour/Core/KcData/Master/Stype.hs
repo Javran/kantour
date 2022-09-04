@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Stype
-  ( Stype (..)
-  )
-where
+module Kantour.Core.KcData.Master.Stype (
+  Stype (..),
+) where
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T

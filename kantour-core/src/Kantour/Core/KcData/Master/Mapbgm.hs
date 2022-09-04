@@ -1,13 +1,8 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Mapbgm
-  ( Mapbgm (..)
-  )
-where
+module Kantour.Core.KcData.Master.Mapbgm (
+  Mapbgm (..),
+) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson
@@ -26,8 +21,8 @@ data Mapbgm = Mapbgm
     (FromJSON)
     via CustomJSON
           '[ FieldLabelModifier
-               ( Rename "mId" "id" : KcConvention
-               )
+              ( Rename "mId" "id" : KcConvention
+              )
            ]
           Mapbgm
 

@@ -1,43 +1,43 @@
-{-# LANGUAGE
-    NoMonomorphismRestriction
-  , FlexibleContexts
-  , TypeFamilies
-  #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Kantour.MapTool.Draw where
 
 import Diagrams.Prelude
--- import Diagrams.Backend.SVG.CmdLine
-import Diagrams.Backend.Rasterific.CmdLine
-import Data.Coerce
 
-import qualified Data.Set as S
+-- import Diagrams.Backend.SVG.CmdLine
+
+import Data.Coerce
+import Diagrams.Backend.Rasterific.CmdLine
+
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 
 import Kantour.MapTool.Types
 
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 
-drawKCMap :: MapInfo
-          -> Diagram B
+drawKCMap ::
+  MapInfo ->
+  Diagram B
 drawKCMap mi@MapInfo {_miLines = xs} =
-    ((allPoints # applyAll routeConnections) `atop` arrTextLayer) # centerXY # pad 1.1
+  ((allPoints # applyAll routeConnections) `atop` arrTextLayer) # centerXY # pad 1.1
   where
     arrowOpts = with & gaps .~ small & headLength .~ 22
     circle' color txt =
-        text txt # fontSizeL 10 # fc black <> circle 10 # fc color
+      text txt # fontSizeL 10 # fc black <> circle 10 # fc color
     allPoints :: Diagram B
     allPoints = position (renderPoint <$> (M.keys . _miNodeNames $ mi))
       where
         renderPoint p = (convertPt p, circle' color nodeName # named nodeName)
           where
             color =
-                if p `S.member` _miStarts mi
-                    then red
-                    else green
+              if p `S.member` _miStarts mi
+                then red
+                else green
             nodeName = getNodeName p mi
     routeConnections =
-        map (connectOutside' arrowOpts <$> lineStartName <*> lineEndName) xs
+      map (connectOutside' arrowOpts <$> lineStartName <*> lineEndName) xs
     arrTextLayer = position (zip (lineMid <$> xs) arrLbls)
       where
         arrLbls = map (\l -> text (simpleLName l) # fc blue # fontSizeL 16) xs
