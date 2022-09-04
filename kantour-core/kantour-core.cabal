@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5a4491991f3423afb924361bf379fe0ba0ceb46111105f701d1699fa8a89f50e
+-- hash: 435b279e8ad7913c223f6d65b7a325fbd5dda1d971ba53a7e88e408ea32cda40
 
 name:           kantour-core
 version:        0.2.0.0
@@ -70,6 +70,7 @@ library
     , bytestring
     , containers
     , deriving-aeson
+    , dhall
     , directory
     , filepath
     , http-client

@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Kantour.Core.KcData.Master.Fetch
   ( DataSource (..)
@@ -81,6 +82,8 @@ import System.Environment
 import System.Exit
 import System.FilePath.Posix
 import Text.ParserCombinators.ReadP
+import qualified Dhall as D
+import GHC.Generics (Generic)
 
 data DataSource
   = DsStock
@@ -92,7 +95,9 @@ data DataSource
       }
   | DsUrl String
   | DsFile FilePath
-  deriving (Eq)
+  deriving (Eq, Generic)
+
+instance D.FromDhall DataSource
 
 instance Show DataSource where
   show = \case
