@@ -1,12 +1,13 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Useitem (
+module Kantour.Core.KcData.Master.Direct.Useitem (
   Useitem (..),
 ) where
 
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Useitem = Useitem
   { usetype :: Int

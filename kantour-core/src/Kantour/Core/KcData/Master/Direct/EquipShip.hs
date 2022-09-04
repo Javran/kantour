@@ -1,10 +1,10 @@
-module Kantour.Core.KcData.Master.EquipShip (
+module Kantour.Core.KcData.Master.Direct.EquipShip (
   EquipShip (..),
 ) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data EquipShip = EquipShip
   { shipId :: Int

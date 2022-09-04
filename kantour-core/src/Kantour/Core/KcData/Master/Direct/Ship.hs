@@ -1,14 +1,14 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Ship (
+module Kantour.Core.KcData.Master.Direct.Ship (
   Ship (..),
 ) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Ship = Ship
   { shipId :: Int

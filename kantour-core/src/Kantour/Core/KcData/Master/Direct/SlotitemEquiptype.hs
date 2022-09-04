@@ -1,12 +1,13 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.SlotitemEquiptype (
+module Kantour.Core.KcData.Master.Direct.SlotitemEquiptype (
   SlotitemEquiptype (..),
 ) where
 
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data SlotitemEquiptype = SlotitemEquiptype
   { sId :: Int

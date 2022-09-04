@@ -1,13 +1,13 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Shipupgrade (
+module Kantour.Core.KcData.Master.Direct.Shipupgrade (
   Shipupgrade (..),
 ) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Shipupgrade = Shipupgrade
   { shipId :: Int

@@ -1,12 +1,12 @@
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Slotitem (
+module Kantour.Core.KcData.Master.Direct.Slotitem (
   Slotitem (..),
 ) where
 
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Slotitem = Slotitem
   { slotId :: Int

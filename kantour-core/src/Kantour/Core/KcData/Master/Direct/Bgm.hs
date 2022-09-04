@@ -1,13 +1,14 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Bgm (
+module Kantour.Core.KcData.Master.Direct.Bgm (
   Bgm (..),
 ) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Bgm = Bgm
   { bgmId :: Int

@@ -18,8 +18,8 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.UnionFind.ST as UF
 import Kantour.Core.KcData.Master.Fetch
-import Kantour.Core.KcData.Master.Root
-import Kantour.Core.KcData.Master.Ship as Ship
+import Kantour.Core.KcData.Master.Direct.Root
+import Kantour.Core.KcData.Master.Direct.Ship as Ship
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS

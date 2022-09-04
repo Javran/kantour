@@ -1,13 +1,14 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Furniture (
+module Kantour.Core.KcData.Master.Direct.Furniture (
   Furniture (..),
 ) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Furniture = Furniture
   { title :: T.Text

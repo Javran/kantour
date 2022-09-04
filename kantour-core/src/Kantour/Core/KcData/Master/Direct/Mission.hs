@@ -1,13 +1,14 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Mission (
+module Kantour.Core.KcData.Master.Direct.Mission (
   Mission (..),
 ) where
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Mission = Mission
   { winItem1 :: [Int]

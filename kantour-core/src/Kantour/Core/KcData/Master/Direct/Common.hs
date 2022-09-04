@@ -1,4 +1,4 @@
-module Kantour.Core.KcData.Master.Common (
+module Kantour.Core.KcData.Master.Direct.Common (
   KcApiField,
   KcConvention,
   CollectExtra (..),

@@ -69,7 +69,7 @@ import Data.Yaml as Yaml
 import qualified Dhall as D
 import GHC.Generics (Generic)
 import Kantour.Core.DataFiles
-import Kantour.Core.KcData.Master.Root
+import Kantour.Core.KcData.Master.Direct.Root
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import System.Directory

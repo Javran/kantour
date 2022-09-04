@@ -1,10 +1,10 @@
-module Kantour.Core.KcData.Master.ItemShop (
+module Kantour.Core.KcData.Master.Direct.ItemShop (
   ItemShop (..),
 ) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data ItemShop = ItemShop
   { cabinet_1 :: [Int]

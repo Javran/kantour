@@ -1,12 +1,12 @@
 {-# LANGUAGE TypeOperators #-}
 
-module Kantour.Core.KcData.Master.Mapbgm (
+module Kantour.Core.KcData.Master.Direct.Mapbgm (
   Mapbgm (..),
 ) where
 
 import Data.Aeson as Aeson
 import Deriving.Aeson
-import Kantour.Core.KcData.Master.Common
+import Kantour.Core.KcData.Master.Direct.Common
 
 data Mapbgm = Mapbgm
   { movingBgm :: Int
