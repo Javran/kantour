@@ -50,10 +50,12 @@ instance FromDirect Root where
   type Source Root = Direct.Root
 
   fromDirect Direct.Root {mstSlotitem} = do
-    es <- mapM (fromDirect @Equip) mstSlotitem
+    let buildFromList getId xs =
+          IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
+    equips <- buildFromList (\Equip {eId} -> eId) mstSlotitem
     pure
       Root
-        { equips = IM.fromList $ fmap (\e@Equip {eId} -> (eId, e)) es
+        { equips
         , shipgraph = ()
         , ship = ()
         , equipExslot = ()

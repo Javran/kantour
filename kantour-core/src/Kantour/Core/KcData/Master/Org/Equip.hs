@@ -23,7 +23,7 @@ data Equip = Equip
   , luck :: Int
   , raik :: Int
   , sortNo :: Int
-  , eType :: (Int, Int, Int, Int, Int)
+  , eType :: [Int]
   , torpedo :: Int -- raig / 雷装
   , bombing :: Int -- baku / 爆装
   , armor :: Int -- souk / 装甲
@@ -61,7 +61,7 @@ instance FromDirect Equip where
       , luck
       , raik
       , sortno = sortNo
-      , sType
+      , sType = eType
       , raig = torpedo
       , baku = bombing
       , souk = armor
@@ -77,9 +77,6 @@ instance FromDirect Equip where
       , distance
       , soku = speed
       } = do
-      eType <- case sType of
-        [a, b, c, d, e] -> pure (a, b, c, d, e)
-        _ -> illformed "sType"
       scrap <- case broken of
         [a, b, c, d] -> pure (a, b, c, d)
         _ -> illformed "broken"
