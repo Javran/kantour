@@ -26,15 +26,19 @@ module Kantour.Core.KcData.Master.Direct (
   All modules under this one are meant for a direct representation
   of api_start2 of the game.
 
+  It's true that Aeson's dynamic representation is already a direct one,
+  but the lack of ways to detect unknown fields without failure is one of
+  its limitations [1]. `Direct` modules add to that by providing a way
+  to confirm that we only have fields that we already know and warn us
+  when unknown fields come up.
+
+  1: https://github.com/haskell/aeson/issues/808
+
   (TODO) The future plan is to have a more friendly representation
   built on top of this one. This may include:
 
   - better field names (without those mst_, api_ etc. all over the place).
   - dictionary-like containers with related ids as keys.
-
-  (TODO) on a second thought, the Aeson Object *is* a direct representation
-  already, so this "Direct" layer probably serves no purpose - why don't
-  we just re-organize data from the Aeson representation?
 
  -}
 
