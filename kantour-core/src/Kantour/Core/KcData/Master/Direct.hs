@@ -7,6 +7,7 @@ module Kantour.Core.KcData.Master.Direct (
   module Kantour.Core.KcData.Master.Direct.Ship,
   module Kantour.Core.KcData.Master.Direct.Bgm,
   module Kantour.Core.KcData.Master.Direct.ItemShop,
+  module Kantour.Core.KcData.Master.Direct.Const,
   module Kantour.Core.KcData.Master.Direct.EquipExslotShip,
   module Kantour.Core.KcData.Master.Direct.EquipShip,
   module Kantour.Core.KcData.Master.Direct.Furniture,
@@ -49,6 +50,7 @@ module Kantour.Core.KcData.Master.Direct (
  -}
 
 import Kantour.Core.KcData.Master.Direct.Bgm
+import Kantour.Core.KcData.Master.Direct.Const
 import Kantour.Core.KcData.Master.Direct.EquipExslotShip
 import Kantour.Core.KcData.Master.Direct.EquipShip
 import Kantour.Core.KcData.Master.Direct.Furniture

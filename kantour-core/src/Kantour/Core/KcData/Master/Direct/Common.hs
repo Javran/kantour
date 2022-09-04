@@ -4,12 +4,17 @@ module Kantour.Core.KcData.Master.Direct.Common (
   CollectExtra (..),
   HasKnownFields (..),
   kcFields,
+  Verifiable (..),
+  vLogT,
+  vLogS,
 ) where
 
+import Control.Monad.Writer
 import Data.Aeson
 import qualified Data.Aeson.Key
 import qualified Data.Aeson.KeyMap as KM
 import Data.Bifunctor
+import qualified Data.DList as DL
 import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
@@ -66,3 +71,30 @@ instance (FromJSON a, HasKnownFields a) => FromJSON (CollectExtra a) where
             . KM.toList
             $ obj
     pure $ CollectExtra {ceValue, ceExtra}
+
+{-
+  For verifying that a Direct object has certain properties.
+
+  e.g.:
+
+  - a field is of a specific shape
+  - a field is a string but is always representing a number
+  - for a list of things, there's an unique id field that we can use for indexing
+
+  Note that this is meant for post-parse verification since
+  we'll need to have a Direct object in the first place.
+
+  The idea is that master data won't change very often so it doesn't make sense to
+  verify those things whenever it's loaded. So instead we run some CLI tool from
+  time to time to verify those assumptions are still holding, and let go of heavy
+  checks whenever data is loaded.
+ -}
+class Verifiable a where
+  verify :: MonadWriter (DL.DList T.Text) m => a -> m ()
+  verify _ = pure ()
+
+vLogT :: MonadWriter (DL.DList T.Text) m => T.Text -> m ()
+vLogT = tell . DL.singleton
+
+vLogS :: MonadWriter (DL.DList T.Text) m => String -> m ()
+vLogS = vLogT . T.pack
