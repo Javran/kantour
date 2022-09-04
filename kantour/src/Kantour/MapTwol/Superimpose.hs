@@ -1,3 +1,9 @@
+{-# LANGUAGE BangPatterns #-}
+
+{-
+  For whatever reason fourmolu is upset about BangPatterns despite that it's in
+  default extensions.
+ -}
 
 module Kantour.MapTwol.Superimpose where
 
