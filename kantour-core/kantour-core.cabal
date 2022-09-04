@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 61bb9cac2e99cd8e36700c3e9321b6b726361a01bb5cd7eb6dd628d1830814e1
+-- hash: 351bb94f7f7ee4fd2057bdef84ed2416e29070568651899d26e26adeee36db0f
 
 name:           kantour-core
 version:        0.2.0.0
@@ -58,6 +58,8 @@ library
       Kantour.Core.KcData.Master.Direct.Stype
       Kantour.Core.KcData.Master.Direct.Useitem
       Kantour.Core.KcData.Master.Fetch
+      Kantour.Core.KcData.Master.Org.Common
+      Kantour.Core.KcData.Master.Org.Equip
       Kantour.Core.KcData.Master.Org.Root
       Kantour.Core.Utils
   other-modules:
@@ -114,14 +116,17 @@ library
     , deriving-aeson
     , dhall
     , directory
+    , dlist
     , filepath
     , http-client
     , http-client-tls
     , lzma
+    , mtl
     , text
     , transformers
     , unordered-containers
     , vector
+    , writer-cps-mtl
     , yaml
   default-language: Haskell2010
 

@@ -70,12 +70,15 @@ library:
     - deriving-aeson
     - dhall
     - directory
+    - dlist
     - filepath
     - http-client
     - http-client-tls
     - lzma
+    - mtl
     - transformers
     - vector
+    - writer-cps-mtl
     - yaml
 
 tests:
