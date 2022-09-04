@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Stype (
   Stype (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -25,7 +26,7 @@ data Stype = Stype
           '[ FieldLabelModifier (Rename "sId" "id" : KcConvention)
            ]
           Stype
-
+instance NFData Stype
 instance HasKnownFields Stype where
   knownFields _ =
     kcFields

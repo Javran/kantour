@@ -2,6 +2,7 @@ module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
   EquipExslotShip (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
@@ -17,6 +18,7 @@ data EquipExslotShip = EquipExslotShip
           '[FieldLabelModifier KcConvention]
           EquipExslotShip
 
+instance NFData EquipExslotShip
 instance HasKnownFields EquipExslotShip where
   knownFields _ =
     kcFields "ship_ids slotitem_id"

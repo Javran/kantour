@@ -54,7 +54,6 @@ cluster ps =
 
 {-
   TODO: hijacking FetchMasterData to do other stuff. do this properly later.
-  TODO: we should probably have NFData on MasterRoot.
  -}
 remodelChainExperiment :: MasterRoot -> IO ()
 remodelChainExperiment MasterRoot {mstShip} = do

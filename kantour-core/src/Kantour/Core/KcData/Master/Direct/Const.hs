@@ -1,7 +1,9 @@
 module Kantour.Core.KcData.Master.Direct.Const (
+  IntValStrVal (..),
   Const (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -18,6 +20,8 @@ data IntValStrVal = IntValStrVal
           '[FieldLabelModifier KcConvention]
           IntValStrVal
 
+instance NFData IntValStrVal
+
 data Const = Const
   { bokoMaxShips :: IntValStrVal
   , parallelQuestMax :: IntValStrVal
@@ -29,6 +33,8 @@ data Const = Const
     via CustomJSON
           '[FieldLabelModifier KcConvention]
           Const
+
+instance NFData Const
 
 instance HasKnownFields Const where
   knownFields _ =

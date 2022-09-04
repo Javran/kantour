@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Bgm (
   Bgm (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -20,6 +21,8 @@ data Bgm = Bgm
     via CustomJSON
           '[FieldLabelModifier (Rename "bgmId" "id" : KcConvention)]
           Bgm
+
+instance NFData Bgm
 
 instance HasKnownFields Bgm where
   knownFields _ = kcFields "id name"

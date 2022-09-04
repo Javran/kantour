@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Maparea (
   Maparea (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -25,6 +26,8 @@ data Maparea = Maparea
               )
            ]
           Maparea
+
+instance NFData Maparea
 
 instance HasKnownFields Maparea where
   knownFields _ = kcFields "type id name"

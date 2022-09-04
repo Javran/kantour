@@ -8,6 +8,7 @@ module Kantour.Core.KcData.Master.Direct.Shipupgrade (
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
+import Control.DeepSeq (NFData)
 
 data Shipupgrade = Shipupgrade
   { shipId :: Int
@@ -28,7 +29,7 @@ data Shipupgrade = Shipupgrade
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Shipupgrade
-
+instance NFData Shipupgrade
 instance HasKnownFields Shipupgrade where
   knownFields _ =
     kcFields

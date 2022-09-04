@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Furnituregraph (
   Furnituregraph (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -27,6 +28,8 @@ data Furnituregraph = Furnituregraph
               )
            ]
           Furnituregraph
+
+instance NFData Furnituregraph
 
 instance HasKnownFields Furnituregraph where
   knownFields _ =

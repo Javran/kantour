@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.SlotitemEquiptype (
   SlotitemEquiptype (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
@@ -23,7 +24,7 @@ data SlotitemEquiptype = SlotitemEquiptype
               )
            ]
           SlotitemEquiptype
-
+instance NFData SlotitemEquiptype
 instance HasKnownFields SlotitemEquiptype where
   knownFields _ =
     kcFields

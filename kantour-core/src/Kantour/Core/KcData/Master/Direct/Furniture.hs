@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Furniture (
   Furniture (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -31,6 +32,7 @@ data Furniture = Furniture
           '[FieldLabelModifier (Rename "fType" "type" : Rename "fId" "id" : KcConvention)]
           Furniture
 
+instance NFData Furniture
 instance HasKnownFields Furniture where
   knownFields _ =
     kcFields

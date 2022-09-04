@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Shipgraph (
   Shipgraph (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -40,6 +41,8 @@ data Shipgraph = Shipgraph
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Shipgraph
+
+instance NFData Shipgraph
 instance HasKnownFields Shipgraph where
   knownFields _ =
     kcFields

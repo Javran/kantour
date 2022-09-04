@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Mission (
   Mission (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -38,7 +39,7 @@ data Mission = Mission
               )
            ]
           Mission
-
+instance NFData Mission
 instance HasKnownFields Mission where
   knownFields _ =
     kcFields

@@ -4,6 +4,7 @@ module Kantour.Core.KcData.Master.Direct.Slotitem (
   Slotitem (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
@@ -47,6 +48,8 @@ data Slotitem = Slotitem
               )
            ]
           Slotitem
+
+instance NFData Slotitem
 
 instance HasKnownFields Slotitem where
   knownFields _ =

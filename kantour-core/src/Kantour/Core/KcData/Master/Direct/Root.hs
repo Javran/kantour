@@ -2,6 +2,7 @@ module Kantour.Core.KcData.Master.Direct.Root (
   MasterRoot (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Bgm
@@ -56,6 +57,8 @@ data MasterRoot = MasterRoot
     via CustomJSON
           '[FieldLabelModifier KcConvention]
           MasterRoot
+
+instance NFData MasterRoot
 
 instance HasKnownFields MasterRoot where
   knownFields _ =

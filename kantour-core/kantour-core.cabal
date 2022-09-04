@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c6b59530882d2a0f781e170c0de036689c20444700c3cec4f065856131f8223e
+-- hash: 93dc7afeff494bbbd6b2107fb84384fab315ecaa70e256e540077419e4c1f5a5
 
 name:           kantour-core
 version:        0.2.0.0
@@ -109,6 +109,7 @@ library
     , base
     , bytestring
     , containers
+    , deepseq
     , deriving-aeson
     , dhall
     , directory

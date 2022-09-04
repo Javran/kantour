@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Ship (
   Ship (..),
 ) where
 
+import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
@@ -48,7 +49,7 @@ data Ship = Ship
     via CustomJSON
           '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
           Ship
-
+instance NFData Ship
 instance HasKnownFields Ship where
   knownFields _ =
     kcFields
