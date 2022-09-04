@@ -34,8 +34,14 @@ module Kantour.Core.KcData.Master.Direct (
 
   1: https://github.com/haskell/aeson/issues/808
 
-  (TODO) The future plan is to have a more friendly representation
-  built on top of this one. This may include:
+  (Below are all TODOs)
+
+  `Direct` modules will eventually be organized into corresponding
+  `Org` modules. Note that only `Direct` layer are responsible
+  for verifying that the JSON data we are getting are well-formed,
+  beyond which point we just assume type system will do the right thing.
+
+  Planned features of `Org` modules:
 
   - better field names (without those mst_, api_ etc. all over the place).
   - dictionary-like containers with related ids as keys.

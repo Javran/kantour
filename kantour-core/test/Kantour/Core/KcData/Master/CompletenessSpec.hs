@@ -50,6 +50,10 @@ loadMaster =
       Left msg -> fail $ "Cannot parse data: " <> msg
       Right v -> pure v
 
+{-
+  TODO: completeness check should be in lib, which
+  would enable us to verify against new master data.
+ -}
 spec :: Spec
 spec = describe "Completeness" $
   beforeAll loadMaster $ do
