@@ -6,9 +6,6 @@ import Control.Monad
 import Data.List
 import Data.Char
 
--- well, I don't think removing some extra parameters would make anyone look smarter.
-{-# ANN module "HLint: ignore Eta reduce" #-}
-
 alterAL :: Eq k => (Maybe v -> Maybe v) -> k -> [(k,v)] -> [(k,v)]
 alterAL modify k [] = case modify Nothing of
     Nothing -> []

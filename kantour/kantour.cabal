@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 20e60bec376aba8795a59bab9bbe23f9d994bbb7c52f7155c7968bd2e4850397
+-- hash: 9ff0d19399cb6d3ce8be2d17514bd015f765517b508bfa526dbb1c935d9f7274
 
 name:           kantour
 version:        0.2.0.0
@@ -56,7 +56,46 @@ library
       Paths_kantour
   hs-source-dirs:
       src
-  ghc-options: -Wall -O2
+  default-extensions:
+      BangPatterns
+      BinaryLiterals
+      BlockArguments
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingVia
+      EmptyCase
+      EmptyDataDecls
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoUnicodeSyntax
+      NumericUnderscores
+      OverloadedStrings
+      PartialTypeSignatures
+      PolyKinds
+      RankNTypes
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeSynonymInstances
+  ghc-options: -Wall
   build-depends:
       SHA
     , aeson
@@ -104,6 +143,45 @@ executable kantour
       Paths_kantour
   hs-source-dirs:
       mains
+  default-extensions:
+      BangPatterns
+      BinaryLiterals
+      BlockArguments
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingVia
+      EmptyCase
+      EmptyDataDecls
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoUnicodeSyntax
+      NumericUnderscores
+      OverloadedStrings
+      PartialTypeSignatures
+      PolyKinds
+      RankNTypes
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeSynonymInstances
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
   build-depends:
       SHA

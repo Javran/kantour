@@ -8,14 +8,57 @@ maintainer: "Javran.C@gmail.com"
 copyright: "Copyright: (c) 2016-Present Javran Cheng"
 category: Web
 
+ghc-options:
+  - -Wall
+
+default-extensions:
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveDataTypeable
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingVia
+  - EmptyCase
+  - EmptyDataDecls
+  - ExistentialQuantification
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoUnicodeSyntax
+  - NumericUnderscores
+  - OverloadedStrings
+  - PartialTypeSignatures
+  - PolyKinds
+  - RankNTypes
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+
 dependencies:
 - aeson
+- aeson-picker
 - base
 - bytestring
-- unordered-containers
 - containers
 - text
-- aeson-picker
+- unordered-containers
 
 data-files:
 - data/api_start2.json.xz
@@ -23,19 +66,16 @@ data-files:
 library:
   source-dirs: src
   dependencies:
-    - vector
     - deriving-aeson
-    - lzma
-    - yaml
+    - dhall
+    - directory
+    - filepath
     - http-client
     - http-client-tls
-    - directory
+    - lzma
     - transformers
-    - filepath
-    - dhall
-  ghc-options:
-    - -Wall
-    - -O2
+    - vector
+    - yaml
 
 tests:
   hspec:
@@ -43,11 +83,10 @@ tests:
     source-dirs:
       - test
     dependencies:
-      - kantour-core
-      - hspec
       - QuickCheck
+      - hspec
+      - kantour-core
     ghc-options:
-      - -Wall
       - -O2
       - -threaded
       - -rtsopts

@@ -8,7 +8,51 @@ maintainer: "Javran.C@gmail.com"
 copyright: "Copyright: (c) 2016-Present Javran Cheng"
 category: Web
 
+ghc-options:
+  - -Wall
+
+default-extensions:
+  - BangPatterns
+  - BinaryLiterals
+  - BlockArguments
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveDataTypeable
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingVia
+  - EmptyCase
+  - EmptyDataDecls
+  - ExistentialQuantification
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - KindSignatures
+  - LambdaCase
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoUnicodeSyntax
+  - NumericUnderscores
+  - OverloadedStrings
+  - PartialTypeSignatures
+  - PolyKinds
+  - RankNTypes
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeSynonymInstances
+
 dependencies:
+- SHA
 - aeson
 - aeson-pretty
 - attoparsec
@@ -45,23 +89,17 @@ dependencies:
 - vector
 - vector-algorithms
 - yaml
-- SHA
 
 library:
   source-dirs: src
-  ghc-options:
-    - -Wall
-    - -O2
   dependencies:
     - kantour-core
-
 
 executables:
   kantour:
     source-dirs: mains
     main: Main.hs
     ghc-options:
-      - -Wall
       - -O2
       - -threaded
       - -rtsopts

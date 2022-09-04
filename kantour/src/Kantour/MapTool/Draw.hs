@@ -15,8 +15,6 @@ import qualified Data.Map.Strict as M
 
 import Kantour.MapTool.Types
 
-{-# ANN module "Hlint: ignore Avoid lambda" #-}
-
 twipToPixel :: Integral i => i -> Double
 twipToPixel x = fromIntegral x / 20
 

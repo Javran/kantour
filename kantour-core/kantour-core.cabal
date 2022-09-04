@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 435b279e8ad7913c223f6d65b7a325fbd5dda1d971ba53a7e88e408ea32cda40
+-- hash: 45e7bfd96b433abe37ae982fdb84cb6890829c37fda4335d470dc65d88701e13
 
 name:           kantour-core
 version:        0.2.0.0
@@ -62,7 +62,46 @@ library
       Paths_kantour_core
   hs-source-dirs:
       src
-  ghc-options: -Wall -O2
+  default-extensions:
+      BangPatterns
+      BinaryLiterals
+      BlockArguments
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingVia
+      EmptyCase
+      EmptyDataDecls
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoUnicodeSyntax
+      NumericUnderscores
+      OverloadedStrings
+      PartialTypeSignatures
+      PolyKinds
+      RankNTypes
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeSynonymInstances
+  ghc-options: -Wall
   build-depends:
       aeson
     , aeson-picker
@@ -93,6 +132,45 @@ test-suite hspec
       Paths_kantour_core
   hs-source-dirs:
       test
+  default-extensions:
+      BangPatterns
+      BinaryLiterals
+      BlockArguments
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingVia
+      EmptyCase
+      EmptyDataDecls
+      ExistentialQuantification
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      MultiWayIf
+      NamedFieldPuns
+      NoUnicodeSyntax
+      NumericUnderscores
+      OverloadedStrings
+      PartialTypeSignatures
+      PolyKinds
+      RankNTypes
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeSynonymInstances
   ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
   build-depends:
       QuickCheck

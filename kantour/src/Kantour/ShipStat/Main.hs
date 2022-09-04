@@ -42,7 +42,6 @@ example of a sample file:
 ```
 
 -}
-{-# ANN module "HLint: ignore Eta reduce" #-}
 
 processRaw :: String -> IM.IntMap Int
 processRaw =
