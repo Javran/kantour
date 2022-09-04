@@ -55,8 +55,8 @@ cluster ps =
 {-
   TODO: hijacking FetchMasterData to do other stuff. do this properly later.
  -}
-remodelChainExperiment :: MasterRoot -> IO ()
-remodelChainExperiment MasterRoot {mstShip} = do
+remodelChainExperiment :: Root -> IO ()
+remodelChainExperiment Root {mstShip} = do
   let afterShipIdToMaybe :: Maybe T.Text -> Maybe Int
       afterShipIdToMaybe m = do
         r0 <- m

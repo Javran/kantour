@@ -299,14 +299,14 @@ fetchRawFromEnv mMgr =
       <$> dataSourceFromEnv
       <*> cacheBaseFromEnv
 
-parseRoot :: BSL.ByteString -> IO MasterRoot
+parseRoot :: BSL.ByteString -> IO Root
 parseRoot raw =
   case Data.Aeson.eitherDecode raw of
     Left msg -> die ("parse error: " <> msg)
     Right r -> pure r
 
-fetch :: Maybe Manager -> DataSource -> Maybe FilePath -> IO MasterRoot
+fetch :: Maybe Manager -> DataSource -> Maybe FilePath -> IO Root
 fetch mMgr src mCacheBase = fetchRaw mMgr src mCacheBase >>= parseRoot
 
-fetchFromEnv :: Maybe Manager -> IO MasterRoot
+fetchFromEnv :: Maybe Manager -> IO Root
 fetchFromEnv mMgr = fetchRawFromEnv mMgr >>= parseRoot

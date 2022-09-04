@@ -111,4 +111,4 @@ spec = describe "Completeness" $
 
     mkTest (Proxy @Const) $ sel' "api_mst_const"
     mkTest (Proxy @ItemShop) $ sel' "api_mst_item_shop"
-    mkTest (Proxy @MasterRoot) pure
+    mkTest (Proxy @Root) pure

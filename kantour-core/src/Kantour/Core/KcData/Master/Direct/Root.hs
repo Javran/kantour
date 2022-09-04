@@ -1,5 +1,5 @@
 module Kantour.Core.KcData.Master.Direct.Root (
-  MasterRoot (..),
+  Root (..),
 ) where
 
 import Control.DeepSeq (NFData)
@@ -29,7 +29,7 @@ import Kantour.Core.KcData.Master.Direct.Useitem
 {-
   Root object of master data.
  -}
-data MasterRoot = MasterRoot
+data Root = Root
   { mstSlotitem :: [Slotitem]
   , mstShipgraph :: [Shipgraph]
   , mstShip :: [Ship]
@@ -56,11 +56,11 @@ data MasterRoot = MasterRoot
     (FromJSON)
     via CustomJSON
           '[FieldLabelModifier KcConvention]
-          MasterRoot
+          Root
 
-instance NFData MasterRoot
+instance NFData Root
 
-instance HasKnownFields MasterRoot where
+instance HasKnownFields Root where
   knownFields _ =
     kcFields
       "mst_const mst_equip_exslot_ship mst_equip_ship mst_equip_exslot \
