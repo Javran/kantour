@@ -32,6 +32,10 @@ module Kantour.Core.KcData.Master.Direct (
   - better field names (without those mst_, api_ etc. all over the place).
   - dictionary-like containers with related ids as keys.
 
+  (TODO) on a second thought, the Aeson Object *is* a direct representation
+  already, so this "Direct" layer probably serves no purpose - why don't
+  we just re-organize data from the Aeson representation?
+
  -}
 
 import Kantour.Core.KcData.Master.Direct.Bgm
