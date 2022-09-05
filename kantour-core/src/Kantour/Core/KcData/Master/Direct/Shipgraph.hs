@@ -13,6 +13,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
+import Data.Char
 
 data Shipgraph = Shipgraph
   { battleD :: Maybe [Int]
@@ -74,6 +75,7 @@ instance Verifiable Shipgraph where
       , pab
       , weda
       , wedb
+      , version
       } = do
       let warn msg = vLogS $ "Shipgraph{" <> show shipId <> "}: " <> msg
           noJust :: (Show a, Eq a) => String -> Maybe a -> _
@@ -83,6 +85,11 @@ instance Verifiable Shipgraph where
           justShaped tag var = case var of
             Just [_, _] -> pure ()
             _ -> warn $ tag <> " has wrong shape: " <> show var
+      when (length version /= 3) do
+        warn "version length should be 3"
+      when (any (\t -> T.null t || not (T.all isDigit t)) version) do
+        warn "some version elememts are not parsable as int"
+
       when (shipId <= 1500) do
         justShaped "battleD" battleD
         justShaped "battleN" battleN
