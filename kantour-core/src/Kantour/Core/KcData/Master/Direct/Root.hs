@@ -6,7 +6,7 @@ module Kantour.Core.KcData.Master.Direct.Root (
 
 import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
-import qualified Data.IntSet as IS
+import qualified Data.List.NonEmpty as NE
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
@@ -95,13 +95,14 @@ instance Verifiable Root where
       , mstStype
       , mstUseitem
       } = do
-      let verifyListWithUniqueId tag f xs = do
+      let verifyListWithUniqueId tag getId xs = do
             mapM_ verify xs
-            do
-              let count = length xs
-                  nubCount = IS.size (IS.fromList (fmap f xs))
-              when (count /= nubCount) do
-                vLogS $ tag <> ": items not unique"
+            forM_ (NE.groupAllWith getId xs) \case
+              _ NE.:| [] -> pure ()
+              x NE.:| (x1 : _) -> do
+                vLogS $ tag <> ": id " <> show (getId x) <> " is not unique"
+                vLogS $ tag <> ": " <> show x
+                vLogS $ tag <> ": " <> show x1
 
       verifyListWithUniqueId
         "mstSlotitem"
