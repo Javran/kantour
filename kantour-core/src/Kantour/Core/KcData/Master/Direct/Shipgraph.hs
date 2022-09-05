@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 module Kantour.Core.KcData.Master.Direct.Shipgraph (
   Shipgraph (..),
@@ -8,32 +9,33 @@ module Kantour.Core.KcData.Master.Direct.Shipgraph (
 import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE
+import Data.Maybe
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Shipgraph = Shipgraph
-  { ensyueN :: Maybe [Int]
-  , kaisyuN :: Maybe [Int]
-  , version :: NE.NonEmpty T.Text
-  , kaisyuD :: Maybe [Int]
-  , wedb :: Maybe [Int]
-  , ensyufD :: Maybe [Int]
-  , battleD :: Maybe [Int]
-  , filename :: T.Text
-  , pab :: Maybe [Int]
-  , sortno :: Maybe Int
-  , ensyufN :: Maybe [Int]
+  { battleD :: Maybe [Int]
   , battleN :: Maybe [Int]
-  , bokoN :: Maybe [Int]
-  , shipId :: Int
-  , mapN :: Maybe [Int]
-  , kaizoD :: Maybe [Int]
   , bokoD :: Maybe [Int]
-  , weda :: Maybe [Int]
-  , mapD :: Maybe [Int]
+  , bokoN :: Maybe [Int]
+  , ensyueN :: Maybe [Int]
+  , ensyufD :: Maybe [Int]
+  , ensyufN :: Maybe [Int]
+  , filename :: T.Text
+  , kaisyuD :: Maybe [Int]
+  , kaisyuN :: Maybe [Int]
+  , kaizoD :: Maybe [Int]
   , kaizoN :: Maybe [Int]
+  , mapD :: Maybe [Int]
+  , mapN :: Maybe [Int]
   , pa :: Maybe [Int]
+  , pab :: Maybe [Int]
+  , shipId :: Int
+  , sortno :: Maybe Int
+  , version :: NE.NonEmpty T.Text
+  , weda :: Maybe [Int]
+  , wedb :: Maybe [Int]
   }
   deriving stock (Generic, Show)
   deriving
@@ -50,5 +52,78 @@ instance HasKnownFields Shipgraph where
       \filename pab sortno ensyuf_n battle_n boko_n id \
       \map_n kaizo_d boko_d weda map_d kaizo_n pa"
 
-instance Verifiable Shipgraph
--- TODO
+instance Verifiable Shipgraph where
+  verify
+    Shipgraph
+      { shipId
+      , sortno
+      , battleD
+      , battleN
+      , bokoD
+      , bokoN
+      , ensyueN
+      , ensyufD
+      , ensyufN
+      , kaisyuD
+      , kaisyuN
+      , kaizoD
+      , kaizoN
+      , mapD
+      , mapN
+      , pa
+      , pab
+      , weda
+      , wedb
+      } = do
+      let warn msg = vLogS $ "Shipgraph{" <> show shipId <> "}: " <> msg
+          noJust :: (Show a, Eq a) => String -> Maybe a -> _
+          noJust tag var = do
+            when (isJust var) do
+              warn $ tag <> " should be Nothing: " <> show var
+          justShaped tag var = case var of
+            Just [_, _] -> pure ()
+            _ -> warn $ tag <> " has wrong shape: " <> show var
+      when (shipId <= 1500) do
+        justShaped "battleD" battleD
+        justShaped "battleN" battleN
+        when (isNothing sortno) do
+          warn "sortno is Nothing"
+        justShaped "bokoD" bokoD
+        justShaped "bokoN" bokoN
+        justShaped "ensyueN" ensyueN
+        justShaped "ensyufD" ensyufD
+        justShaped "ensyufN" ensyufN
+        justShaped "kaisyuD" kaisyuD
+        justShaped "kaisyuN" kaisyuN
+        justShaped "kaizoD" kaizoD
+        justShaped "kaizoN" kaizoN
+        justShaped "mapD" mapD
+        justShaped "mapN" mapN
+        justShaped "pa" pa
+        justShaped "pab" pab
+        justShaped "weda" weda
+        justShaped "wedb" wedb
+
+      when (shipId > 1500) do
+        -- only "battleD" and "battleN" should exist.
+        noJust "sortno" sortno
+        noJust "bokoD" bokoD
+        noJust "bokoN" bokoN
+        noJust "ensyueN" ensyueN
+        noJust "ensyufD" ensyufD
+        noJust "ensyufN" ensyufN
+        noJust "kaisyuD" kaisyuD
+        noJust "kaisyuN" kaisyuN
+        noJust "kaizoD" kaizoD
+        noJust "kaizoN" kaizoN
+        noJust "mapD" mapD
+        noJust "mapN" mapN
+        noJust "pa" pa
+        noJust "pab" pab
+        noJust "weda" weda
+        noJust "wedb" wedb
+
+      when (shipId > 5000) do
+        -- those appears to be seasonal CGs.
+        noJust "battleD" battleD
+        noJust "battleN" battleN
