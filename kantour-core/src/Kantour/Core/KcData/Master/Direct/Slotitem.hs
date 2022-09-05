@@ -1,12 +1,8 @@
-{-# LANGUAGE TypeOperators #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-
 module Kantour.Core.KcData.Master.Direct.Slotitem (
   Slotitem (..),
 ) where
 
-import Control.DeepSeq (NFData)
-import Data.Ix (inRange)
+import Data.Aeson
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
@@ -42,14 +38,9 @@ data Slotitem = Slotitem
   , soku :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "slotId" "id" : Rename "sType" "type" : KcConvention
-              )
-           ]
-          Slotitem
+
+instance FromJSON Slotitem where
+  parseJSON = parseKcMstJson [("slotId", "id"), ("sType", "type")]
 
 instance NFData Slotitem
 
@@ -77,7 +68,7 @@ instance Verifiable Slotitem where
       , leng
       , rare
       , broken
-      } = do
+      } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Slotitem{" <> T.unpack name <> "}: " <> msg
       when (length sType /= 5) do
         warn "sType supposed to have 5 elements"
@@ -85,7 +76,7 @@ instance Verifiable Slotitem where
       when (length broken /= 4) do
         warn "broken supposed to have 4 elements"
         warn $ show broken
-      let expect :: (Show a, Eq a) => String -> a -> a -> _
+      let expect :: (Show a, Eq a) => String -> a -> a -> m ()
           expect tag var e = when (var /= e) do
             warn $ tag <> " is not " <> show e <> ": " <> show var
 

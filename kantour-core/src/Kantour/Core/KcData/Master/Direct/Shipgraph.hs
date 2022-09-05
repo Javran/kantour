@@ -1,19 +1,16 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 module Kantour.Core.KcData.Master.Direct.Shipgraph (
   Shipgraph (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
+import Data.Char
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
-import Data.Char
 
 data Shipgraph = Shipgraph
   { battleD :: Maybe [Int]
@@ -39,11 +36,9 @@ data Shipgraph = Shipgraph
   , wedb :: Maybe [Int]
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
-          Shipgraph
+
+instance FromJSON Shipgraph where
+  parseJSON = parseKcMstJson [("shipId", "id")]
 
 instance NFData Shipgraph
 instance HasKnownFields Shipgraph where
@@ -76,9 +71,9 @@ instance Verifiable Shipgraph where
       , weda
       , wedb
       , version
-      } = do
+      } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Shipgraph{" <> show shipId <> "}: " <> msg
-          noJust :: (Show a, Eq a) => String -> Maybe a -> _
+          noJust :: (Show a, Eq a) => String -> Maybe a -> m ()
           noJust tag var = do
             when (isJust var) do
               warn $ tag <> " should be Nothing: " <> show var

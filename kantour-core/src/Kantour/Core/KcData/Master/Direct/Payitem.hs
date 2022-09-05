@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Direct.Payitem (
   Payitem (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.Text as T
 import Deriving.Aeson

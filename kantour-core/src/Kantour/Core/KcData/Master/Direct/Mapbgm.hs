@@ -4,7 +4,6 @@ module Kantour.Core.KcData.Master.Direct.Mapbgm (
   Mapbgm (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common

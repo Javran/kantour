@@ -8,7 +8,6 @@ module Kantour.Core.KcData.Master.Direct.Shipupgrade (
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
-import Control.DeepSeq (NFData)
 
 data Shipupgrade = Shipupgrade
   { shipId :: Int

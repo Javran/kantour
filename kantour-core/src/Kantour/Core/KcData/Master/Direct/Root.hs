@@ -4,7 +4,6 @@ module Kantour.Core.KcData.Master.Direct.Root (
   Root (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE
 import Deriving.Aeson
@@ -55,11 +54,9 @@ data Root = Root
   , mstUseitem :: [Useitem]
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier KcConvention]
-          Root
+
+instance FromJSON Root where
+  parseJSON = parseKcMstJson []
 
 instance NFData Root
 
@@ -114,7 +111,7 @@ instance Verifiable Root where
         mstShipgraph
 
       when False do
-        let getKey Ship{maxeq = i} = i
+        let getKey Ship {maxeq = i} = i
             groupped = NE.groupAllWith getKey mstShip
         forM_ (zip [0 :: Int ..] groupped) \(i, gs) -> do
           vLogS $ "# group " <> show i <> " start, key=" <> show (getKey $ NE.head gs)

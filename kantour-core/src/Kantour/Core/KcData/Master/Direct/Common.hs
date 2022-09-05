@@ -1,3 +1,5 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Kantour.Core.KcData.Master.Direct.Common (
   KcApiField,
   KcConvention,
@@ -9,6 +11,9 @@ module Kantour.Core.KcData.Master.Direct.Common (
   vLogS,
   module Control.Monad,
   NFData,
+  parseKcMstJson,
+  inRange,
+  fix,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -17,12 +22,16 @@ import Control.Monad.Writer
 import Data.Aeson
 import qualified Data.Aeson.Key
 import qualified Data.Aeson.KeyMap as KM
+import Data.Aeson.Types
 import Data.Bifunctor
 import qualified Data.DList as DL
+import Data.Ix (inRange)
+import Data.Maybe
 import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
 import Deriving.Aeson
+import GHC.Generics
 
 type KcConvention = [CamelToSnake, KcApiField]
 
@@ -102,3 +111,16 @@ vLogT = tell . DL.singleton
 
 vLogS :: MonadWriter (DL.DList T.Text) m => String -> m ()
 vLogS = vLogT . T.pack
+
+parseKcMstJson ::
+  (Generic a, GFromJSON Zero (Rep a)) =>
+  [(String, String)] ->
+  Value ->
+  Parser a
+parseKcMstJson renameRules = genericParseJSON opt
+  where
+    renamer x = fromMaybe x (lookup x renameRules)
+    opt =
+      defaultOptions
+        { fieldLabelModifier = ("api_" <>) . camelTo2 '_' . renamer
+        }

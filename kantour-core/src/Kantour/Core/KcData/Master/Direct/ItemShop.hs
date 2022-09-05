@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Direct.ItemShop (
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
-import Control.DeepSeq (NFData)
 
 data ItemShop = ItemShop
   { cabinet_1 :: [Int]

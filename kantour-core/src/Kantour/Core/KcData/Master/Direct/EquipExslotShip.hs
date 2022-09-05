@@ -2,7 +2,6 @@ module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
   EquipExslotShip (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common

@@ -1,19 +1,15 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 module Kantour.Core.KcData.Master.Direct.Ship (
   Ship (..),
 ) where
 
-import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
-import Data.Ix (inRange)
+import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
-import Data.Char
 
 data Ship = Ship
   { shipId :: Int
@@ -48,12 +44,12 @@ data Ship = Ship
   , voicef :: Maybe Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
-          Ship
+
+instance FromJSON Ship where
+  parseJSON = parseKcMstJson [("shipId", "id")]
+
 instance NFData Ship
+
 instance HasKnownFields Ship where
   knownFields _ =
     kcFields
@@ -88,12 +84,12 @@ instance Verifiable Ship where
       , afterfuel
       , afterbull
       , voicef
-      } = do
+      } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Ship{" <> T.unpack name <> "," <> show shipId <> "}: " <> msg
-          isJust', isNothing' :: (Show a, Eq a) => String -> Maybe a -> _
+          isJust', isNothing' :: (Show a, Eq a) => String -> Maybe a -> m ()
           isJust' tag var = unless (isJust var) do
             warn $ tag <> " should be Just"
-          expect :: (Show a, Eq a) => String -> a -> a -> _
+          expect :: (Show a, Eq a) => String -> a -> a -> m ()
           expect tag var e = unless (var == e) do
             warn $ tag <> " should be " <> show e <> ", got: " <> show var
           isNothing' tag var = expect tag var Nothing
@@ -116,8 +112,11 @@ instance Verifiable Ship where
           isJust' "buildtime" buildtime
           isJust' "broken" broken
           isJust' "powup" powup
-          isJust' "backs" backs
-
+          case backs of
+            Nothing ->
+              warn "backs should be Just"
+            Just v -> unless (inRange (1, 8) v) do
+              warn $ "backs should be in range [1,8]: " <> show v
           case afterlv of
             Nothing -> do
               isNothing' "aftershipid" aftershipid

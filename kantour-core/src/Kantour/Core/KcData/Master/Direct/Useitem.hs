@@ -8,7 +8,6 @@ module Kantour.Core.KcData.Master.Direct.Useitem (
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
-import Control.DeepSeq (NFData)
 
 data Useitem = Useitem
   { usetype :: Int
