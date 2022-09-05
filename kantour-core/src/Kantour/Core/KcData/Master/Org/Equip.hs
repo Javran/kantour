@@ -10,7 +10,7 @@ import qualified Kantour.Core.KcData.Master.Direct.Slotitem as D
 import Kantour.Core.KcData.Master.Org.Common
 
 data Equip = Equip
-  { eId :: Int
+  { mstId :: Int
   , sakb :: Int
   , bakk :: Int
   , antiAir :: Int -- tyku / 対空
