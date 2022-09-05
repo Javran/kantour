@@ -6,6 +6,7 @@ module Kantour.Core.KcData.Master.Direct.Slotitem (
 ) where
 
 import Control.DeepSeq (NFData)
+import Data.Ix (inRange)
 import qualified Data.Text as T
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
@@ -73,12 +74,17 @@ instance Verifiable Slotitem where
       , sakb
       , luck
       , usebull
+      , leng
+      , rare
+      , broken
       } = do
       let warn msg = vLogS $ "Slotitem{" <> T.unpack name <> "}: " <> msg
-          l = length sType
-      when (l /= 5) do
+      when (length sType /= 5) do
         warn "sType supposed to have 5 elements"
         warn $ show slotId
+      when (length broken /= 4) do
+        warn "broken supposed to have 4 elements"
+        warn $ show broken
       let expect :: (Show a, Eq a) => String -> a -> a -> _
           expect tag var e = when (var /= e) do
             warn $ tag <> " is not " <> show e <> ": " <> show var
@@ -92,3 +98,9 @@ instance Verifiable Slotitem where
       expect "sakb" sakb 0
       expect "luck" luck 0
       expect "usebull" usebull "0"
+      unless (inRange (0, 5) leng) do
+        warn "leng not in range [0,5]"
+        warn (show leng)
+      unless (inRange (0, 7) rare) do
+        warn "rare not in range [0,7]"
+        warn (show rare)
