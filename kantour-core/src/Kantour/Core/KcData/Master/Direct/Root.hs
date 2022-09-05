@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.Direct.Root (
 ) where
 
 import Data.Aeson as Aeson
+import qualified Data.IntSet as IS
 import qualified Data.List.NonEmpty as NE
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
@@ -104,10 +105,19 @@ instance Verifiable Root where
         "mstSlotitem"
         (\Slotitem {kcId = i} -> i)
         mstSlotitem
+
       verifyListWithUniqueId
         "mstShipgraph"
         (\Shipgraph {kcId = i} -> i)
         mstShipgraph
+
+      verifyListWithUniqueId
+        "mstShip"
+        (\Ship {kcId = i} -> i)
+        mstShip
+
+      when (length mstEquipExslot /= IS.size (IS.fromList mstEquipExslot)) do
+        vLogS "mstEquipExslot: items are not unique"
 
       when False do
         let getKey Ship {maxeq = i} = i
@@ -117,7 +127,3 @@ instance Verifiable Root where
           forM_ (NE.take 2 gs) \g ->
             vLogS $ "# debug: " <> show g
           vLogS $ "# group " <> show i <> " end"
-      verifyListWithUniqueId
-        "mstShip"
-        (\Ship {kcId = i} -> i)
-        mstShip
