@@ -8,8 +8,10 @@ module Kantour.Core.KcData.Master.Direct.Common (
   vLogT,
   vLogS,
   module Control.Monad,
+  NFData,
 ) where
 
+import Control.DeepSeq (NFData)
 import Control.Monad
 import Control.Monad.Writer
 import Data.Aeson

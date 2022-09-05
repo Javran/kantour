@@ -112,3 +112,16 @@ instance Verifiable Root where
         "mstShipgraph"
         (\Shipgraph {shipId = i} -> i)
         mstShipgraph
+
+      when False do
+        let getKey Ship{maxeq = i} = i
+            groupped = NE.groupAllWith getKey mstShip
+        forM_ (zip [0 :: Int ..] groupped) \(i, gs) -> do
+          vLogS $ "# group " <> show i <> " start, key=" <> show (getKey $ NE.head gs)
+          forM_ (NE.take 2 gs) \g ->
+            vLogS $ "# debug: " <> show g
+          vLogS $ "# group " <> show i <> " end"
+      verifyListWithUniqueId
+        "mstShip"
+        (\Ship {shipId = i} -> i)
+        mstShip
