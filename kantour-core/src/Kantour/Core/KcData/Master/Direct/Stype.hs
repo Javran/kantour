@@ -15,12 +15,12 @@ data Stype = Stype
   , scnt :: Int
   , equipType :: HM.HashMap T.Text Int
   , name :: T.Text
-  , sId :: Int
+  , kcId :: Int
   }
   deriving stock (Generic, Show)
 
 instance FromJSON Stype where
-  parseJSON = parseKcMstJson [("sId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Stype
 

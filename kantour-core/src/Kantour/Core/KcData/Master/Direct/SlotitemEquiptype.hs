@@ -9,14 +9,14 @@ import Data.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data SlotitemEquiptype = SlotitemEquiptype
-  { sId :: Int
+  { kcId :: Int
   , showFlg :: Int
   , name :: T.Text
   }
   deriving stock (Generic, Show)
 
 instance FromJSON SlotitemEquiptype where
-  parseJSON = parseKcMstJson [("sId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData SlotitemEquiptype
 

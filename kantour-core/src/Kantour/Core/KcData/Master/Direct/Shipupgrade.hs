@@ -9,7 +9,7 @@ import Data.Aeson as Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Shipupgrade = Shipupgrade
-  { shipId :: Int
+  { kcId :: Int
   , aviationMatCount :: Int
   , upgradeType :: Int
   , drawingCount :: Int
@@ -24,7 +24,7 @@ data Shipupgrade = Shipupgrade
   deriving stock (Generic, Show)
 
 instance FromJSON Shipupgrade where
-  parseJSON = parseKcMstJson [("shipId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Shipupgrade
 

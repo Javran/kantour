@@ -12,7 +12,7 @@ data EquipExslotShip = EquipExslotShip
   deriving stock (Generic, Show)
 
 instance FromJSON EquipExslotShip where
-  parseJSON = parseKcMstJson []
+  parseJSON = parseKcMstJson
 
 instance NFData EquipExslotShip
 instance HasKnownFields EquipExslotShip where

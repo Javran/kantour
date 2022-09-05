@@ -74,9 +74,9 @@ remodelChainExperiment Root {mstShip} = do
                -}
               error $ "duplicated key: " <> show k
           )
-          $ fmap (\s -> (Ship.shipId s, s)) allyShips
+          $ fmap (\s -> (Ship.kcId s, s)) allyShips
         where
-          allyShips = filter ((<= 1500) . Ship.shipId) mstShip
+          allyShips = filter ((<= 1500) . Ship.kcId) mstShip
       (shipKs, shipVs) = unzip $ IM.toAscList ships
       remodelGraph :: IM.IntMap IS.IntSet
       remodelGraph =
@@ -95,10 +95,10 @@ remodelChainExperiment Root {mstShip} = do
           case afterShipIdToMaybe . Ship.aftershipid $ ship of
             Nothing -> pure ()
             Just afterId -> do
-              UF.union (points IM.! Ship.shipId ship) (points IM.! afterId)
+              UF.union (points IM.! Ship.kcId ship) (points IM.! afterId)
         cluster $ zip (fmap snd pointsPre) shipVs
       sortRemodel :: [Ship] -> [Ship]
-      sortRemodel = sortOn (\s -> (rem (Ship.sortId s) 10, Ship.sortno s, Ship.shipId s))
+      sortRemodel = sortOn (\s -> (rem (Ship.sortId s) 10, Ship.sortno s, Ship.kcId s))
       noInDegShips = IS.difference (IS.fromList shipKs) afterShipIds
         where
           afterShipIds =
@@ -109,7 +109,7 @@ remodelChainExperiment Root {mstShip} = do
   let shipToText s =
         let ps x = T.pack (show x)
          in Ship.name s <> "("
-              <> ps (Ship.shipId s)
+              <> ps (Ship.kcId s)
               <> ","
               <> ps (rem (Ship.sortId s) 10)
               <> ","
@@ -142,7 +142,7 @@ remodelChainExperiment Root {mstShip} = do
   forM_ (IM.toList remodelClusters) $ \(_k, vs) -> case vs of
     [v] -> putStrLn $ "Singleton: " <> show v
     _ ->
-      case filter ((`IS.member` noInDegShips) . Ship.shipId) vs of
+      case filter ((`IS.member` noInDegShips) . Ship.kcId) vs of
         [] -> do
           let sorted = sortRemodel vs
           let ppr xs =
@@ -155,9 +155,9 @@ remodelChainExperiment Root {mstShip} = do
           let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sorted
           unless (sortIdLastDigits == nub sortIdLastDigits) $
             T.putStrLn $ "> " <> T.unwords (fmap (\s -> T.pack $ show s) sortIdLastDigits)
-          handleShipCluster vs (Ship.shipId $ head sorted)
+          handleShipCluster vs (Ship.kcId $ head sorted)
         [baseShipId] ->
-          handleShipCluster vs (Ship.shipId baseShipId)
+          handleShipCluster vs (Ship.kcId baseShipId)
         xs -> do
           putStrLn "Warning: multiple base ship?"
           print xs

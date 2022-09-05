@@ -14,7 +14,7 @@ data IntValStrVal = IntValStrVal
   deriving stock (Generic, Show)
 
 instance FromJSON IntValStrVal where
-  parseJSON = parseKcMstJson []
+  parseJSON = parseKcMstJson
 
 instance NFData IntValStrVal
 
@@ -26,7 +26,7 @@ data Const = Const
   deriving stock (Generic, Show)
 
 instance FromJSON Const where
-  parseJSON = parseKcMstJson []
+  parseJSON = parseKcMstJson
 
 instance NFData Const
 

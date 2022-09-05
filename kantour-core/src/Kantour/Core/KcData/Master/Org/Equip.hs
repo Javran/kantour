@@ -48,7 +48,7 @@ instance FromDirect Equip where
 
   fromDirect
     D.Slotitem
-      { slotId = mstId
+      { kcId = mstId
       , sakb
       , bakk
       , tyku = antiAir
@@ -61,7 +61,7 @@ instance FromDirect Equip where
       , luck
       , raik
       , sortno = sortNo
-      , sType = eType
+      , kcType = eType
       , raig = torpedo
       , baku = bombing
       , souk = armor

@@ -10,8 +10,8 @@ import Kantour.Core.KcData.Master.Direct.Common
 
 data Payitem = Payitem
   { price :: Int
-  , pType :: Int
-  , pId :: Int
+  , kcType :: Int
+  , kcId :: Int
   , item :: [Int]
   , shopDescription :: T.Text
   , name :: T.Text
@@ -20,7 +20,7 @@ data Payitem = Payitem
   deriving stock (Generic, Show)
 
 instance FromJSON Payitem where
-  parseJSON = parseKcMstJson [("pType", "type"), ("pId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Payitem
 instance HasKnownFields Payitem where

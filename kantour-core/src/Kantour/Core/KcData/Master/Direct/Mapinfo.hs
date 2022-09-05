@@ -12,7 +12,7 @@ data Mapinfo = Mapinfo
   { infotext :: T.Text
   , sallyFlag :: [Int]
   , requiredDefeatCount :: Maybe Int
-  , mId :: Int
+  , kcId :: Int
   , item :: [Int]
   , maxMaphp :: Maybe Int
   , opetext :: T.Text
@@ -24,7 +24,7 @@ data Mapinfo = Mapinfo
   deriving stock (Generic, Show)
 
 instance FromJSON Mapinfo where
-  parseJSON = parseKcMstJson [("mId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Mapinfo
 instance HasKnownFields Mapinfo where

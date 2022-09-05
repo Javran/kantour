@@ -9,13 +9,13 @@ import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Bgm = Bgm
-  { bgmId :: Int
+  { kcId :: Int
   , name :: T.Text
   }
   deriving stock (Generic, Show)
 
 instance FromJSON Bgm where
-  parseJSON = parseKcMstJson [("bgmId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Bgm
 

@@ -11,7 +11,7 @@ import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Ship = Ship
-  { shipId :: Int
+  { kcId :: Int
   , sortno :: Maybe Int
   , sortId :: Int
   , name :: T.Text
@@ -45,7 +45,7 @@ data Ship = Ship
   deriving stock (Generic, Show)
 
 instance FromJSON Ship where
-  parseJSON = parseKcMstJson [("shipId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Ship
 
@@ -60,7 +60,7 @@ instance HasKnownFields Ship where
 instance Verifiable Ship where
   verify
     Ship
-      { shipId
+      { kcId
       , name
       , sortno
       , bullMax
@@ -84,7 +84,7 @@ instance Verifiable Ship where
       , afterbull
       , voicef
       } = fix \(_ :: m ()) -> do
-      let warn msg = vLogS $ "Ship{" <> T.unpack name <> "," <> show shipId <> "}: " <> msg
+      let warn msg = vLogS $ "Ship{" <> T.unpack name <> "," <> show kcId <> "}: " <> msg
           isJust', isNothing' :: (Show a, Eq a) => String -> Maybe a -> m ()
           isJust' tag var = unless (isJust var) do
             warn $ tag <> " should be Just"
@@ -93,7 +93,7 @@ instance Verifiable Ship where
             warn $ tag <> " should be " <> show e <> ", got: " <> show var
           isNothing' tag var = expect tag var Nothing
 
-      if shipId <= 1500
+      if kcId <= 1500
         then do
           isJust' "sortno" sortno
           isJust' "fuelMax" fuelMax

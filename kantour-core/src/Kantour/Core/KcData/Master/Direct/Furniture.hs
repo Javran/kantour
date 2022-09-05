@@ -15,9 +15,9 @@ data Furniture = Furniture
   , version :: Int
   , activeFlag :: Int
   , outsideId :: Int
-  , fType :: Int
+  , kcType :: Int
   , rarity :: Int
-  , fId :: Int
+  , kcId :: Int
   , no :: Int
   , description :: T.Text
   , saleflg :: Int
@@ -25,7 +25,7 @@ data Furniture = Furniture
   deriving stock (Generic, Show)
 
 instance FromJSON Furniture where
-  parseJSON = parseKcMstJson [("fType", "type"), ("fId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Furniture
 instance HasKnownFields Furniture where

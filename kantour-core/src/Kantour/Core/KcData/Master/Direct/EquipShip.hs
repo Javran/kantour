@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Kantour.Core.KcData.Master.Direct.EquipShip (
   EquipShip (..),
 ) where
@@ -12,7 +14,7 @@ data EquipShip = EquipShip
   deriving stock (Generic, Show)
 
 instance FromJSON EquipShip where
-  parseJSON = parseKcMstJson [("bgmId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData EquipShip
 instance HasKnownFields EquipShip where

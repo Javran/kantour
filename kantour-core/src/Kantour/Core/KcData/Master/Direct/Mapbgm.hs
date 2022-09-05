@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Kantour.Core.KcData.Master.Direct.Mapbgm (
   Mapbgm (..),
 ) where
@@ -8,7 +10,7 @@ import Kantour.Core.KcData.Master.Direct.Common
 data Mapbgm = Mapbgm
   { movingBgm :: Int
   , mapBgm :: [Int]
-  , mId :: Int
+  , kcId :: Int
   , bossBgm :: [Int]
   , mapareaId :: Int
   , no :: Int
@@ -16,7 +18,7 @@ data Mapbgm = Mapbgm
   deriving stock (Generic, Show)
 
 instance FromJSON Mapbgm where
-  parseJSON = parseKcMstJson [("mId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Mapbgm
 instance HasKnownFields Mapbgm where

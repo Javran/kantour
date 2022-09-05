@@ -11,14 +11,14 @@ import Kantour.Core.KcData.Master.Direct.Common
 data Furnituregraph = Furnituregraph
   { version :: T.Text
   , filename :: T.Text
-  , fgType :: Int
-  , fgId :: Int
+  , kcType :: Int
+  , kcId :: Int
   , no :: Int
   }
   deriving stock (Generic, Show)
 
 instance FromJSON Furnituregraph where
-  parseJSON = parseKcMstJson [("fgType", "type"), ("fgId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Furnituregraph
 

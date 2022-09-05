@@ -105,12 +105,14 @@ vLogS = vLogT . T.pack
 
 parseKcMstJson ::
   (Generic a, GFromJSON Zero (Rep a)) =>
-  [(String, String)] ->
   Value ->
   Parser a
-parseKcMstJson renameRules = genericParseJSON opt
+parseKcMstJson = genericParseJSON opt
   where
-    renamer x = fromMaybe x (lookup x renameRules)
+    renamer = \case
+      "kcId" -> "id"
+      "kcType" -> "type"
+      x -> x
     opt =
       defaultOptions
         { fieldLabelModifier = ("api_" <>) . camelTo2 '_' . renamer

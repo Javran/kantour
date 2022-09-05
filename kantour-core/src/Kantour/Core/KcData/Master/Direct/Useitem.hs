@@ -12,14 +12,14 @@ data Useitem = Useitem
   { usetype :: Int
   , category :: Int
   , price :: Int
-  , uId :: Int
+  , kcId :: Int
   , name :: T.Text
   , description :: [T.Text]
   }
   deriving stock (Generic, Show)
 
 instance FromJSON Useitem where
-  parseJSON = parseKcMstJson [("uId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Useitem
 instance HasKnownFields Useitem where

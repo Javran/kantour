@@ -12,7 +12,7 @@ data ItemShop = ItemShop
   deriving stock (Generic, Show)
 
 instance FromJSON ItemShop where
-  parseJSON = parseKcMstJson []
+  parseJSON = parseKcMstJson
 
 instance NFData ItemShop
 

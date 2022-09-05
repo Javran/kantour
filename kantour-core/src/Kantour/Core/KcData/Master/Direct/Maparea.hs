@@ -9,14 +9,14 @@ import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Maparea = Maparea
-  { mType :: Int
-  , mId :: Int
+  { kcType :: Int
+  , kcId :: Int
   , name :: T.Text
   }
   deriving stock (Generic, Show)
 
 instance FromJSON Maparea where
-  parseJSON = parseKcMstJson [("mType", "type"), ("mId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Maparea
 

@@ -28,7 +28,7 @@ data Shipgraph = Shipgraph
   , mapN :: Maybe [Int]
   , pa :: Maybe [Int]
   , pab :: Maybe [Int]
-  , shipId :: Int
+  , kcId :: Int
   , sortno :: Maybe Int
   , version :: NE.NonEmpty T.Text
   , weda :: Maybe [Int]
@@ -37,7 +37,7 @@ data Shipgraph = Shipgraph
   deriving stock (Generic, Show)
 
 instance FromJSON Shipgraph where
-  parseJSON = parseKcMstJson [("shipId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Shipgraph
 instance HasKnownFields Shipgraph where
@@ -50,7 +50,7 @@ instance HasKnownFields Shipgraph where
 instance Verifiable Shipgraph where
   verify
     Shipgraph
-      { shipId
+      { kcId
       , sortno
       , battleD
       , battleN
@@ -71,7 +71,7 @@ instance Verifiable Shipgraph where
       , wedb
       , version
       } = fix \(_ :: m ()) -> do
-      let warn msg = vLogS $ "Shipgraph{" <> show shipId <> "}: " <> msg
+      let warn msg = vLogS $ "Shipgraph{" <> show kcId <> "}: " <> msg
           noJust :: (Show a, Eq a) => String -> Maybe a -> m ()
           noJust tag var = do
             when (isJust var) do
@@ -84,7 +84,7 @@ instance Verifiable Shipgraph where
       when (any (\t -> T.null t || not (T.all isDigit t)) version) do
         warn "some version elememts are not parsable as int"
 
-      when (shipId <= 1500) do
+      when (kcId <= 1500) do
         justShaped "battleD" battleD
         justShaped "battleN" battleN
         when (isNothing sortno) do
@@ -105,7 +105,7 @@ instance Verifiable Shipgraph where
         justShaped "weda" weda
         justShaped "wedb" wedb
 
-      when (shipId > 1500) do
+      when (kcId > 1500) do
         -- only "battleD" and "battleN" should exist.
         noJust "sortno" sortno
         noJust "bokoD" bokoD
@@ -124,7 +124,7 @@ instance Verifiable Shipgraph where
         noJust "weda" weda
         noJust "wedb" wedb
 
-      when (shipId > 5000) do
+      when (kcId > 5000) do
         -- those appears to be seasonal CGs.
         noJust "battleD" battleD
         noJust "battleN" battleN

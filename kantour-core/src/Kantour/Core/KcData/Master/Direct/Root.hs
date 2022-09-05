@@ -55,7 +55,7 @@ data Root = Root
   deriving stock (Generic, Show)
 
 instance FromJSON Root where
-  parseJSON = parseKcMstJson []
+  parseJSON = parseKcMstJson
 
 instance NFData Root
 
@@ -102,11 +102,11 @@ instance Verifiable Root where
 
       verifyListWithUniqueId
         "mstSlotitem"
-        (\Slotitem {slotId = i} -> i)
+        (\Slotitem {kcId = i} -> i)
         mstSlotitem
       verifyListWithUniqueId
         "mstShipgraph"
-        (\Shipgraph {shipId = i} -> i)
+        (\Shipgraph {kcId = i} -> i)
         mstShipgraph
 
       when False do
@@ -119,5 +119,5 @@ instance Verifiable Root where
           vLogS $ "# group " <> show i <> " end"
       verifyListWithUniqueId
         "mstShip"
-        (\Ship {shipId = i} -> i)
+        (\Ship {kcId = i} -> i)
         mstShip

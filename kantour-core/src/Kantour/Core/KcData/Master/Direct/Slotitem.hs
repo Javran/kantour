@@ -7,7 +7,7 @@ import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Slotitem = Slotitem
-  { slotId :: Int
+  { kcId :: Int
   , sakb :: Int
   , bakk :: Int
   , tyku :: Int
@@ -20,7 +20,7 @@ data Slotitem = Slotitem
   , luck :: Int
   , raik :: Int
   , sortno :: Int
-  , sType :: [Int]
+  , kcType :: [Int]
   , raig :: Int
   , baku :: Int
   , souk :: Int
@@ -39,7 +39,7 @@ data Slotitem = Slotitem
   deriving stock (Generic, Show)
 
 instance FromJSON Slotitem where
-  parseJSON = parseKcMstJson [("slotId", "id"), ("sType", "type")]
+  parseJSON = parseKcMstJson
 
 instance NFData Slotitem
 
@@ -53,9 +53,9 @@ instance HasKnownFields Slotitem where
 instance Verifiable Slotitem where
   verify
     Slotitem
-      { slotId
+      { kcId
       , name
-      , sType
+      , kcType
       , taik
       , atap
       , raim = _
@@ -69,9 +69,9 @@ instance Verifiable Slotitem where
       , broken
       } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Slotitem{" <> T.unpack name <> "}: " <> msg
-      when (length sType /= 5) do
+      when (length kcType /= 5) do
         warn "sType supposed to have 5 elements"
-        warn $ show slotId
+        warn $ show kcId
       when (length broken /= 4) do
         warn "broken supposed to have 4 elements"
         warn $ show broken

@@ -22,7 +22,7 @@ data Mission = Mission
   , difficulty :: Int
   , deckNum :: Int
   , winItem2 :: [Int]
-  , mId :: Int
+  , kcId :: Int
   , name :: T.Text
   , mapareaId :: Int
   , useFuel :: Double
@@ -30,7 +30,7 @@ data Mission = Mission
   deriving stock (Generic, Show)
 
 instance FromJSON Mission where
-  parseJSON = parseKcMstJson [("mId", "id")]
+  parseJSON = parseKcMstJson
 
 instance NFData Mission
 
