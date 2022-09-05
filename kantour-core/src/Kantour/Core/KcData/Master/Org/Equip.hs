@@ -48,7 +48,7 @@ instance FromDirect Equip where
 
   fromDirect
     D.Slotitem
-      { slotId = eId
+      { slotId = mstId
       , sakb
       , bakk
       , tyku = antiAir
@@ -82,7 +82,7 @@ instance FromDirect Equip where
         _ -> illformed "broken"
       pure
         Equip
-          { eId
+          { mstId
           , sakb
           , bakk
           , antiAir

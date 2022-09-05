@@ -74,7 +74,7 @@ instance FromDirect Root where
       } = do
       let buildFromList getId xs =
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
-      equips <- buildFromList (\Equip {eId} -> eId) mstSlotitem
+      equips <- buildFromList (\Equip {mstId = i} -> i) mstSlotitem
       pure
         Root
           { equips
