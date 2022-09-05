@@ -25,6 +25,9 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import System.Environment
 import System.Exit
+import Kantour.Core.KcData.Master.Direct.Common (Verifiable(verify))
+import Control.Monad.Writer.CPS
+import Data.Foldable
 
 data SubCmdMasterLab
 
@@ -167,6 +170,13 @@ defaultMain =
       raw <- fetchRawFromEnv (Just mgr)
       print (BSL.length raw)
       print (sha256 raw)
+    ["verify"] -> do
+      mgr <- newManager tlsManagerSettings
+      mstRoot <- fetchFromEnv (Just mgr)
+      let ((), w) = runWriter $ verify mstRoot
+      putStrLn "# BEGIN"
+      mapM_ T.putStrLn (toList w)
+      putStrLn "# END"
     ["remodel-exp"] -> do
       mgr <- newManager tlsManagerSettings
       fetchFromEnv (Just mgr) >>= remodelChainExperiment

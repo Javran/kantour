@@ -1,9 +1,12 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Kantour.Core.KcData.Master.Direct.Root (
   Root (..),
 ) where
 
 import Control.DeepSeq (NFData)
 import Data.Aeson as Aeson
+import qualified Data.IntSet as IS
 import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
@@ -67,3 +70,44 @@ instance HasKnownFields Root where
       \mst_furniture mst_furnituregraph mst_maparea mst_mapbgm mst_mapinfo \
       \mst_bgm mst_item_shop mst_mission mst_payitem mst_ship mst_shipgraph \
       \mst_shipupgrade mst_slotitem mst_slotitem_equiptype mst_stype mst_useitem"
+
+instance Verifiable Root where
+  verify
+    Root
+      { mstSlotitem
+      , mstShipgraph
+      , mstShip
+      , mstEquipExslot
+      , mstBgm
+      , mstItemShop
+      , mstConst
+      , mstEquipExslotShip
+      , mstEquipShip
+      , mstFurniture
+      , mstFurnituregraph
+      , mstMaparea
+      , mstMapbgm
+      , mstMapinfo
+      , mstMission
+      , mstPayitem
+      , mstShipupgrade
+      , mstSlotitemEquiptype
+      , mstStype
+      , mstUseitem
+      } = do
+      let verifyListWithUniqueId tag f xs = do
+            mapM_ verify xs
+            do
+              let count = length xs
+                  nubCount = IS.size (IS.fromList (fmap f xs))
+              when (count /= nubCount) do
+                vLogS $ tag <> ": items not unique"
+
+      verifyListWithUniqueId
+        "mstSlotitem"
+        (\Slotitem {slotId = i} -> i)
+        mstSlotitem
+      verifyListWithUniqueId
+        "mstShipgraph"
+        (\Shipgraph {shipId = i} -> i)
+        mstShipgraph

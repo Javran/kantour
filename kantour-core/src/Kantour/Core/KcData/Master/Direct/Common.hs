@@ -7,8 +7,10 @@ module Kantour.Core.KcData.Master.Direct.Common (
   Verifiable (..),
   vLogT,
   vLogS,
+  module Control.Monad,
 ) where
 
+import Control.Monad
 import Control.Monad.Writer
 import Data.Aeson
 import qualified Data.Aeson.Key

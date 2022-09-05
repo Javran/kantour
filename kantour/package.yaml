@@ -88,6 +88,7 @@ dependencies:
 - unordered-containers
 - vector
 - vector-algorithms
+- writer-cps-mtl
 - yaml
 
 library:

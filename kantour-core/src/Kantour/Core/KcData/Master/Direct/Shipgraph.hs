@@ -49,3 +49,6 @@ instance HasKnownFields Shipgraph where
       "ensyue_n kaisyu_n version kaisyu_d wedb ensyuf_d battle_d \
       \filename pab sortno ensyuf_n battle_n boko_n id \
       \map_n kaizo_d boko_d weda map_d kaizo_n pa"
+
+instance Verifiable Shipgraph
+-- TODO

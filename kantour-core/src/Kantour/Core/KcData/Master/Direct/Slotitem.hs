@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 module Kantour.Core.KcData.Master.Direct.Slotitem (
   Slotitem (..),
@@ -57,3 +58,37 @@ instance HasKnownFields Slotitem where
       "id sakb bakk tyku leng houg version tais houm saku luck raik \
       \sortno type raig baku souk broken taik raim name usebull atap \
       \rare houk cost distance soku"
+
+instance Verifiable Slotitem where
+  verify
+    Slotitem
+      { slotId
+      , name
+      , sType
+      , taik
+      , atap
+      , raim = _
+      , raik
+      , bakk
+      , sakb
+      , luck
+      , usebull
+      } = do
+      let warn msg = vLogS $ "Slotitem{" <> T.unpack name <> "}: " <> msg
+          l = length sType
+      when (l /= 5) do
+        warn "sType supposed to have 5 elements"
+        warn $ show slotId
+      let expect :: (Show a, Eq a) => String -> a -> a -> _
+          expect tag var e = when (var /= e) do
+            warn $ tag <> " is not " <> show e <> ": " <> show var
+
+      expect "taik" taik 0
+      expect "atap" atap 0
+      -- raim is not 0 for few items.
+      -- expect "raim" raim 0
+      expect "raik" raik 0
+      expect "bakk" bakk 0
+      expect "sakb" sakb 0
+      expect "luck" luck 0
+      expect "usebull" usebull "0"
