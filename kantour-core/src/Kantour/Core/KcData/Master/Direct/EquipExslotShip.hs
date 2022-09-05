@@ -3,7 +3,6 @@ module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
 ) where
 
 import Data.Aeson as Aeson
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data EquipExslotShip = EquipExslotShip
@@ -11,11 +10,9 @@ data EquipExslotShip = EquipExslotShip
   , slotitemId :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier KcConvention]
-          EquipExslotShip
+
+instance FromJSON EquipExslotShip where
+  parseJSON = parseKcMstJson []
 
 instance NFData EquipExslotShip
 instance HasKnownFields EquipExslotShip where

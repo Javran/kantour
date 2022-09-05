@@ -8,7 +8,6 @@ import Data.Aeson as Aeson
 import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Ship = Ship

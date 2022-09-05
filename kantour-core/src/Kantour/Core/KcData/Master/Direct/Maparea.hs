@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Maparea (
   Maparea (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Maparea (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Maparea = Maparea
@@ -16,15 +14,9 @@ data Maparea = Maparea
   , name :: T.Text
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "mType" "type"
-                  : Rename "mId" "id" : KcConvention
-              )
-           ]
-          Maparea
+
+instance FromJSON Maparea where
+  parseJSON = parseKcMstJson [("mType", "type"), ("mId", "id")]
 
 instance NFData Maparea
 

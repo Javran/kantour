@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Direct.Const (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data IntValStrVal = IntValStrVal
@@ -13,11 +12,9 @@ data IntValStrVal = IntValStrVal
   , stringValue :: T.Text
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier KcConvention]
-          IntValStrVal
+
+instance FromJSON IntValStrVal where
+  parseJSON = parseKcMstJson []
 
 instance NFData IntValStrVal
 
@@ -27,11 +24,9 @@ data Const = Const
   , dpflagQuest :: IntValStrVal
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier KcConvention]
-          Const
+
+instance FromJSON Const where
+  parseJSON = parseKcMstJson []
 
 instance NFData Const
 

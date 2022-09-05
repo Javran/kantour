@@ -1,12 +1,11 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.SlotitemEquiptype (
   SlotitemEquiptype (..),
 ) where
 
 import qualified Data.Text as T
-import Deriving.Aeson
+import Data.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data SlotitemEquiptype = SlotitemEquiptype
@@ -15,15 +14,12 @@ data SlotitemEquiptype = SlotitemEquiptype
   , name :: T.Text
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "sId" "id" : KcConvention
-              )
-           ]
-          SlotitemEquiptype
+
+instance FromJSON SlotitemEquiptype where
+  parseJSON = parseKcMstJson [("sId", "id")]
+
 instance NFData SlotitemEquiptype
+
 instance HasKnownFields SlotitemEquiptype where
   knownFields _ =
     kcFields

@@ -1,12 +1,11 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Useitem (
   Useitem (..),
 ) where
 
+import Data.Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Useitem = Useitem
@@ -18,12 +17,10 @@ data Useitem = Useitem
   , description :: [T.Text]
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier (Rename "uId" "id" : KcConvention)
-           ]
-          Useitem
+
+instance FromJSON Useitem where
+  parseJSON = parseKcMstJson [("uId", "id")]
+
 instance NFData Useitem
 instance HasKnownFields Useitem where
   knownFields _ =

@@ -1,12 +1,11 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Shipupgrade (
   Shipupgrade (..),
 ) where
 
 import Data.Aeson as Aeson
-import Deriving.Aeson
+
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Shipupgrade = Shipupgrade
@@ -23,12 +22,12 @@ data Shipupgrade = Shipupgrade
   , catapultCount :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier (Rename "shipId" "id" : KcConvention)]
-          Shipupgrade
+
+instance FromJSON Shipupgrade where
+  parseJSON = parseKcMstJson [("shipId", "id")]
+
 instance NFData Shipupgrade
+
 instance HasKnownFields Shipupgrade where
   knownFields _ =
     kcFields

@@ -1,8 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Kantour.Core.KcData.Master.Direct.Common (
-  KcApiField,
-  KcConvention,
   CollectExtra (..),
   HasKnownFields (..),
   kcFields,
@@ -14,6 +12,7 @@ module Kantour.Core.KcData.Master.Direct.Common (
   parseKcMstJson,
   inRange,
   fix,
+  Generic,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -30,15 +29,7 @@ import Data.Maybe
 import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
-import Deriving.Aeson
 import GHC.Generics
-
-type KcConvention = [CamelToSnake, KcApiField]
-
-data KcApiField
-
-instance StringModifier KcApiField where
-  getStringModifier = ("api_" <>)
 
 {-
 

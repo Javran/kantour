@@ -3,7 +3,6 @@ module Kantour.Core.KcData.Master.Direct.ItemShop (
 ) where
 
 import Data.Aeson as Aeson
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data ItemShop = ItemShop
@@ -11,11 +10,9 @@ data ItemShop = ItemShop
   , cabinet_2 :: [Int]
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier KcConvention]
-          ItemShop
+
+instance FromJSON ItemShop where
+  parseJSON = parseKcMstJson []
 
 instance NFData ItemShop
 

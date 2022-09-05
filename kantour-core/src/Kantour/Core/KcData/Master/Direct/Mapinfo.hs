@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Mapinfo (
   Mapinfo (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Mapinfo (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Mapinfo = Mapinfo
@@ -24,14 +22,10 @@ data Mapinfo = Mapinfo
   , level :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "mId" "id" : KcConvention
-              )
-           ]
-          Mapinfo
+
+instance FromJSON Mapinfo where
+  parseJSON = parseKcMstJson [("mId", "id")]
+
 instance NFData Mapinfo
 instance HasKnownFields Mapinfo where
   knownFields _ =

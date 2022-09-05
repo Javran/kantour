@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Mission (
   Mission (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Mission (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Mission = Mission
@@ -30,15 +28,12 @@ data Mission = Mission
   , useFuel :: Double
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "mId" "id" : KcConvention
-              )
-           ]
-          Mission
+
+instance FromJSON Mission where
+  parseJSON = parseKcMstJson [("mId", "id")]
+
 instance NFData Mission
+
 instance HasKnownFields Mission where
   knownFields _ =
     kcFields

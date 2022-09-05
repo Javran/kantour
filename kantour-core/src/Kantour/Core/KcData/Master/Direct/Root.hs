@@ -6,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Root (
 
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
 import Kantour.Core.KcData.Master.Direct.Const

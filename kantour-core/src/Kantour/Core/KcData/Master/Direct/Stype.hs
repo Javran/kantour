@@ -1,13 +1,12 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Stype (
   Stype (..),
 ) where
 
+import Data.Aeson
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Stype = Stype
@@ -19,13 +18,12 @@ data Stype = Stype
   , sId :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier (Rename "sId" "id" : KcConvention)
-           ]
-          Stype
+
+instance FromJSON Stype where
+  parseJSON = parseKcMstJson [("sId", "id")]
+
 instance NFData Stype
+
 instance HasKnownFields Stype where
   knownFields _ =
     kcFields

@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Bgm (
   Bgm (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Bgm (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Bgm = Bgm
@@ -15,11 +13,9 @@ data Bgm = Bgm
   , name :: T.Text
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[FieldLabelModifier (Rename "bgmId" "id" : KcConvention)]
-          Bgm
+
+instance FromJSON Bgm where
+  parseJSON = parseKcMstJson [("bgmId", "id")]
 
 instance NFData Bgm
 

@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Furnituregraph (
   Furnituregraph (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Furnituregraph (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Furnituregraph = Furnituregraph
@@ -18,15 +16,9 @@ data Furnituregraph = Furnituregraph
   , no :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "fgType" "type"
-                  : Rename "fgId" "id" : KcConvention
-              )
-           ]
-          Furnituregraph
+
+instance FromJSON Furnituregraph where
+  parseJSON = parseKcMstJson [("fgType", "type"), ("fgId", "id")]
 
 instance NFData Furnituregraph
 

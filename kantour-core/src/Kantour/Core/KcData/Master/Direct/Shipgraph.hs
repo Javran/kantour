@@ -9,7 +9,6 @@ import Data.Char
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Shipgraph = Shipgraph

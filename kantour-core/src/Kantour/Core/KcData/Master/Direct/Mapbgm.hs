@@ -1,11 +1,8 @@
-{-# LANGUAGE TypeOperators #-}
-
 module Kantour.Core.KcData.Master.Direct.Mapbgm (
   Mapbgm (..),
 ) where
 
 import Data.Aeson as Aeson
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Mapbgm = Mapbgm
@@ -17,14 +14,9 @@ data Mapbgm = Mapbgm
   , no :: Int
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "mId" "id" : KcConvention
-              )
-           ]
-          Mapbgm
+
+instance FromJSON Mapbgm where
+  parseJSON = parseKcMstJson [("mId", "id")]
 
 instance NFData Mapbgm
 instance HasKnownFields Mapbgm where

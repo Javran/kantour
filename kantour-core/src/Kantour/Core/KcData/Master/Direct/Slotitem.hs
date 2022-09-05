@@ -4,7 +4,6 @@ module Kantour.Core.KcData.Master.Direct.Slotitem (
 
 import Data.Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Slotitem = Slotitem

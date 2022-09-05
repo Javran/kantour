@@ -1,5 +1,4 @@
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Kantour.Core.KcData.Master.Direct.Payitem (
   Payitem (..),
@@ -7,7 +6,6 @@ module Kantour.Core.KcData.Master.Direct.Payitem (
 
 import Data.Aeson as Aeson
 import qualified Data.Text as T
-import Deriving.Aeson
 import Kantour.Core.KcData.Master.Direct.Common
 
 data Payitem = Payitem
@@ -20,16 +18,10 @@ data Payitem = Payitem
   , description :: T.Text
   }
   deriving stock (Generic, Show)
-  deriving
-    (FromJSON)
-    via CustomJSON
-          '[ FieldLabelModifier
-              ( Rename "pType" "type"
-                  : Rename "pId" "id"
-                    : KcConvention
-              )
-           ]
-          Payitem
+
+instance FromJSON Payitem where
+  parseJSON = parseKcMstJson [("pType", "type"), ("pId", "id")]
+
 instance NFData Payitem
 instance HasKnownFields Payitem where
   knownFields _ =
