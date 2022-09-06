@@ -33,3 +33,5 @@ instance HasKnownFields Furniture where
     kcFields
       "title price season version active_flag outside_id \
       \type rarity id no description saleflg"
+
+instance Verifiable Furniture

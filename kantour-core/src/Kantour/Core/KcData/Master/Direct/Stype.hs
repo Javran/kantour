@@ -28,3 +28,13 @@ instance HasKnownFields Stype where
   knownFields _ =
     kcFields
       "kcnt sortno scnt equip_type name id"
+
+instance Verifiable Stype where
+  verify Stype {kcId, name, equipType} = do
+    let warn msg =
+          vLogS $
+            "Stype{" <> T.unpack name <> "," <> show kcId <> "}: " <> msg
+    unless (all isIntParsable (HM.keys equipType)) do
+      warn "equipType: some keys are not parsable as int"
+    unless (all (inRange (0,1)) (HM.elems equipType)) do
+      warn "equipType: some values are outside [0,1]"

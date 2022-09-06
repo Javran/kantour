@@ -4,6 +4,7 @@ module Kantour.Core.KcData.Master.Direct.Root (
   Root (..),
 ) where
 
+import Data.List
 import Data.Aeson as Aeson
 import qualified Data.List.NonEmpty as NE
 import Kantour.Core.KcData.Master.Direct.Bgm
@@ -137,11 +138,72 @@ instance Verifiable Root where
         (\EquipShip {shipId = i} -> i)
         mstEquipShip
 
-      when False do
-        let getKey Ship {maxeq = i} = i
-            groupped = NE.groupAllWith getKey mstShip
-        forM_ (zip [0 :: Int ..] groupped) \(i, gs) -> do
-          vLogS $ "# group " <> show i <> " start, key=" <> show (getKey $ NE.head gs)
-          forM_ (NE.take 2 gs) \g ->
-            vLogS $ "# debug: " <> show g
-          vLogS $ "# group " <> show i <> " end"
+      verifyListWithUniqueId
+        "Furniture"
+        (\Furniture {kcId = i} -> i)
+        mstFurniture
+
+      verifyListWithUniqueId
+        "Furnituregraph"
+        (\Furnituregraph {kcId = i} -> i)
+        mstFurnituregraph
+
+      verifyListWithUniqueId
+        "Maparea"
+        (\Maparea {kcId = i} -> i)
+        mstMaparea
+
+      verifyListWithUniqueId
+        "Mapbgm"
+        (\Mapbgm {kcId = i} -> i)
+        mstMapbgm
+
+      verifyListWithUniqueId
+        "Mapinfo"
+        (\Mapinfo {kcId = i} -> i)
+        mstMapinfo
+
+      verifyListWithUniqueId
+        "Mission"
+        (\Mission {kcId = i} -> i)
+        mstMission
+
+      verifyListWithUniqueId
+        "Payitem"
+        (\Payitem {kcId = i} -> i)
+        mstPayitem
+
+      {-
+        Reference (from main.js):
+
+        - ShipUpgradeModelHolder > ShipUpgradeModelHolderEdit > setData
+          (this sets `_dic`, from those items,
+          which ignores mst_id_before that are <= 0)
+
+        - ShipUpgradeModel > mst_id_before property,
+          which is a direct read of api_current_ship_id.
+
+       -}
+      do
+        let getId (Shipupgrade {currentShipId = i}) = i
+            (kept, ignored) = partition ((> 0) . getId) mstShipupgrade
+        mapM_ verify ignored
+        verifyListWithUniqueId
+          "Shipupgrade"
+          getId
+          kept
+
+      verifyListWithUniqueId
+        "SlotitemEquiptype"
+        (\SlotitemEquiptype {kcId = i} -> i)
+        mstSlotitemEquiptype
+
+      verifyListWithUniqueId
+        "Stype"
+        (\Stype {kcId = i} -> i)
+        mstStype
+
+      verifyListWithUniqueId
+        "Useitem"
+        (\Useitem {kcId = i} -> i)
+        mstUseitem

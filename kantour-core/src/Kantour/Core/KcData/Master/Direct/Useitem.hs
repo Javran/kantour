@@ -26,3 +26,5 @@ instance HasKnownFields Useitem where
   knownFields _ =
     kcFields
       "usetype category price id name description"
+
+instance Verifiable Useitem

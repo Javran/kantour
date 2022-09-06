@@ -32,3 +32,15 @@ instance HasKnownFields Mapinfo where
     kcFields
       "infotext sally_flag required_defeat_count id item max_maphp \
       \opetext name maparea_id no level"
+
+instance Verifiable Mapinfo where
+  verify Mapinfo {kcId, mapareaId, no, sallyFlag, item} = do
+    let warn msg = vLogS $ "Mapinfo{" <> show kcId <> "}: " <> msg
+    when (kcId /= mapareaId * 10 + no) do
+      warn "wrong mapareaId & no combination"
+    case sallyFlag of
+      [_, _, _] -> pure ()
+      xs -> warn $ "sallyFlag expect exactly 3:" <> show xs
+    case item of
+      [_, _, _, _] -> pure ()
+      xs -> warn $ "item expect exactly 4:" <> show xs

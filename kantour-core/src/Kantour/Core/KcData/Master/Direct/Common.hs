@@ -14,6 +14,7 @@ module Kantour.Core.KcData.Master.Direct.Common (
   fix,
   Generic,
   findDuplicates,
+  isIntParsable,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -32,6 +33,7 @@ import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
 import GHC.Generics
+import Data.Char
 
 {-
 
@@ -126,3 +128,6 @@ findDuplicates = mapMaybe f . NE.groupAllWith id
     f x = do
       _ : _ <- pure $ NE.tail x
       pure x
+
+isIntParsable :: T.Text -> Bool
+isIntParsable x = x /= "" && T.all isDigit x

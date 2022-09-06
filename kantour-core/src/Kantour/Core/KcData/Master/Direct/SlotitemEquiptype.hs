@@ -24,3 +24,5 @@ instance HasKnownFields SlotitemEquiptype where
   knownFields _ =
     kcFields
       "id show_flg name"
+
+instance Verifiable SlotitemEquiptype

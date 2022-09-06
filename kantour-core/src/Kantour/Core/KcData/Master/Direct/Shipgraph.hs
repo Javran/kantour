@@ -81,7 +81,7 @@ instance Verifiable Shipgraph where
             _ -> warn $ tag <> " has wrong shape: " <> show var
       when (length version /= 3) do
         warn "version length should be 3"
-      when (any (\t -> T.null t || not (T.all isDigit t)) version) do
+      unless (all isIntParsable version) do
         warn "some version elememts are not parsable as int"
 
       when (kcId <= 1500) do

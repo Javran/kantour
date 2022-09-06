@@ -26,3 +26,5 @@ instance HasKnownFields Furnituregraph where
   knownFields _ =
     kcFields
       "version filename type id no"
+
+instance Verifiable Furnituregraph

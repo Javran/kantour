@@ -22,3 +22,5 @@ instance NFData Maparea
 
 instance HasKnownFields Maparea where
   knownFields _ = kcFields "type id name"
+
+instance Verifiable Maparea

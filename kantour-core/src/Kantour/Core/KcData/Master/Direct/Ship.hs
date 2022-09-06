@@ -124,7 +124,7 @@ instance Verifiable Ship where
             Just _ -> do
               case aftershipid of
                 Nothing -> warn "aftershipid should be Just"
-                Just x -> when (T.null x || not (T.all isDigit x)) do
+                Just x -> unless (isIntParsable x) do
                   warn "aftershipid not parsable as int"
               isJust' "afterlv" afterlv
               isJust' "afterfuel" afterfuel

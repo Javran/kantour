@@ -23,6 +23,9 @@ instance FromJSON Payitem where
   parseJSON = parseKcMstJson
 
 instance NFData Payitem
+
 instance HasKnownFields Payitem where
   knownFields _ =
     kcFields "price type id item shop_description name description"
+
+instance Verifiable Payitem where
