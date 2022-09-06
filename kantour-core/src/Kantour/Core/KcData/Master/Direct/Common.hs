@@ -13,6 +13,7 @@ module Kantour.Core.KcData.Master.Direct.Common (
   inRange,
   fix,
   Generic,
+  findDuplicates,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -25,6 +26,7 @@ import Data.Aeson.Types
 import Data.Bifunctor
 import qualified Data.DList as DL
 import Data.Ix (inRange)
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Data.Proxy
 import qualified Data.Set as S
@@ -117,3 +119,10 @@ parseKcMstJson = genericParseJSON opt
       defaultOptions
         { fieldLabelModifier = ("api_" <>) . camelTo2 '_' . renamer
         }
+
+findDuplicates :: Ord a => [a] -> [NE.NonEmpty a]
+findDuplicates = mapMaybe f . NE.groupAllWith id
+  where
+    f x = do
+      _ : _ <- pure $ NE.tail x
+      pure x

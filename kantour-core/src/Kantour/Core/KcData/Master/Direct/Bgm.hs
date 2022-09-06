@@ -21,3 +21,5 @@ instance NFData Bgm
 
 instance HasKnownFields Bgm where
   knownFields _ = kcFields "id name"
+
+instance Verifiable Bgm
