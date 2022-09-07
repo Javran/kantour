@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Direct.Shipgraph (
 ) where
 
 import Data.Aeson as Aeson
-import Data.Char
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import qualified Data.Text as T

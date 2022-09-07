@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Direct.Ship (
 ) where
 
 import Data.Aeson as Aeson
-import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
