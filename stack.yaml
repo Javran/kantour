@@ -2,7 +2,7 @@ resolver: lts-19.20
 
 packages:
 - kantour-core
-- kantour
+- kantour-cli
 
 extra-deps:
 - Chart-diagrams-1.9.4

@@ -3,10 +3,8 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 41d84cc0a28c8c84ee254c901f65829b3f2abdd7d709b3645546e346baf271b1
 
-name:           kantour
+name:           kantour-cli
 version:        0.2.0.0
 synopsis:       Javran's KanColle Toolset.
 category:       Web
@@ -53,7 +51,7 @@ library
       Kantour.WhoCallsTheFleet.Types.Equipment
       Kantour.WhoCallsTheFleet.Types.Ship
   other-modules:
-      Paths_kantour
+      Paths_kantour_cli
   hs-source-dirs:
       src
   default-extensions:
@@ -141,7 +139,7 @@ library
 executable kantour
   main-is: Main.hs
   other-modules:
-      Paths_kantour
+      Paths_kantour_cli
   hs-source-dirs:
       mains
   default-extensions:
@@ -204,7 +202,7 @@ executable kantour
     , http-types
     , hxt
     , json
-    , kantour
+    , kantour-cli
     , lens
     , linear
     , math-functions

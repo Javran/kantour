@@ -1,4 +1,4 @@
-name: kantour
+name: kantour-cli
 version: 0.2.0.0
 synopsis: Javran's KanColle Toolset.
 github: Javran/kantour
@@ -107,4 +107,4 @@ executables:
       - -with-rtsopts=-N
       - -main-is Main
     dependencies:
-      - kantour
+      - kantour-cli

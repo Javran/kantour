@@ -1,6 +1,0 @@
-cradle:
-  stack:
-    - path: "./src"
-      component: "kantour:lib"
-    - path: "./mains"
-      component: "kantour:exe:kantour"
