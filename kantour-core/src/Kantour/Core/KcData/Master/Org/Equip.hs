@@ -11,32 +11,25 @@ import Kantour.Core.KcData.Master.Org.Common
 
 data Equip = Equip
   { mstId :: Int
-  , sakb :: Int
-  , bakk :: Int
+  , name :: T.Text
+  , version :: Maybe Int
   , antiAir :: Int -- tyku / 対空
   , range :: Int -- leng / 射程
   , firepower :: Int -- houg / 火力
-  , version :: Maybe Int
   , antiSub :: Int -- tais / 対潜
-  , houm :: Int -- type-dependent
   , los :: Int -- saku / 索敵
-  , luck :: Int
-  , raik :: Int
   , sortNo :: Int
-  , eType :: [Int]
+  , kcType :: (Int, Int, Int, Int, Int)
   , torpedo :: Int -- raig / 雷装
   , bombing :: Int -- baku / 爆装
   , armor :: Int -- souk / 装甲
   , scrap :: (Int, Int, Int, Int) -- broken / 廃棄資材
-  , taik :: Int
+  , sakb :: Int
   , raim :: Int
-  , name :: T.Text
-  , usebull :: T.Text
-  , atap :: Int
-  , rare :: Int -- type-dependent
-  , houk :: Int
-  , cost :: Maybe Int
-  , distance :: Maybe Int
+  , rare :: Int
+  , accuracy :: Int -- houm / 命中 または 対爆(局地戦闘機の場合)
+  , evasion :: Int -- houk / 回避 または 迎撃(局地戦闘機の場合)
+  , costDist :: Maybe (Int, Int)
   , speed :: Int -- soku / 速力
   }
   deriving (Generic, Show)
@@ -50,64 +43,58 @@ instance FromDirect Equip where
     D.Slotitem
       { kcId = mstId
       , sakb
-      , bakk
       , tyku = antiAir
       , leng = range
       , houg = firepower
       , version
       , tais = antiSub
-      , houm
+      , houm = accuracy
       , saku = los
-      , luck
-      , raik
       , sortno = sortNo
-      , kcType = eType
+      , kcType = kcTypePre
       , raig = torpedo
       , baku = bombing
       , souk = armor
       , broken
-      , taik
       , raim
       , name
-      , usebull
-      , atap
       , rare
-      , houk
+      , houk = evasion
       , cost
       , distance
       , soku = speed
       } = do
+      kcType <- case kcTypePre of
+        [a, b, c, d, e] -> pure (a, b, c, d, e)
+        _ -> illformed "kcType"
       scrap <- case broken of
         [a, b, c, d] -> pure (a, b, c, d)
         _ -> illformed "broken"
+      costDist <- case (cost, distance) of
+        (Just c, Just d) -> pure $ Just (c, d)
+        (Nothing, Nothing) -> pure Nothing
+        _ -> illformed "cost, distance"
       pure
         Equip
           { mstId
           , sakb
-          , bakk
           , antiAir
           , range
           , firepower
           , version
           , antiSub
-          , houm
+          , accuracy
           , los
-          , luck
-          , raik
           , sortNo
-          , eType
+          , kcType
           , torpedo
           , bombing
           , armor
           , scrap
-          , taik
           , raim
           , name
-          , usebull
-          , atap
           , rare
-          , houk
-          , cost
-          , distance
+          , evasion
+          , costDist
           , speed
           }

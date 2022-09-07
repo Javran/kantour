@@ -19,17 +19,11 @@ import Kantour.Core.KcData.Master.Org.Equip
 
   (1) uniform data type vs. keep different sub-type separated.
 
-    Currently leans towards latter.
+    Decision: uniform data type, but keep sub-types separated into smaller Maps.
 
-    - For ships, it's separated on 1500 bound, and abyssal ships
-      will have some fields missing
-
-    - For ship graphs, there are two bounds: 1500 and 5000,
-      with > 5000 representing least amount of info
-      (special CGs)
-
-    - For equips / slotitems, one bound 500, but abyssal side
-      seems to have most of the fields filled
+    - Due to the limitations of GADTs, we can't have common fields that ends up
+      in different types, so the plan to tag data with a phantom type won't
+      be very convenient to use.
 
   (2) should we keep unknown / constant fields?
 

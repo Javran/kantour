@@ -1,8 +1,9 @@
 module Kantour.Core.KcData.Master.Org.Common (
   FromDirect (..),
+  Side (..),
   NFData,
   Generic,
-  illformed
+  illformed,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -21,6 +22,27 @@ class FromDirect a where
     ) =>
     Source a ->
     m a
+
+{-
+  (Currently unused)
+
+  This is just in case we want to have some distinctions at type-level:
+
+  For Ships:
+  - x <= 1500 is Our
+  - x > 1500 is Abyssal
+
+  For Ship Graphs:
+  - x <= 1500 is Our
+  - 1500 < x < 5000 is Abyssal
+  - x >= 5000 is Seasonal
+
+  For Equips:
+  - x <= 500 is Our
+  - x > 500 is Abyssal
+
+ -}
+data Side = Our | Abyssal | Seasonal
 
 illformed :: MonadError T.Text m => T.Text -> m a
 illformed what = throwError $ "Ill-formed `" <> what <> "`"

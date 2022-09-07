@@ -98,9 +98,16 @@ instance Verifiable Slotitem where
         warn "rare not in range [0,7]"
         warn (show rare)
 
+      do
+        let cd = (cost, distance)
+        case (cost, distance) of
+          (Just _, Just _) -> pure ()
+          (Nothing, Nothing) -> pure ()
+          _ -> warn $ "inconsistent cost, distance pair: " <> show cd
+
       -- SlotUtil > isEnemyItem
       when (kcId > 500) do
-        expect "broken" broken [0,0,0,0]
+        expect "broken" broken [0, 0, 0, 0]
         expect "cost" cost Nothing
         expect "distance" distance Nothing
         expect "sortno" sortno 0
