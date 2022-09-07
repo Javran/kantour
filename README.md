@@ -10,7 +10,7 @@ This repo consists of two packages:
 
 - `kantour-core`: the core library meant to be a dependency that other projects can built on top of.
    (modules of this package are all stuctured with `Kantour.Core`)
-- `kantour`: the experimental side of kantour that might require all sorts of random dependencies.
+- `kantour-cli`: the experimental side of kantour that might require all sorts of random dependencies.
 
 ## Commands
 
