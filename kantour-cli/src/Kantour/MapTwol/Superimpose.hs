@@ -8,7 +8,7 @@
 module Kantour.MapTwol.Superimpose where
 
 import Graphics.Image
-import Graphics.Image.Interface
+import Graphics.Image.Interface hiding (new)
 
 -- https://github.com/lehins/hip/issues/33
 superimpose' ::

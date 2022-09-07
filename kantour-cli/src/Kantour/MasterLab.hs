@@ -115,7 +115,7 @@ remodelChainExperiment Root {mstShip} = do
               <> ","
               <> ps (fromJust $ Ship.sortno s)
               <> ")"
-      handleShipCluster xs baseShipId = do
+      handleShipCluster _ baseShipId = do
         -- TODO: verify that we indeed collects all (xs is not used for now)
         let collectRemodels :: Int -> Int -> State (IM.IntMap Int) ()
             collectRemodels sId depth = do
