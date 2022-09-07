@@ -4,6 +4,7 @@ module Kantour.Core.KcData.Master.Org.Common (
   NFData,
   Generic,
   illformed,
+  textToInt,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -46,3 +47,8 @@ data Side = Our | Abyssal | Seasonal
 
 illformed :: MonadError T.Text m => T.Text -> m a
 illformed what = throwError $ "Ill-formed `" <> what <> "`"
+
+textToInt :: T.Text -> Maybe Int
+textToInt t = do
+  [(v, "")] <- pure $ reads (T.unpack t)
+  pure v

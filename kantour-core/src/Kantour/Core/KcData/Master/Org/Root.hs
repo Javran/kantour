@@ -2,7 +2,6 @@
 
 module Kantour.Core.KcData.Master.Org.Root (
   FromDirect (..),
-  Equip (..),
   Root (..),
 ) where
 
@@ -11,6 +10,7 @@ import GHC.Generics
 import qualified Kantour.Core.KcData.Master.Direct as Direct
 import Kantour.Core.KcData.Master.Org.Common
 import Kantour.Core.KcData.Master.Org.Equip
+import Kantour.Core.KcData.Master.Org.ShipGraph
 
 {-
   Org modules are organized version of the master data.
@@ -38,9 +38,8 @@ import Kantour.Core.KcData.Master.Org.Equip
  -}
 
 data Root = Root
-  { -- | from slotitem
-    equips :: IM.IntMap Equip
-  , shipgraph :: [Direct.Shipgraph]
+  { equips :: IM.IntMap Equip
+  , shipGraphs :: IM.IntMap ShipGraph
   , ship :: [Direct.Ship]
   , equipExslot :: [Int]
   , bgm :: [Direct.Bgm]
@@ -70,7 +69,7 @@ instance FromDirect Root where
   fromDirect
     Direct.Root
       { mstSlotitem
-      , mstShipgraph = shipgraph
+      , mstShipgraph
       , mstShip = ship
       , mstEquipExslot = equipExslot
       , mstBgm = bgm
@@ -93,10 +92,11 @@ instance FromDirect Root where
       let buildFromList getId xs =
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
       equips <- buildFromList (\Equip {mstId = i} -> i) mstSlotitem
+      shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
       pure
         Root
           { equips
-          , shipgraph
+          , shipGraphs
           , ship
           , equipExslot
           , bgm

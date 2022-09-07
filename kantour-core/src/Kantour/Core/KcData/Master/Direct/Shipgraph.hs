@@ -105,6 +105,9 @@ instance Verifiable Shipgraph where
         justShaped "wedb" wedb
 
       when (kcId > 1500) do
+        when (kcId < 5000) do
+          justShaped "battleD" battleD
+          justShaped "battleN" battleN
         -- only "battleD" and "battleN" should exist.
         noJust "sortno" sortno
         noJust "bokoD" bokoD
@@ -123,7 +126,7 @@ instance Verifiable Shipgraph where
         noJust "weda" weda
         noJust "wedb" wedb
 
-      when (kcId > 5000) do
+      when (kcId >= 5000) do
         -- those appears to be seasonal CGs.
         noJust "battleD" battleD
         noJust "battleN" battleN
