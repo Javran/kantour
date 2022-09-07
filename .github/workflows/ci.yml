@@ -42,4 +42,7 @@ jobs:
         run: |
           stack --install-ghc --no-interleaved-output --no-terminal test --only-snapshot
 
+      - name: Build dependencies
+        run: stack --no-interleaved-output --no-terminal build --test --only-dependencies
+
       - run: stack --no-interleaved-output --no-terminal test kantour-core:test:hspec
