@@ -20,9 +20,9 @@ import Kantour.Core.KcData.Master.Org.Equip
  -}
 
 data Root = Root
-  { equips :: IM.IntMap Equip
-  , -- from slotitem
-    shipgraph :: [Direct.Shipgraph]
+  { -- | from slotitem
+    equips :: IM.IntMap Equip
+  , shipgraph :: [Direct.Shipgraph]
   , ship :: [Direct.Ship]
   , equipExslot :: [Int]
   , bgm :: [Direct.Bgm]

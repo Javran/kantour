@@ -82,7 +82,7 @@ instance Verifiable Shipgraph where
         warn "version length should be 3"
       unless (all isIntParsable version) do
         warn "some version elememts are not parsable as int"
-
+      -- bounds are based on `ShipUtil > isEnemy`
       when (kcId <= 1500) do
         justShaped "battleD" battleD
         justShaped "battleN" battleN

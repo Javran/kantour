@@ -67,6 +67,9 @@ instance Verifiable Slotitem where
       , leng
       , rare
       , broken
+      , cost
+      , distance
+      , sortno
       } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Slotitem{" <> T.unpack name <> "}: " <> msg
       when (length kcType /= 5) do
@@ -94,3 +97,10 @@ instance Verifiable Slotitem where
       unless (inRange (0, 7) rare) do
         warn "rare not in range [0,7]"
         warn (show rare)
+
+      -- SlotUtil > isEnemyItem
+      when (kcId > 500) do
+        expect "broken" broken [0,0,0,0]
+        expect "cost" cost Nothing
+        expect "distance" distance Nothing
+        expect "sortno" sortno 0
