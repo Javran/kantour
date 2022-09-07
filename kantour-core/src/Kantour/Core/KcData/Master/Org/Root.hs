@@ -15,6 +15,30 @@ import Kantour.Core.KcData.Master.Org.Equip
 {-
   Org modules are organized version of the master data.
 
+  I'm still not sure about the API design of Org moduldes right now:
+
+  (1) uniform data type vs. keep different sub-type separated.
+
+    Currently leans towards latter.
+
+    - For ships, it's separated on 1500 bound, and abyssal ships
+      will have some fields missing
+
+    - For ship graphs, there are two bounds: 1500 and 5000,
+      with > 5000 representing least amount of info
+      (special CGs)
+
+    - For equips / slotitems, one bound 500, but abyssal side
+      seems to have most of the fields filled
+
+  (2) should we keep unknown / constant fields?
+
+    Currently lean towards dropping them to have a clearer API.
+    Worst case we need to have Direct representations around,
+    so effectively keeping two copies of master data in memory,
+    which I don't think is too bad (less than two copies, actually,
+    as I imagine there'll still be some sharing under the hood).
+
   TODO: WIP on those `:: Direct.*` fields
 
  -}
