@@ -34,4 +34,8 @@ instance HasKnownFields Furniture where
       "title price season version active_flag outside_id \
       \type rarity id no description saleflg"
 
-instance Verifiable Furniture
+instance Verifiable Furniture where
+  verify Furniture {kcId, kcType} = do
+    unless (inRange (0, 5) kcType) do
+      vLogS $
+        "Furniture{" <> show kcId <> "}: type not in range [0..5]: " <> show kcType
