@@ -55,4 +55,21 @@ instance FromDirect Ship where
   type Source Ship = D.Ship
 
   fromDirect
-    D.Ship {} = error "TODO"
+    D.Ship
+      { kcId
+      , sortId
+      , name
+      , yomi
+      , stype
+      , ctype
+      } = do
+      error "TODO"
+      pure
+        Ship
+          { kcId
+          , sortId
+          , name
+          , yomi
+          , stype
+          , ctype
+          }

@@ -104,6 +104,10 @@ instance Verifiable Ship where
           isJust' "houg" houg
           isJust' "raig" raig
           isJust' "tyku" tyku
+          case tais of
+            Nothing -> pure ()
+            Just [_] -> pure ()
+            _ -> warn $ "unexpected shape: " <> show tais
           {-
             Reference: ShipMstModel > taisen_base
             "tais" could be nothing, in which case we fill in 0
