@@ -69,6 +69,7 @@ instance Verifiable Ship where
       , houg
       , raig
       , tyku
+      , tais
       , luck
       , leng
       , maxeq
@@ -103,7 +104,10 @@ instance Verifiable Ship where
           isJust' "houg" houg
           isJust' "raig" raig
           isJust' "tyku" tyku
-
+          {-
+            Reference: ShipMstModel > taisen_base
+            "tais" could be nothing, in which case we fill in 0
+           -}
           isJust' "luck" luck
 
           isJust' "maxeq" maxeq
@@ -130,7 +134,7 @@ instance Verifiable Ship where
               isJust' "afternull" afterbull
 
           case voicef of
-            Just v -> unless (inRange (0, 7) v) $ warn $ "voicef not in range" <> show v
+            Just v -> unless (inRange (0, 7) v) $ warn $ "voicef not in range: " <> show v
             Nothing -> warn "voicef is Nothing"
         else do
           isNothing' "sortno" sortno
@@ -143,6 +147,7 @@ instance Verifiable Ship where
           isNothing' "houg" houg
           isNothing' "raig" raig
           isNothing' "tyku" tyku
+          isNothing' "tais" tais
 
           isNothing' "luck" luck
           isNothing' "leng" leng
