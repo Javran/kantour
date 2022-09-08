@@ -6,8 +6,10 @@ module Kantour.Core.KcData.Master.Org.Root (
 ) where
 
 import qualified Data.IntMap as IM
+import qualified Data.IntSet as IS
 import GHC.Generics
 import qualified Kantour.Core.KcData.Master.Direct as Direct
+import Kantour.Core.KcData.Master.Org.Bgm
 import Kantour.Core.KcData.Master.Org.Common
 import Kantour.Core.KcData.Master.Org.Equip
 import Kantour.Core.KcData.Master.Org.ShipGraph
@@ -41,8 +43,8 @@ data Root = Root
   { equips :: IM.IntMap Equip
   , shipGraphs :: IM.IntMap ShipGraph
   , ship :: [Direct.Ship]
-  , equipExslot :: [Int]
-  , bgm :: [Direct.Bgm]
+  , equipExslots :: IS.IntSet
+  , bgms :: IM.IntMap Bgm
   , itemShop :: Direct.ItemShop
   , const :: Direct.Const
   , equipExslotShip :: [Direct.EquipExslotShip]
@@ -71,8 +73,8 @@ instance FromDirect Root where
       { mstSlotitem
       , mstShipgraph
       , mstShip = ship
-      , mstEquipExslot = equipExslot
-      , mstBgm = bgm
+      , mstEquipExslot
+      , mstBgm
       , mstItemShop = itemShop
       , mstConst = konst
       , mstEquipExslotShip = equipExslotShip
@@ -93,13 +95,14 @@ instance FromDirect Root where
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
       equips <- buildFromList (\Equip {mstId = i} -> i) mstSlotitem
       shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
+      bgms <- buildFromList (\Bgm {kcId = i} -> i) mstBgm
       pure
         Root
           { equips
           , shipGraphs
           , ship
-          , equipExslot
-          , bgm
+          , equipExslots = IS.fromList mstEquipExslot
+          , bgms
           , itemShop
           , const = konst
           , equipExslotShip
