@@ -51,68 +51,77 @@ loadMaster =
       Right v -> pure v
 
 {-
-  TODO: completeness check should be in lib, which
-  would enable us to verify against new master data.
+  TODOs:
+  - completeness check should be in lib, which would enable us
+    to verify against new master data.
+
+  - verification to be done on all Direct modules.
+    it's probably better that we share input test data.
+
+  - test coverage for Org modules, probably taking the trip of
+    raw -> Value -> Direct module -> Org module.
  -}
 spec :: Spec
-spec = describe "Completeness" $
-  beforeAll loadMaster $ do
-    let mkTest ::
-          forall p a d f.
-          ( FromJSON a
-          , HasKnownFields a
-          , Generic a
-          , Rep a ~ M1 D d f
-          , Datatype d
-          ) =>
-          p a ->
-          (Value -> [Value]) ->
-          SpecWith Value
-        mkTest _ty selector =
-          let dName = datatypeName (from @a undefined)
-           in specify dName $ \rawMst -> do
-                let xs = selector rawMst
-                    ys :: [CollectExtra a]
-                    ys = fmap (getResult . fromJSON @(CollectExtra a)) xs
-                      where
-                        getResult = \case
-                          Error msg -> error msg
-                          Success v -> v
-                    unknownFields = M.fromListWith (<>) $ do
-                      CollectExtra {ceExtra} <- ys
-                      (k, v) <- ceExtra
-                      pure (k, [v])
-                unless (unknownFields == M.empty) $ do
-                  liftIO $ do
-                    putStrLn $ "Unknown fields detected for " <> dName <> ":"
-                    forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
-                      let vs = take 5 $ nubOrd $ fmap encode vsPre
-                      T.putStrLn $ "  Samples for " <> k <> ":"
-                      forM_ vs $ \v ->
-                        T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
-                  pendingWith $
-                    "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
-    let sel x v = v |-- [x]
-        sel' x v = [sel x v]
+spec =
+  describe "Direct" $
+    describe "Completeness" $
+      beforeAll loadMaster do
+        let mkTest ::
+              forall p a d f.
+              ( FromJSON a
+              , HasKnownFields a
+              , Generic a
+              , Rep a ~ M1 D d f
+              , Datatype d
+              ) =>
+              p a ->
+              (Value -> [Value]) ->
+              SpecWith Value
+            mkTest _ty selector =
+              let dName = datatypeName (from @a undefined)
+               in specify dName $ \rawMst -> do
+                    let xs = selector rawMst
+                        ys :: [CollectExtra a]
+                        ys = fmap (getResult . fromJSON @(CollectExtra a)) xs
+                          where
+                            getResult = \case
+                              Error msg -> error msg
+                              Success v -> v
+                        unknownFields = M.fromListWith (<>) $ do
+                          CollectExtra {ceExtra} <- ys
+                          (k, v) <- ceExtra
+                          pure (k, [v])
+                    unless (unknownFields == M.empty) $ do
+                      liftIO $ do
+                        putStrLn $ "Unknown fields detected for " <> dName <> ":"
+                        forM_ (M.toAscList unknownFields) $ \(k, vsPre) -> do
+                          let vs = take 5 $ nubOrd $ fmap encode vsPre
+                          T.putStrLn $ "  Samples for " <> k <> ":"
+                          forM_ vs $ \v ->
+                            T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
+                      pendingWith $
+                        "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
+        let sel x v = v |-- [x]
+            sel' x v = [sel x v]
 
-    mkTest (Proxy @Slotitem) $ sel "api_mst_slotitem"
-    mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
-    mkTest (Proxy @Ship) $ sel "api_mst_ship"
-    mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
-    mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
-    mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
-    mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
-    mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
-    mkTest (Proxy @Maparea) $ sel "api_mst_maparea"
-    mkTest (Proxy @Mapbgm) $ sel "api_mst_mapbgm"
-    mkTest (Proxy @Mapinfo) $ sel "api_mst_mapinfo"
-    mkTest (Proxy @Mission) $ sel "api_mst_mission"
-    mkTest (Proxy @Payitem) $ sel "api_mst_payitem"
-    mkTest (Proxy @Shipupgrade) $ sel "api_mst_shipupgrade"
-    mkTest (Proxy @SlotitemEquiptype) $ sel "api_mst_slotitem_equiptype"
-    mkTest (Proxy @Stype) $ sel "api_mst_stype"
-    mkTest (Proxy @Useitem) $ sel "api_mst_useitem"
+        mkTest (Proxy @Slotitem) $ sel "api_mst_slotitem"
+        mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
+        mkTest (Proxy @Ship) $ sel "api_mst_ship"
+        mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
+        mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
+        mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
+        mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
+        mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
+        mkTest (Proxy @Maparea) $ sel "api_mst_maparea"
+        mkTest (Proxy @Mapbgm) $ sel "api_mst_mapbgm"
+        mkTest (Proxy @Mapinfo) $ sel "api_mst_mapinfo"
+        mkTest (Proxy @Mission) $ sel "api_mst_mission"
+        mkTest (Proxy @Payitem) $ sel "api_mst_payitem"
+        mkTest (Proxy @Shipupgrade) $ sel "api_mst_shipupgrade"
+        mkTest (Proxy @SlotitemEquiptype) $ sel "api_mst_slotitem_equiptype"
+        mkTest (Proxy @Stype) $ sel "api_mst_stype"
+        mkTest (Proxy @Useitem) $ sel "api_mst_useitem"
 
-    mkTest (Proxy @Const) $ sel' "api_mst_const"
-    mkTest (Proxy @ItemShop) $ sel' "api_mst_item_shop"
-    mkTest (Proxy @Root) pure
+        mkTest (Proxy @Const) $ sel' "api_mst_const"
+        mkTest (Proxy @ItemShop) $ sel' "api_mst_item_shop"
+        mkTest (Proxy @Root) pure
