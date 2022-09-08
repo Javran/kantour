@@ -35,7 +35,13 @@ instance HasKnownFields Furniture where
       \type rarity id no description saleflg"
 
 instance Verifiable Furniture where
-  verify Furniture {kcId, kcType} = do
+  verify Furniture {kcId, kcType, activeFlag, rarity, saleflg} = do
+    let warn msg = vLogS $ "Furniture{" <> show kcId <> "}: " <> msg
     unless (inRange (0, 5) kcType) do
-      vLogS $
-        "Furniture{" <> show kcId <> "}: type not in range [0..5]: " <> show kcType
+      warn $ "type not in range [0..5]: " <> show kcType
+    unless (inRange (0, 1) activeFlag) do
+      warn $ "activeFlag not in range [0..1]: " <> show activeFlag
+    unless (inRange (0, 6) rarity) do
+      warn $ "rarity not in range [0..6]: " <> show rarity
+    unless (inRange (0, 1) saleflg) do
+      warn $ "saleflg not in range [0..1]: " <> show saleflg
