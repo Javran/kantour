@@ -16,7 +16,8 @@ data After = After
   { level :: Int
   , kcId :: Int
   , steelAmmo :: (Int, Int)
-  } deriving (Show, Generic)
+  }
+  deriving (Show, Generic)
 
 instance NFData After
 
@@ -40,7 +41,8 @@ data SOurs = SOurs
   , intro :: Maybe T.Text
   , voiceFlag :: (Bool {-1-}, Bool {-2-}, Bool {-4-})
   , after :: Maybe After
-  } deriving (Show, Generic)
+  }
+  deriving (Show, Generic)
 
 instance NFData SOurs
 
@@ -55,7 +57,8 @@ data Ship = Ship
   , speed :: Int -- soku / 速力
   , slotNum :: Int
   , ours :: Maybe SOurs
-  } deriving (Show, Generic)
+  }
+  deriving (Show, Generic)
 
 instance NFData Ship
 
@@ -151,6 +154,15 @@ instance FromDirect Ship where
                     steelAmmo <- (,) <$> afterfuel <*> afterbull
                     pure After {level, kcId = kcIdAfter, steelAmmo}
                 }
+      let side
+            | kcId <= 1500 = Our
+            | otherwise = Abyssal
+      case (side, ours) of
+        (Our, Just _) -> pure ()
+        (Our, _) -> illformed "Ship,ours"
+        (Abyssal, Nothing) -> pure ()
+        (Abyssal, _) -> illformed "Abyssal,ours"
+        (Seasonal, _) -> error "unreachable"
       pure
         Ship
           { kcId
