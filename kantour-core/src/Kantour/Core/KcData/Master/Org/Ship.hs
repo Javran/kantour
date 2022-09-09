@@ -16,24 +16,24 @@ data After = After
   , steelAmmo :: (Int, Int)
   }
 
--- TODO: some needs more intuitive names
+type Stat = (Int, Int)
+
 data SOurs = SOurs
-  { sortno :: Int
-  , bullMax :: Int
-  , fuelMax :: Int
-  , taik :: [Int]
-  , souk :: [Int]
-  , houg :: [Int]
-  , raig :: [Int]
-  , tyku :: [Int]
-  , luck :: [Int]
-  , leng :: Int
-  , maxeq :: [Int]
-  , buildtime :: Int
-  , broken :: [Int]
-  , powup :: [Int]
-  , backs :: Int
-  , getmes :: T.Text
+  { sortNo :: Int
+  , fuelAmmoMax :: (Int, Int)
+  , hp :: Stat -- taik / 耐久
+  , armor :: Stat -- souk / 装甲
+  , firepower :: Stat -- houg / 火力
+  , torpedo :: Stat -- raig / 雷装
+  , antiAir :: Stat -- tyku / 対空
+  , luck :: Stat
+  , range :: Int -- leng / 射程
+  , slotCapacity :: [Int]
+  , buildTime :: Int
+  , scrap :: (Int, Int, Int, Int)
+  , powerUp :: (Int, Int, Int, Int)
+  , rarity :: Int
+  , intro :: T.Text
   , voiceFlag :: (Bool {-1-}, Bool {-2-}, Bool {-4-})
   , after :: Maybe After
   }
@@ -42,7 +42,7 @@ data Ship = Ship
   { kcId :: Int
   , sortId :: Int
   , name :: T.Text
-  , yomi :: T.Text
+  , yomi :: T.Text -- 読み
   , stype :: Int
   , ctype :: Int
   , tais :: Int

@@ -84,10 +84,15 @@ instance Verifiable Ship where
       , afterbull
       , voicef
       } = fix \(_ :: m ()) -> do
-      let warn msg = vLogS $ "Ship{" <> T.unpack name <> "," <> show kcId <> "}: " <> msg
+      let warn :: String -> m ()
+          warn msg = vLogS $ "Ship{" <> T.unpack name <> "," <> show kcId <> "}: " <> msg
           isJust', isNothing' :: (Show a, Eq a) => String -> Maybe a -> m ()
           isJust' tag var = unless (isJust var) do
             warn $ tag <> " should be Just"
+          isStatShaped :: Show a => String -> Maybe [a] -> m ()
+          isStatShaped tag var = case var of
+            Just [_, _] -> pure ()
+            _ -> warn $ tag <> " expect shape Just [_, _] but got: " <> show var
           expect :: (Show a, Eq a) => String -> a -> a -> m ()
           expect tag var e = unless (var == e) do
             warn $ tag <> " should be " <> show e <> ", got: " <> show var
@@ -99,11 +104,11 @@ instance Verifiable Ship where
           isJust' "fuelMax" fuelMax
           isJust' "bullMax" bullMax
 
-          isJust' "taik" taik
-          isJust' "souk" souk
-          isJust' "houg" houg
-          isJust' "raig" raig
-          isJust' "tyku" tyku
+          isStatShaped "taik" taik
+          isStatShaped "souk" souk
+          isStatShaped "houg" houg
+          isStatShaped "raig" raig
+          isStatShaped "tyku" tyku
           case tais of
             Nothing -> pure ()
             Just [_] -> pure ()
@@ -112,12 +117,18 @@ instance Verifiable Ship where
             Reference: ShipMstModel > taisen_base
             "tais" could be nothing, in which case we fill in 0
            -}
-          isJust' "luck" luck
+          isStatShaped "luck" luck
 
           isJust' "maxeq" maxeq
           isJust' "buildtime" buildtime
-          isJust' "broken" broken
-          isJust' "powup" powup
+          case broken of
+            Just [_, _, _, _] -> pure ()
+            _ -> warn $ "ill-formed broken: " <> show broken
+
+          case powup of
+            Just [_, _, _, _] -> pure ()
+            _ -> warn $ "ill-formed broken: " <> show powup
+
           case backs of
             Nothing ->
               warn "backs should be Just"
