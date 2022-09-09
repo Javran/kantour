@@ -5,11 +5,14 @@ module Kantour.MasterLab (
 ) where
 
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.State
+import Control.Monad.Writer.CPS
 import Data.Bifunctor
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.Pure.SHA
+import Data.Foldable
 import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS
 import Data.List
@@ -17,17 +20,16 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.UnionFind.ST as UF
-import Kantour.Core.KcData.Master.Fetch
+import Kantour.Core.KcData.Master.Direct.Common (Verifiable (verify))
 import Kantour.Core.KcData.Master.Direct.Root
 import Kantour.Core.KcData.Master.Direct.Ship as Ship
+import Kantour.Core.KcData.Master.Fetch
+import qualified Kantour.Core.KcData.Master.Org.Root as Org
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 import System.Environment
 import System.Exit
-import Kantour.Core.KcData.Master.Direct.Common (Verifiable(verify))
-import Control.Monad.Writer.CPS
-import Data.Foldable
 
 data SubCmdMasterLab
 
@@ -177,6 +179,15 @@ defaultMain =
       putStrLn "# BEGIN"
       mapM_ T.putStrLn (toList w)
       putStrLn "# END"
+      let r = runExcept $ runWriterT $ Org.fromDirect @Org.Root mstRoot
+      case r of
+        Right (v, fs) -> do
+          let softFailures = toList fs
+          unless (null softFailures) do
+            putStrLn "Soft failures: "
+            mapM_ (\msg -> putStrLn $ T.unpack msg) softFailures
+          putStrLn $ "Length of final result: " <> show (length (show v))
+        Left err -> putStrLn $ "Error: " <> T.unpack err
     ["remodel-exp"] -> do
       mgr <- newManager tlsManagerSettings
       fetchFromEnv (Just mgr) >>= remodelChainExperiment
