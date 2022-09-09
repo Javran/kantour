@@ -10,7 +10,7 @@ import qualified Kantour.Core.KcData.Master.Direct.Slotitem as D
 import Kantour.Core.KcData.Master.Org.Common
 
 data Equip = Equip
-  { mstId :: Int
+  { kcId :: Int
   , name :: T.Text
   , version :: Maybe Int
   , antiAir :: Int -- tyku / 対空
@@ -41,7 +41,7 @@ instance FromDirect Equip where
 
   fromDirect
     D.Slotitem
-      { kcId = mstId
+      { kcId
       , sakb
       , tyku = antiAir
       , leng = range
@@ -76,7 +76,7 @@ instance FromDirect Equip where
         _ -> illformed "cost, distance"
       pure
         Equip
-          { mstId
+          { kcId
           , sakb
           , antiAir
           , range

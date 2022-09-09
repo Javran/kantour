@@ -93,7 +93,7 @@ instance FromDirect Root where
       } = do
       let buildFromList getId xs =
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
-      equips <- buildFromList (\Equip {mstId = i} -> i) mstSlotitem
+      equips <- buildFromList (\Equip {kcId = i} -> i) mstSlotitem
       shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
       bgms <- buildFromList (\Bgm {kcId = i} -> i) mstBgm
       pure
