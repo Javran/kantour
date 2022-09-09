@@ -16,7 +16,9 @@ data After = After
   { level :: Int
   , kcId :: Int
   , steelAmmo :: (Int, Int)
-  }
+  } deriving (Show, Generic)
+
+instance NFData After
 
 type Stat = (Int, Int)
 
@@ -38,7 +40,9 @@ data SOurs = SOurs
   , intro :: Maybe T.Text
   , voiceFlag :: (Bool {-1-}, Bool {-2-}, Bool {-4-})
   , after :: Maybe After
-  }
+  } deriving (Show, Generic)
+
+instance NFData SOurs
 
 data Ship = Ship
   { kcId :: Int
@@ -51,7 +55,9 @@ data Ship = Ship
   , speed :: Int -- soku / 速力
   , slotNum :: Int
   , ours :: Maybe SOurs
-  }
+  } deriving (Show, Generic)
+
+instance NFData Ship
 
 instance FromDirect Ship where
   type Source Ship = D.Ship

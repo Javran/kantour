@@ -12,6 +12,7 @@ import qualified Kantour.Core.KcData.Master.Direct as Direct
 import Kantour.Core.KcData.Master.Org.Bgm
 import Kantour.Core.KcData.Master.Org.Common
 import Kantour.Core.KcData.Master.Org.Equip
+import Kantour.Core.KcData.Master.Org.Ship
 import Kantour.Core.KcData.Master.Org.ShipGraph
 
 {-
@@ -42,7 +43,7 @@ import Kantour.Core.KcData.Master.Org.ShipGraph
 data Root = Root
   { equips :: IM.IntMap Equip
   , shipGraphs :: IM.IntMap ShipGraph
-  , ship :: [Direct.Ship]
+  , ships :: IM.IntMap Ship
   , equipExslots :: IS.IntSet
   , bgms :: IM.IntMap Bgm
   , itemShop :: Direct.ItemShop
@@ -72,7 +73,7 @@ instance FromDirect Root where
     Direct.Root
       { mstSlotitem
       , mstShipgraph
-      , mstShip = ship
+      , mstShip
       , mstEquipExslot
       , mstBgm
       , mstItemShop = itemShop
@@ -96,11 +97,12 @@ instance FromDirect Root where
       equips <- buildFromList (\Equip {kcId = i} -> i) mstSlotitem
       shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
       bgms <- buildFromList (\Bgm {kcId = i} -> i) mstBgm
+      ships <- buildFromList (\Ship {kcId = i} -> i) mstShip
       pure
         Root
           { equips
           , shipGraphs
-          , ship
+          , ships
           , equipExslots = IS.fromList mstEquipExslot
           , bgms
           , itemShop
