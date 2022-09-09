@@ -11,7 +11,9 @@ import GHC.Generics
 import qualified Kantour.Core.KcData.Master.Direct as Direct
 import Kantour.Core.KcData.Master.Org.Bgm
 import Kantour.Core.KcData.Master.Org.Common
+import Kantour.Core.KcData.Master.Org.Const
 import Kantour.Core.KcData.Master.Org.Equip
+import Kantour.Core.KcData.Master.Org.ItemShop
 import Kantour.Core.KcData.Master.Org.Ship
 import Kantour.Core.KcData.Master.Org.ShipGraph
 
@@ -46,8 +48,8 @@ data Root = Root
   , ships :: IM.IntMap Ship
   , equipExslots :: IS.IntSet
   , bgms :: IM.IntMap Bgm
-  , itemShop :: Direct.ItemShop
-  , const :: Direct.Const
+  , itemShop :: ItemShop
+  , kcConst :: Const
   , equipExslotShip :: [Direct.EquipExslotShip]
   , equipShip :: [Direct.EquipShip]
   , furniture :: [Direct.Furniture]
@@ -77,7 +79,7 @@ instance FromDirect Root where
       , mstEquipExslot
       , mstBgm
       , mstItemShop = itemShop
-      , mstConst = konst
+      , mstConst
       , mstEquipExslotShip = equipExslotShip
       , mstEquipShip = equipShip
       , mstFurniture = furniture
@@ -98,6 +100,7 @@ instance FromDirect Root where
       shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
       bgms <- buildFromList (\Bgm {kcId = i} -> i) mstBgm
       ships <- buildFromList (\Ship {kcId = i} -> i) mstShip
+      kcConst <- fromDirect mstConst
       pure
         Root
           { equips
@@ -106,7 +109,7 @@ instance FromDirect Root where
           , equipExslots = IS.fromList mstEquipExslot
           , bgms
           , itemShop
-          , const = konst
+          , kcConst
           , equipExslotShip
           , equipShip
           , furniture

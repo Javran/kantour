@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0e03b8c9b396f54de1d332082652766a1ff5c553846a53292461418f423ecf09
+-- hash: fbf55b2be5154498210ae4b9ff005ffca275cf090ee371e7f0e4219ead2c7155
 
 name:           kantour-core
 version:        0.2.0.0
@@ -61,7 +61,9 @@ library
       Kantour.Core.KcData.Master.Org
       Kantour.Core.KcData.Master.Org.Bgm
       Kantour.Core.KcData.Master.Org.Common
+      Kantour.Core.KcData.Master.Org.Const
       Kantour.Core.KcData.Master.Org.Equip
+      Kantour.Core.KcData.Master.Org.ItemShop
       Kantour.Core.KcData.Master.Org.Root
       Kantour.Core.KcData.Master.Org.Ship
       Kantour.Core.KcData.Master.Org.ShipGraph
