@@ -3,6 +3,8 @@
 module Kantour.Core.KcData.Master.Org (
   FromDirect (..),
   AesonOrg (..),
+  AesonOrgStrict,
+  AesonOrgUnchecked,
   module Kantour.Core.KcData.Master.Org.Bgm,
   module Kantour.Core.KcData.Master.Org.Const,
   module Kantour.Core.KcData.Master.Org.Equip,
