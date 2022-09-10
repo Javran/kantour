@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 module Kantour.Core.KcData.Master.Org.Common (
   FromDirect (..),
   Side (..),
@@ -9,11 +11,13 @@ module Kantour.Core.KcData.Master.Org.Common (
   unless,
   throwError,
   intBoolFlag,
+  AesonOrg (..),
 ) where
 
 import Control.DeepSeq (NFData)
 import Control.Monad.Except
 import Control.Monad.Writer
+import Data.Aeson
 import qualified Data.DList as DL
 import qualified Data.Text as T
 import GHC.Generics (Generic)
@@ -27,6 +31,16 @@ class FromDirect a where
     ) =>
     Source a ->
     m a
+
+-- A wrapper to allow direct conversion from JSON via fromDirect
+newtype AesonOrg a = AesonOrg {getOrg :: a}
+
+instance (FromJSON (Source a), FromDirect a) => FromJSON (AesonOrg a) where
+  parseJSON src = do
+    directVal <- parseJSON @(Source a) src
+    case runExcept $ runWriterT $ fromDirect directVal of
+      Left msg -> fail (T.unpack msg)
+      Right (v, _) -> pure (AesonOrg v)
 
 {-
   (Currently unused)
