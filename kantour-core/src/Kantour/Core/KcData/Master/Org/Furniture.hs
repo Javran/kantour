@@ -44,12 +44,8 @@ instance FromDirect Furniture where
       , description
       , saleflg = sfPre
       } = do
-      let toBool tag = \case
-            0 -> pure False
-            1 -> pure True
-            _ -> illformed tag
-      activeFlag <- toBool "activeFlag" afPre
-      saleFlag <- toBool "saleflg" sfPre
+      activeFlag <- intBoolFlag "activeFlag" afPre
+      saleFlag <- intBoolFlag "saleflg" sfPre
       pure
         Furniture
           { title

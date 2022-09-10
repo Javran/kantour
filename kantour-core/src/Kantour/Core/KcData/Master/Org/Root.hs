@@ -15,15 +15,18 @@ import Kantour.Core.KcData.Master.Org.Const
 import Kantour.Core.KcData.Master.Org.Equip
 import Kantour.Core.KcData.Master.Org.EquipExslotShip
 import Kantour.Core.KcData.Master.Org.EquipShip
+import Kantour.Core.KcData.Master.Org.Expedition
 import Kantour.Core.KcData.Master.Org.Furniture
 import Kantour.Core.KcData.Master.Org.FurnitureGraph
 import Kantour.Core.KcData.Master.Org.ItemShop
 import Kantour.Core.KcData.Master.Org.MapArea
-import Kantour.Core.KcData.Master.Org.Expedition
 import Kantour.Core.KcData.Master.Org.MapBgm
 import Kantour.Core.KcData.Master.Org.MapInfo
+import Kantour.Core.KcData.Master.Org.PayItem
 import Kantour.Core.KcData.Master.Org.Ship
+import Kantour.Core.KcData.Master.Org.EquipCategory
 import Kantour.Core.KcData.Master.Org.ShipGraph
+import Kantour.Core.KcData.Master.Org.ShipUpgrade
 
 {-
   Org modules are organized version of the master data.
@@ -66,9 +69,9 @@ data Root = Root
   , mapBgms :: IM.IntMap MapBgm
   , mapInfos :: IM.IntMap MapInfo
   , expeditions :: IM.IntMap Expedition
-  , payitem :: [Direct.Payitem]
-  , shipupgrade :: [Direct.Shipupgrade]
-  , slotitemEquiptype :: [Direct.SlotitemEquiptype]
+  , payItems :: IM.IntMap PayItem
+  , shipUpgrades :: IM.IntMap ShipUpgrade
+  , equipCategories :: IM.IntMap EquipCategory
   , stype :: [Direct.Stype]
   , useitem :: [Direct.Useitem]
   }
@@ -96,9 +99,9 @@ instance FromDirect Root where
       , mstMapbgm
       , mstMapinfo
       , mstMission
-      , mstPayitem = payitem
-      , mstShipupgrade = shipupgrade
-      , mstSlotitemEquiptype = slotitemEquiptype
+      , mstPayitem
+      , mstShipupgrade
+      , mstSlotitemEquiptype
       , mstStype = stype
       , mstUseitem = useitem
       } = do
@@ -129,6 +132,15 @@ instance FromDirect Root where
         buildFromList (\MapInfo {kcId = i} -> i) mstMapinfo
       expeditions <-
         buildFromList (\Expedition {kcId = i} -> i) mstMission
+      payItems <-
+        buildFromList (\PayItem {kcId = i} -> i) mstPayitem
+      shipUpgrades <-
+        buildFromList (\ShipUpgrade {shipIdFromTo = (i, _)} -> i) $
+          filter
+            Kantour.Core.KcData.Master.Org.ShipUpgrade.canConvert
+            mstShipupgrade
+      equipCategories <-
+        buildFromList (\EquipCategory {kcId = i} -> i) mstSlotitemEquiptype
       pure
         Root
           { equips
@@ -146,9 +158,9 @@ instance FromDirect Root where
           , mapBgms
           , mapInfos
           , expeditions
-          , payitem
-          , shipupgrade
-          , slotitemEquiptype
+          , payItems
+          , shipUpgrades
+          , equipCategories
           , stype
           , useitem
           }

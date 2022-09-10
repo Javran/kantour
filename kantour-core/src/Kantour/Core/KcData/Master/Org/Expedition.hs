@@ -52,10 +52,7 @@ instance FromDirect Expedition where
       , winItem2
       , winMatLevel
       } = do
-      returnFlag <- case rf of
-        0 -> pure False
-        1 -> pure True
-        _ -> illformed "returnFlag"
+      returnFlag <- intBoolFlag "returnFlag" rf
       w1 <- case winItem1 of
         [a, b] -> pure (a, b)
         _ -> illformed "winItem1"

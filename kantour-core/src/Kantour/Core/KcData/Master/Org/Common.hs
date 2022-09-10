@@ -5,6 +5,10 @@ module Kantour.Core.KcData.Master.Org.Common (
   Generic,
   illformed,
   textToInt,
+  when,
+  unless,
+  throwError,
+  intBoolFlag,
 ) where
 
 import Control.DeepSeq (NFData)
@@ -52,3 +56,9 @@ textToInt :: T.Text -> Maybe Int
 textToInt t = do
   [(v, "")] <- pure $ reads (T.unpack t)
   pure v
+
+intBoolFlag :: (Eq a, Num a, MonadError T.Text f) => T.Text -> a -> f Bool
+intBoolFlag tag = \case
+  0 -> pure False
+  1 -> pure True
+  _ -> illformed tag

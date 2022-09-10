@@ -25,4 +25,7 @@ instance HasKnownFields SlotitemEquiptype where
     kcFields
       "id show_flg name"
 
-instance Verifiable SlotitemEquiptype
+instance Verifiable SlotitemEquiptype where
+  verify SlotitemEquiptype {kcId, showFlg} = do
+    unless (inRange (0,1) showFlg) do
+      vLogS $ "SlotitemEquiptype{" <> show kcId <> "}: showFlg not in range: " <> show showFlg
