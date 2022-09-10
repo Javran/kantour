@@ -10,7 +10,7 @@ import Kantour.Core.KcData.Master.Org.Common
 
 data EquipExslotShip = EquipExslotShip
   { shipIds :: IS.IntSet
-  , slotItemId :: Int
+  , equipId :: Int
   }
   deriving (Generic, Show)
 
@@ -19,5 +19,5 @@ instance NFData EquipExslotShip
 instance FromDirect EquipExslotShip where
   type Source EquipExslotShip = D.EquipExslotShip
 
-  fromDirect D.EquipExslotShip {shipIds = xs, slotitemId = slotItemId} =
-    pure EquipExslotShip {shipIds = IS.fromList xs, slotItemId}
+  fromDirect D.EquipExslotShip {shipIds = xs, slotitemId = equipId} =
+    pure EquipExslotShip {shipIds = IS.fromList xs, equipId}

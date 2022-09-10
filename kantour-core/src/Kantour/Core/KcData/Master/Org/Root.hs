@@ -117,7 +117,7 @@ instance FromDirect Root where
         buildFromList (\Ship {kcId = i} -> i) mstShip
       kcConst <- fromDirect mstConst
       equipExslotShips <-
-        buildFromList (\EquipExslotShip {slotItemId = i} -> i) mstEquipExslotShip
+        buildFromList (\EquipExslotShip {equipId = i} -> i) mstEquipExslotShip
       equipShips <-
         buildFromList (\EquipShip {shipId = i} -> i) mstEquipShip
       furnitures <-
