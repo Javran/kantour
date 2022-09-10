@@ -13,6 +13,7 @@ import Kantour.Core.KcData.Master.Org.Bgm
 import Kantour.Core.KcData.Master.Org.Common
 import Kantour.Core.KcData.Master.Org.Const
 import Kantour.Core.KcData.Master.Org.Equip
+import Kantour.Core.KcData.Master.Org.EquipCategory
 import Kantour.Core.KcData.Master.Org.EquipExslotShip
 import Kantour.Core.KcData.Master.Org.EquipShip
 import Kantour.Core.KcData.Master.Org.Expedition
@@ -24,14 +25,15 @@ import Kantour.Core.KcData.Master.Org.MapBgm
 import Kantour.Core.KcData.Master.Org.MapInfo
 import Kantour.Core.KcData.Master.Org.PayItem
 import Kantour.Core.KcData.Master.Org.Ship
-import Kantour.Core.KcData.Master.Org.EquipCategory
 import Kantour.Core.KcData.Master.Org.ShipGraph
+import Kantour.Core.KcData.Master.Org.ShipType
 import Kantour.Core.KcData.Master.Org.ShipUpgrade
+import Kantour.Core.KcData.Master.Org.UseItem
 
 {-
   Org modules are organized version of the master data.
 
-  I'm still not sure about the API design of Org moduldes right now:
+  Few API design questions and current decisions:
 
   (1) uniform data type vs. keep different sub-type separated.
 
@@ -48,8 +50,6 @@ import Kantour.Core.KcData.Master.Org.ShipUpgrade
     so effectively keeping two copies of master data in memory,
     which I don't think is too bad (less than two copies, actually,
     as I imagine there'll still be some sharing under the hood).
-
-  TODO: WIP on those `:: Direct.*` fields
 
  -}
 
@@ -72,8 +72,8 @@ data Root = Root
   , payItems :: IM.IntMap PayItem
   , shipUpgrades :: IM.IntMap ShipUpgrade
   , equipCategories :: IM.IntMap EquipCategory
-  , stype :: [Direct.Stype]
-  , useitem :: [Direct.Useitem]
+  , shipTypes :: IM.IntMap ShipType
+  , useItems :: IM.IntMap UseItem
   }
   deriving (Generic, Show)
 
@@ -102,8 +102,8 @@ instance FromDirect Root where
       , mstPayitem
       , mstShipupgrade
       , mstSlotitemEquiptype
-      , mstStype = stype
-      , mstUseitem = useitem
+      , mstStype
+      , mstUseitem
       } = do
       let buildFromList getId xs =
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
@@ -141,6 +141,10 @@ instance FromDirect Root where
             mstShipupgrade
       equipCategories <-
         buildFromList (\EquipCategory {kcId = i} -> i) mstSlotitemEquiptype
+      shipTypes <-
+        buildFromList (\ShipType {kcId = i} -> i) mstStype
+      useItems <-
+        buildFromList (\UseItem {kcId = i} -> i) mstUseitem
       pure
         Root
           { equips
@@ -161,6 +165,6 @@ instance FromDirect Root where
           , payItems
           , shipUpgrades
           , equipCategories
-          , stype
-          , useitem
+          , shipTypes
+          , useItems
           }

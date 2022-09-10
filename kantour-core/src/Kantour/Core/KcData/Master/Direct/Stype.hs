@@ -36,5 +36,5 @@ instance Verifiable Stype where
             "Stype{" <> T.unpack name <> "," <> show kcId <> "}: " <> msg
     unless (all isIntParsable (HM.keys equipType)) do
       warn "equipType: some keys are not parsable as int"
-    unless (all (inRange (0,1)) (HM.elems equipType)) do
+    unless (all (inRange (0, 1)) (HM.elems equipType)) do
       warn "equipType: some values are outside [0,1]"
