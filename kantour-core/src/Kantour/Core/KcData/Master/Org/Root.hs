@@ -13,7 +13,15 @@ import Kantour.Core.KcData.Master.Org.Bgm
 import Kantour.Core.KcData.Master.Org.Common
 import Kantour.Core.KcData.Master.Org.Const
 import Kantour.Core.KcData.Master.Org.Equip
+import Kantour.Core.KcData.Master.Org.EquipExslotShip
+import Kantour.Core.KcData.Master.Org.EquipShip
+import Kantour.Core.KcData.Master.Org.Furniture
+import Kantour.Core.KcData.Master.Org.FurnitureGraph
 import Kantour.Core.KcData.Master.Org.ItemShop
+import Kantour.Core.KcData.Master.Org.MapArea
+import Kantour.Core.KcData.Master.Org.Expedition
+import Kantour.Core.KcData.Master.Org.MapBgm
+import Kantour.Core.KcData.Master.Org.MapInfo
 import Kantour.Core.KcData.Master.Org.Ship
 import Kantour.Core.KcData.Master.Org.ShipGraph
 
@@ -50,14 +58,14 @@ data Root = Root
   , bgms :: IM.IntMap Bgm
   , itemShop :: ItemShop
   , kcConst :: Const
-  , equipExslotShip :: [Direct.EquipExslotShip]
-  , equipShip :: [Direct.EquipShip]
-  , furniture :: [Direct.Furniture]
-  , furnituregraph :: [Direct.Furnituregraph]
-  , maparea :: [Direct.Maparea]
-  , mapbgm :: [Direct.Mapbgm]
-  , mapinfo :: [Direct.Mapinfo]
-  , mission :: [Direct.Mission]
+  , equipExslotShips :: IM.IntMap EquipExslotShip
+  , equipShips :: IM.IntMap EquipShip
+  , furnitures :: IM.IntMap Furniture
+  , furnitureGraphs :: IM.IntMap FurnitureGraph
+  , mapAreas :: IM.IntMap MapArea
+  , mapBgms :: IM.IntMap MapBgm
+  , mapInfos :: IM.IntMap MapInfo
+  , expeditions :: IM.IntMap Expedition
   , payitem :: [Direct.Payitem]
   , shipupgrade :: [Direct.Shipupgrade]
   , slotitemEquiptype :: [Direct.SlotitemEquiptype]
@@ -80,14 +88,14 @@ instance FromDirect Root where
       , mstBgm
       , mstItemShop = itemShop
       , mstConst
-      , mstEquipExslotShip = equipExslotShip
-      , mstEquipShip = equipShip
-      , mstFurniture = furniture
-      , mstFurnituregraph = furnituregraph
-      , mstMaparea = maparea
-      , mstMapbgm = mapbgm
-      , mstMapinfo = mapinfo
-      , mstMission = mission
+      , mstEquipExslotShip
+      , mstEquipShip
+      , mstFurniture
+      , mstFurnituregraph
+      , mstMaparea
+      , mstMapbgm
+      , mstMapinfo
+      , mstMission
       , mstPayitem = payitem
       , mstShipupgrade = shipupgrade
       , mstSlotitemEquiptype = slotitemEquiptype
@@ -96,11 +104,31 @@ instance FromDirect Root where
       } = do
       let buildFromList getId xs =
             IM.fromList . fmap (\x -> (getId x, x)) <$> mapM fromDirect xs
-      equips <- buildFromList (\Equip {kcId = i} -> i) mstSlotitem
-      shipGraphs <- buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
-      bgms <- buildFromList (\Bgm {kcId = i} -> i) mstBgm
-      ships <- buildFromList (\Ship {kcId = i} -> i) mstShip
+      equips <-
+        buildFromList (\Equip {kcId = i} -> i) mstSlotitem
+      shipGraphs <-
+        buildFromList (\ShipGraph {kcId = i} -> i) mstShipgraph
+      bgms <-
+        buildFromList (\Bgm {kcId = i} -> i) mstBgm
+      ships <-
+        buildFromList (\Ship {kcId = i} -> i) mstShip
       kcConst <- fromDirect mstConst
+      equipExslotShips <-
+        buildFromList (\EquipExslotShip {slotItemId = i} -> i) mstEquipExslotShip
+      equipShips <-
+        buildFromList (\EquipShip {shipId = i} -> i) mstEquipShip
+      furnitures <-
+        buildFromList (\Furniture {kcId = i} -> i) mstFurniture
+      furnitureGraphs <-
+        buildFromList (\FurnitureGraph {kcId = i} -> i) mstFurnituregraph
+      mapAreas <-
+        buildFromList (\MapArea {kcId = i} -> i) mstMaparea
+      mapBgms <-
+        buildFromList (\MapBgm {kcId = i} -> i) mstMapbgm
+      mapInfos <-
+        buildFromList (\MapInfo {kcId = i} -> i) mstMapinfo
+      expeditions <-
+        buildFromList (\Expedition {kcId = i} -> i) mstMission
       pure
         Root
           { equips
@@ -110,14 +138,14 @@ instance FromDirect Root where
           , bgms
           , itemShop
           , kcConst
-          , equipExslotShip
-          , equipShip
-          , furniture
-          , furnituregraph
-          , maparea
-          , mapbgm
-          , mapinfo
-          , mission
+          , equipExslotShips
+          , equipShips
+          , furnitures
+          , furnitureGraphs
+          , mapAreas
+          , mapBgms
+          , mapInfos
+          , expeditions
           , payitem
           , shipupgrade
           , slotitemEquiptype

@@ -42,7 +42,7 @@ instance HasKnownFields Mission where
       \id name maparea_id use_fuel"
 
 instance Verifiable Mission where
-  verify Mission{kcId, winItem1, winItem2} = do
+  verify Mission {kcId, winItem1, winItem2, winMatLevel, useBull, useFuel, returnFlag} = do
     let warn msg = vLogS $ "Mission{" <> show kcId <> "}: " <> msg
     case winItem1 of
       [_, _] -> pure ()
@@ -50,3 +50,12 @@ instance Verifiable Mission where
     case winItem2 of
       [_, _] -> pure ()
       xs -> warn $ "winItem1 expect exactly 2:" <> show xs
+    unless (useBull >= 0 && useBull <= 1) do
+      warn $ "useBull out of range: " <> show useBull
+    unless (useFuel >= 0 && useFuel <= 1) do
+      warn $ "useFuel out of range: " <> show useFuel
+    unless (inRange (0, 1) returnFlag) do
+      warn $ "returnFlag out of range: " <> show returnFlag
+    case winMatLevel of
+      [_, _, _, _] -> pure ()
+      _ -> warn $ "ill-formed winMatLevel: " <> show winMatLevel

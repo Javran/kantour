@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
   EquipExslotShip (..),
 ) where
