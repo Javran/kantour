@@ -183,6 +183,11 @@ instance Verifiable Root where
         - ShipUpgradeModel > mst_id_before property,
           which is a direct read of api_current_ship_id.
 
+        TODO: api_original_ship might be useful even if mst_id_before is 0,
+        in which case this might an indication of the initial object of remodel graphs.
+        However main.js doesn't seem to use this specific field at all,
+        so I won't treat this piece of info as reliable.
+
        -}
       do
         let getId (Shipupgrade {currentShipId = i}) = i
