@@ -22,6 +22,7 @@ source-repository head
 
 library
   exposed-modules:
+      Kantour.AirstrikeLeveling
       Kantour.AswEquip
       Kantour.Coded
       Kantour.DecMapUrl

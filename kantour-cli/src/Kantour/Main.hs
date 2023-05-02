@@ -17,6 +17,7 @@ import Kantour.MapToolFast.Main ()
 import Kantour.MapTwol.Main ()
 import Kantour.MasterLab ()
 import Kantour.ShipStat.Main ()
+import Kantour.AirstrikeLeveling ()
 import Kantour.Subcommand
 import Kantour.TH
 import Kantour.WhoCallsTheFleet.Main ()
