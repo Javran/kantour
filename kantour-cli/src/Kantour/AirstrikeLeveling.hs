@@ -56,7 +56,7 @@ airstrikeConsume (fuelMax, ammoMax) (fuel, ammo) = do
         where
           dx = max 1 $ floor @Double @Int (r * fromIntegral mx)
       (fuel', df) = consume 0.06 fuelMax fuel
-      (ammo', da) = consume 0.05 ammoMax ammo
+      (ammo', da) = consume 0.04 ammoMax ammo
   pure ((fuel', ammo'), (df, da))
 
 fleetConsume :: [FuelAmmo] -> [FuelAmmo] -> Maybe ([FuelAmmo], FuelAmmo)
