@@ -19,6 +19,7 @@ import Shower
 import System.Environment
 import System.Exit
 import Text.Printf
+import Data.Coerce
 
 {-
   Tools for calculating resource consumption on 5-2C node.
@@ -47,20 +48,20 @@ getShipInfo Org.Root {Org.ships} x = do
     ships IM.!? x
   pure (n, fuelAmmoMax)
 
-airstrikeConsume :: FuelAmmo -> Maybe (FuelAmmo, FuelAmmo) -- (after state, diff)
-airstrikeConsume (fuel, ammo) = do
+airstrikeConsume :: FuelAmmo -> FuelAmmo -> Maybe (FuelAmmo, FuelAmmo) -- (after state, diff)
+airstrikeConsume (fuelMax, ammoMax) (fuel, ammo) = do
   guard $ fuel > 0 && ammo > 0
-  let consume :: Double -> Int -> (Int, Int)
-      consume r x = (x - dx, dx)
+  let consume :: Double -> Int -> Int -> (Int, Int)
+      consume r mx x = (x - dx, dx)
         where
-          dx = max 1 $ floor @Double @Int (r * fromIntegral x)
-      (fuel', df) = consume 0.06 fuel
-      (ammo', da) = consume 0.05 ammo
+          dx = max 1 $ floor @Double @Int (r * fromIntegral mx)
+      (fuel', df) = consume 0.06 fuelMax fuel
+      (ammo', da) = consume 0.05 ammoMax ammo
   pure ((fuel', ammo'), (df, da))
 
-fleetConsume :: [FuelAmmo] -> Maybe ([FuelAmmo], FuelAmmo)
-fleetConsume xs = do
-  ys <- mapM airstrikeConsume xs
+fleetConsume :: [FuelAmmo] -> [FuelAmmo] -> Maybe ([FuelAmmo], FuelAmmo)
+fleetConsume maxs xs = do
+  ys <- zipWithM airstrikeConsume maxs xs
   let (df, da) = unzip $ fmap snd ys
   pure (fmap fst ys, (sum df, sum da))
 
@@ -73,20 +74,22 @@ calculateAndDisplay shipIds = do
     Right (root, _) -> do
       let infos :: [(T.Text, FuelAmmo)]
           infos = fmap (fromJust . getShipInfo root) shipIds
+          mx = fmap snd infos
       forM_ infos \(n, (x, y)) ->
         printf "%s: fuel: %d, ammo: %d\n" n x y
 
       fix
-        ( \loop (cnt, st) -> do
+        ( \loop (cnt, st, tot :: (Sum Int, Sum Int)) -> do
             let cnt' = cnt + 1
-            case fleetConsume st of
+            case fleetConsume mx st of
               Nothing -> pure ()
               Just (st' :: [FuelAmmo], diff :: FuelAmmo) -> do
-                -- TODO: wrong result, we do need to keep track of max capacity
-                printf "%d: %s\n" cnt' (show diff)
-                loop (cnt', st')
+                let tot' = tot <> coerce diff
+                -- TODO: wrong result
+                printf "%d: %s\n" cnt' (show $ coerce @_ @(Int, Int) tot')
+                loop (cnt', st', tot')
         )
-        (0 :: Int, fmap snd infos)
+        (0 :: Int, mx, (0, 0))
 
 defaultMain :: IO ()
 defaultMain =
