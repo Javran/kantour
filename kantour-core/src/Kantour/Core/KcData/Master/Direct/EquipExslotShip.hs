@@ -21,15 +21,10 @@ newtype EquipExslotShip = EquipExslotShip
   deriving stock (Generic, Show)
 
 instance FromJSON EquipExslotShip where
-  parseJSON = withObject "EquipExslotShip" $ \o ->
+  parseJSON o =
     EquipExslotShip <$> do
-      let parsePair (rawK, rawV) = do
-            let rawK' = AK.toText rawK
-            guard $ isIntParsable rawK'
-            v <- parseJSON rawV
-            pure (read @Int (T.unpack rawK'), v)
-      xs :: [(Int, EquipExslotShipInfo)] <- mapM parsePair (AK.toList o)
-      pure $ IM.fromList xs
+      IntMapByObj v <- parseJSON @(IntMapByObj EquipExslotShipInfo) o
+      pure v
 
 instance NFData EquipExslotShip
 
@@ -41,6 +36,11 @@ instance Verifiable EquipExslotShip where
   -- TODO: verification
   verify _ = pure ()
 
+{-
+  Parse an object whose keys are stringified integers into IntMap.
+
+  Note: this could be general-purpose.
+ -}
 newtype IntMapByObj v = IntMapByObj (IM.IntMap v)
   deriving stock (Generic, Show)
   deriving newtype (NFData)
@@ -48,16 +48,18 @@ newtype IntMapByObj v = IntMapByObj (IM.IntMap v)
 instance FromJSON v => FromJSON (IntMapByObj v) where
   parseJSON = withObject "IntMapByObj" $ \o ->
     IntMapByObj <$> do
-      let parsePair (rawK, rawV) = do
-            let rawK' = AK.toText rawK
-            guard $ isIntParsable rawK'
-            v <- parseJSON @v rawV
-            pure (read @Int (T.unpack rawK'), v)
-      xs <- mapM parsePair (AK.toList o)
-      pure $ IM.fromList xs
+      let parsePair (k0, rawV) = do
+            [(k1, "")] <- pure $ reads @Integer (T.unpack (AK.toText k0))
+            let k2 = fromInteger @Int k1
+            guard $ k1 == toInteger k2
+            (k2,) <$> parseJSON @v rawV
+      IM.fromList <$> mapM parsePair (AK.toList o)
 
--- Information object for a slotitem.
+{-
+  Information object for a slotitem.
 
+  Generalized to make it more convenient to handle parsing.
+ -}
 data EquipExslotShipInfoF f = EquipExslotShipInfo
   { shipIds :: Maybe (f Int)
   , ctypes :: Maybe (f Int)
@@ -70,8 +72,12 @@ deriving instance Show (f Int) => Show (EquipExslotShipInfoF f)
 type EquipExslotShipInfo = EquipExslotShipInfoF IM.IntMap
 
 instance FromJSON EquipExslotShipInfo where
-  parseJSON o = do
-    v :: EquipExslotShipInfoF IntMapByObj <- parseKcMstJson o
-    pure (coerce v :: EquipExslotShipInfo)
+  parseJSON =
+    fmap
+      ( coerce
+          @(EquipExslotShipInfoF IntMapByObj)
+          @EquipExslotShipInfo
+      )
+      . parseKcMstJson
 
 instance NFData EquipExslotShipInfo
