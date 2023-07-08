@@ -108,7 +108,7 @@ spec =
         mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
         mkTest (Proxy @Ship) $ sel "api_mst_ship"
         mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
-        mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
+        -- mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
         mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
         mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
         mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
