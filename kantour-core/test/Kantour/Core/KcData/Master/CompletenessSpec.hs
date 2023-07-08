@@ -5,6 +5,7 @@ module Kantour.Core.KcData.Master.CompletenessSpec (
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Aeson
+import qualified Data.Aeson.KeyMap as AK
 import Data.Aeson.Picker
 import qualified Data.ByteString.Lazy as BSL
 import Data.Containers.ListUtils
@@ -108,7 +109,8 @@ spec =
         mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
         mkTest (Proxy @Ship) $ sel "api_mst_ship"
         mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
-        -- mkTest (Proxy @EquipExslotShip) $ sel "api_mst_equip_exslot_ship"
+        mkTest (Proxy @EquipExslotShipInfo) $ \mst ->
+          AK.elems (mst |-- ["api_mst_equip_exslot_ship"] :: Object)
         mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
         mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
         mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
@@ -121,7 +123,6 @@ spec =
         mkTest (Proxy @SlotitemEquiptype) $ sel "api_mst_slotitem_equiptype"
         mkTest (Proxy @Stype) $ sel "api_mst_stype"
         mkTest (Proxy @Useitem) $ sel "api_mst_useitem"
-
         mkTest (Proxy @Const) $ sel' "api_mst_const"
         mkTest (Proxy @ItemShop) $ sel' "api_mst_item_shop"
         mkTest (Proxy @Root) pure
