@@ -106,7 +106,7 @@ instance Verifiable Slotitem where
           _ -> warn $ "inconsistent cost, distance pair: " <> show cd
 
       -- SlotUtil > isEnemyItem
-      when (kcId > 500) do
+      when (kcId > 1500) do
         expect "broken" broken [0, 0, 0, 0]
         expect "cost" cost Nothing
         expect "distance" distance Nothing
