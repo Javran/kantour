@@ -5,7 +5,6 @@ module Kantour.Core.KcData.Master.Org.EquipExslotShip (
 ) where
 
 import qualified Data.IntMap.Strict as IM
-import qualified Data.Map.Strict as M
 import qualified Data.IntSet as IS
 import qualified Kantour.Core.KcData.Master.Direct.EquipExslotShip as D
 import Kantour.Core.KcData.Master.Org.Common
