@@ -39,7 +39,7 @@ data Root = Root
   , mstBgm :: [Bgm]
   , mstItemShop :: ItemShop
   , mstConst :: Const
-  , mstEquipExslotShip :: [EquipExslotShip]
+  , mstEquipExslotShip :: EquipExslotShip
   , mstEquipShip :: [EquipShip]
   , mstFurniture :: [Furniture]
   , mstFurnituregraph :: [Furnituregraph]
@@ -127,11 +127,12 @@ instance Verifiable Root where
         mstBgm
 
       verify mstConst
-
+      {-
+      TODO: verification
       verifyListWithUniqueId
         "mstEquipExslotShip"
         (\EquipExslotShip {slotitemId = i} -> i)
-        mstEquipExslotShip
+        mstEquipExslotShip -}
 
       verifyListWithUniqueId
         "mstEquipShip"
