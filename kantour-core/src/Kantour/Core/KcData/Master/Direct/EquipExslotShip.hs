@@ -28,13 +28,8 @@ instance FromJSON EquipExslotShip where
 
 instance NFData EquipExslotShip
 
-instance HasKnownFields EquipExslotShip where
-  knownFields _ =
-    kcFields "ship_ids slotitem_id"
-
 instance Verifiable EquipExslotShip where
-  -- TODO: verification
-  verify _ = pure ()
+  verify (EquipExslotShip m) = mapM_ verify m
 
 {-
   Parse an object whose keys are stringified integers into IntMap.
@@ -68,6 +63,21 @@ data EquipExslotShipInfoF f = EquipExslotShipInfo
   deriving stock (Generic)
 
 deriving instance Show (f Int) => Show (EquipExslotShipInfoF f)
+
+instance HasKnownFields EquipExslotShipInfo where
+  knownFields _ =
+    kcFields "ship_ids ctypes stypes"
+
+instance Verifiable EquipExslotShipInfo where
+  verify EquipExslotShipInfo {shipIds, ctypes, stypes} = do
+    let verify' what = \case
+          Nothing -> pure ()
+          Just m -> forM_ (IM.toList m) \(k, v) -> when (v /= 1) do
+            vLogS $
+              "Slotitem " <> show k <> ", field " <> what <> ": expected 1 but found " <> show v
+    verify' "shipIds" shipIds
+    verify' "ctypes" ctypes
+    verify' "stypes" stypes
 
 type EquipExslotShipInfo = EquipExslotShipInfoF IM.IntMap
 

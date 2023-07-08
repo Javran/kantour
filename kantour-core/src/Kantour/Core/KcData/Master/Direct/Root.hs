@@ -127,12 +127,8 @@ instance Verifiable Root where
         mstBgm
 
       verify mstConst
-      {-
-      TODO: verification
-      verifyListWithUniqueId
-        "mstEquipExslotShip"
-        (\EquipExslotShip {slotitemId = i} -> i)
-        mstEquipExslotShip -}
+
+      verify mstEquipExslotShip
 
       verifyListWithUniqueId
         "mstEquipShip"
