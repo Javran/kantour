@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5cb75623591b3b23272e2e2ed0b98ed664bb03d02707a4f0c6bc5f24e069a543
+-- hash: 32f06ca165fe63ff02d6b5f87221522f6eb64eedaed8105bb5b6f6f5914bd92f
 
 name:           kantour-core
 version:        0.2.0.0
@@ -124,7 +124,7 @@ library
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
-  ghc-options: -Wall
+  ghc-options: -Wall -Wno-incomplete-uni-patterns
   build-depends:
       aeson
     , aeson-picker
@@ -198,7 +198,7 @@ test-suite hspec
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
-  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Spec
   build-depends:
       QuickCheck
     , aeson

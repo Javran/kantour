@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -94,7 +94,7 @@ library
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
-  ghc-options: -Wall
+  ghc-options: -Wall -Wno-incomplete-uni-patterns
   build-depends:
       SHA
     , aeson
@@ -182,7 +182,7 @@ executable kantour
       TypeApplications
       TypeFamilies
       TypeSynonymInstances
-  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
   build-depends:
       SHA
     , aeson
