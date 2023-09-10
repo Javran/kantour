@@ -1,16 +1,8 @@
-resolver: lts-19.20
+resolver: lts-20.26
 
 packages:
 - kantour-core
 - kantour-cli
 
 extra-deps:
-- Chart-diagrams-1.9.4
-- aeson-picker-0.1.0.6
-- diagrams-postscript-1.5.1
-- hip-1.5.6.0
-- lens-aeson-1.2.2
-- shower-0.2.0.2
-- statestack-0.3.1
-
-allow-newer: true
+- shower-0.2.0.3
