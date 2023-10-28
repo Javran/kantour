@@ -27,6 +27,7 @@ library
       Kantour.Coded
       Kantour.DecMapUrl
       Kantour.DropCalc
+      Kantour.GameServerLab
       Kantour.Kcwiki.EquipmentInfo
       Kantour.Kcwiki.ShipInfo
       Kantour.Main
