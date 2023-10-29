@@ -69,6 +69,7 @@ dependencies:
 - hip
 - http-client
 - http-client-tls
+- http-date
 - http-types
 - hxt
 - json

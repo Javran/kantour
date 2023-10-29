@@ -113,6 +113,7 @@ library
     , hip
     , http-client
     , http-client-tls
+    , http-date
     , http-types
     , hxt
     , json
@@ -201,6 +202,7 @@ executable kantour
     , hip
     , http-client
     , http-client-tls
+    , http-date
     , http-types
     , hxt
     , json

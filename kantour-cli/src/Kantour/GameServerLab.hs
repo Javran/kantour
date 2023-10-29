@@ -3,12 +3,14 @@ module Kantour.GameServerLab
   ) where
 
 import qualified Data.Attoparsec.ByteString.Char8 as P
+import Data.Functor
 import qualified Data.IntMap.Strict as IM
 import qualified Data.Text as T
 import Kantour.Core.GameResource.Magic (servers)
 import Kantour.Subcommand
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS (newTlsManager)
+import qualified Network.HTTP.Date as HD
 
 {-
   Proof of concept stuff,
@@ -37,11 +39,14 @@ defaultMain = do
         , requestHeaders = [("Accept-Encoding", "")]
         }
   resp <- httpLbs req mgr
-  print req
   let respHs = responseHeaders resp
       cl = do
         raw <- lookup "Content-Length" respHs
         Right v <- pure $ P.parseOnly (P.decimal @Integer) raw
         pure v
-  print $ lookup "Last-Modified" respHs
+      lm =
+        lookup "Last-Modified" respHs
+          >>= HD.parseHTTPDate
+          <&> HD.httpDateToUTC
   print cl
+  print lm
