@@ -29,6 +29,13 @@ defaultMain = do
   let s1 = servers IM.! 1
   req <- do
     r0 <- parseRequest $ "http://" <> T.unpack s1 <> "/kcs2/js/main.js"
-    pure $ r0 {method = "HEAD", checkResponse = throwErrorStatusCodes}
+    pure $
+      r0
+        { method = "HEAD"
+        , checkResponse = throwErrorStatusCodes
+        , requestHeaders = [("Accept-Encoding", "")]
+        }
   resp <- httpLbs req mgr
+  print req
+  mapM_ print $ responseHeaders resp
   print $ lookup "Last-Modified" (responseHeaders resp)
