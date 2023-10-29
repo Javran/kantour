@@ -2,6 +2,7 @@ module Kantour.GameServerLab
   ( SubCmdGameServerLab
   ) where
 
+import qualified Data.Attoparsec.ByteString.Char8 as P
 import qualified Data.IntMap.Strict as IM
 import qualified Data.Text as T
 import Kantour.Core.GameResource.Magic (servers)
@@ -37,5 +38,10 @@ defaultMain = do
         }
   resp <- httpLbs req mgr
   print req
-  mapM_ print $ responseHeaders resp
-  print $ lookup "Last-Modified" (responseHeaders resp)
+  let respHs = responseHeaders resp
+      cl = do
+        raw <- lookup "Content-Length" respHs
+        Right v <- pure $ P.parseOnly (P.decimal @Integer) raw
+        pure v
+  print $ lookup "Last-Modified" respHs
+  print cl
