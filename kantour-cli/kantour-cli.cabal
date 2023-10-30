@@ -127,10 +127,12 @@ library
     , pretty
     , primitive
     , random
+    , safe-exceptions
     , shower
     , statistics
     , template-haskell
     , text
+    , time
     , union-find
     , unordered-containers
     , vector
@@ -216,10 +218,12 @@ executable kantour
     , pretty
     , primitive
     , random
+    , safe-exceptions
     , shower
     , statistics
     , template-haskell
     , text
+    , time
     , union-find
     , unordered-containers
     , vector

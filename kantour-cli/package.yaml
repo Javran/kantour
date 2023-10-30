@@ -83,9 +83,11 @@ dependencies:
 - primitive
 - random
 - shower
+- safe-exceptions
 - statistics
 - template-haskell
 - text
+- time
 - union-find
 - unordered-containers
 - vector
