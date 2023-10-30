@@ -3,6 +3,7 @@ module Kantour.GameServerLab
   ) where
 
 import Control.Exception.Safe
+import Control.Monad
 import qualified Data.Attoparsec.ByteString.Char8 as P
 import Data.Functor
 import qualified Data.IntMap.Strict as IM
@@ -55,5 +56,7 @@ fetchResource mgr serverAddr = catchAny fetch' (pure . Left)
 defaultMain :: IO ()
 defaultMain = do
   mgr <- newTlsManager
-  r <- fetchResource mgr (T.unpack $ servers IM.! 1)
-  print r
+  forM_ (IM.toAscList servers) \(k, v) -> do
+    putStrLn $ "Server #" <> show k
+    r <- fetchResource mgr (T.unpack v)
+    print r
