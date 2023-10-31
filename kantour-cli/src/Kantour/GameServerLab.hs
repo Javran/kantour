@@ -2,6 +2,7 @@ module Kantour.GameServerLab
   ( SubCmdGameServerLab
   ) where
 
+import Control.Concurrent (threadDelay)
 import Control.Exception.Safe
 import Control.Monad
 import qualified Data.Attoparsec.ByteString.Char8 as P
@@ -53,10 +54,22 @@ fetchResource mgr serverAddr = catchAny fetch' (pure . Left)
               <&> HD.httpDateToUTC
       pure $ Right (cl, lm)
 
+fetchResourceWithRetries :: Manager -> String -> Int -> IO (Maybe (Maybe Int, Maybe UTCTime), [SomeException])
+fetchResourceWithRetries mgr serverAddr retries =
+  if retries <= 0
+    then pure (Nothing, [])
+    else
+      fetchResource mgr serverAddr >>= \case
+        Right v -> pure (Just v, [])
+        Left e -> do
+          threadDelay $ 1000 * 100
+          (v, rs) <- fetchResourceWithRetries mgr serverAddr (retries - 1)
+          pure (v, e : rs)
+
 defaultMain :: IO ()
 defaultMain = do
   mgr <- newTlsManager
   forM_ (IM.toAscList servers) \(k, v) -> do
     putStrLn $ "Server #" <> show k
-    r <- fetchResource mgr (T.unpack v)
+    r <- fetchResourceWithRetries mgr (T.unpack v) 4
     print r
