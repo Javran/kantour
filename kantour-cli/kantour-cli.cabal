@@ -100,6 +100,7 @@ library
       SHA
     , aeson
     , aeson-pretty
+    , async
     , attoparsec
     , base
     , bytestring
@@ -191,6 +192,7 @@ executable kantour
       SHA
     , aeson
     , aeson-pretty
+    , async
     , attoparsec
     , base
     , bytestring

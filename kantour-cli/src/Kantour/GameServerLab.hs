@@ -3,6 +3,7 @@ module Kantour.GameServerLab
   ) where
 
 import Control.Concurrent (threadDelay)
+import Control.Concurrent.Async
 import Control.Exception.Safe
 import Control.Monad
 import qualified Data.Attoparsec.ByteString.Char8 as P
@@ -71,7 +72,9 @@ fetchResourceWithRetries mgr serverAddr = fix \redo retries ->
 defaultMain :: IO ()
 defaultMain = do
   mgr <- newTlsManager
-  forM_ (IM.toAscList servers) \(k, v) -> do
+  rs <- forConcurrently (IM.toAscList servers) \(k, v) -> do
+    (k,) <$> fetchResourceWithRetries mgr (T.unpack v) 4
+  forM_ rs \(k, (v0, v1)) -> do
     putStrLn $ "Server #" <> show k
-    r <- fetchResourceWithRetries mgr (T.unpack v) 4
-    print r
+    print v0
+    putStrLn $ "Error count: " <> show (length v1)
