@@ -6,6 +6,7 @@ import Control.Concurrent (threadDelay)
 import Control.Exception.Safe
 import Control.Monad
 import qualified Data.Attoparsec.ByteString.Char8 as P
+import Data.Function
 import Data.Functor
 import qualified Data.IntMap.Strict as IM
 import qualified Data.Text as T
@@ -55,15 +56,16 @@ fetchResource mgr serverAddr = catchAny fetch' (pure . Left)
       pure $ Right (cl, lm)
 
 fetchResourceWithRetries :: Manager -> String -> Int -> IO (Maybe (Maybe Int, Maybe UTCTime), [SomeException])
-fetchResourceWithRetries mgr serverAddr retries =
+fetchResourceWithRetries mgr serverAddr = fix \redo retries ->
   if retries <= 0
     then pure (Nothing, [])
     else
       fetchResource mgr serverAddr >>= \case
         Right v -> pure (Just v, [])
         Left e -> do
+          -- just guessing 100ms backoff should be good enough
           threadDelay $ 1000 * 100
-          (v, rs) <- fetchResourceWithRetries mgr serverAddr (retries - 1)
+          (v, rs) <- redo (retries - 1)
           pure (v, e : rs)
 
 defaultMain :: IO ()
