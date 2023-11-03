@@ -24,6 +24,9 @@ import qualified Network.HTTP.Date as HD
 
   note: can use HEAD on /kcs2/js/main.js
 
+  TODO: need some storage for keeping `length` and `last modified`,
+  with that available we can play with If-Modified-Since
+
  -}
 
 data SubCmdGameServerLab
@@ -32,7 +35,13 @@ instance Subcommand SubCmdGameServerLab where
   name _ = "GameServerLab"
   main _ = defaultMain
 
-fetchResource :: Manager -> String -> IO (Either SomeException (Maybe Int, Maybe UTCTime))
+data ServerInfo = ServerInfo
+  { siLastModified :: UTCTime
+  , siContentLength :: Int
+  }
+  deriving (Show)
+
+fetchResource :: Manager -> String -> IO (Either SomeException (Maybe ServerInfo))
 fetchResource mgr serverAddr = catchAny fetch' (pure . Left)
   where
     fetch' = do
@@ -46,23 +55,29 @@ fetchResource mgr serverAddr = catchAny fetch' (pure . Left)
             }
       resp <- httpLbs req mgr
       let respHs = responseHeaders resp
-          cl = do
-            raw <- lookup "Content-Length" respHs
-            Right v <- pure $ P.parseOnly (P.decimal @Int) raw
-            pure v
-          lm =
-            lookup "Last-Modified" respHs
-              >>= HD.parseHTTPDate
-              <&> HD.httpDateToUTC
-      pure $ Right (cl, lm)
+      pure $ Right do
+        {-
+          Note we have a seperate do-notation and of a different type here.
+          Should we receive Nothing here, we know server has returned a successful response,
+          but something is wrong when we try to parse it.
+         -}
+        cl <- do
+          raw <- lookup "Content-Length" respHs
+          Right v <- pure $ P.parseOnly (P.decimal @Int) raw
+          pure v
+        lm <-
+          lookup "Last-Modified" respHs
+            >>= HD.parseHTTPDate
+            <&> HD.httpDateToUTC
+        pure ServerInfo {siLastModified = lm, siContentLength = cl}
 
-fetchResourceWithRetries :: Manager -> String -> Int -> IO (Maybe (Maybe Int, Maybe UTCTime), [SomeException])
+fetchResourceWithRetries :: Manager -> String -> Int -> IO (Maybe ServerInfo, [SomeException])
 fetchResourceWithRetries mgr serverAddr = fix \redo retries ->
   if retries <= 0
     then pure (Nothing, [])
     else
       fetchResource mgr serverAddr >>= \case
-        Right v -> pure (Just v, [])
+        Right v -> pure (v, [])
         Left e -> do
           -- just guessing 100ms backoff should be good enough
           threadDelay $ 1000 * 100
@@ -77,4 +92,5 @@ defaultMain = do
   forM_ rs \(k, (v0, v1)) -> do
     putStrLn $ "Server #" <> show k
     print v0
-    putStrLn $ "Error count: " <> show (length v1)
+    unless (null v1) do
+      putStrLn $ "Error count: " <> show (length v1)
