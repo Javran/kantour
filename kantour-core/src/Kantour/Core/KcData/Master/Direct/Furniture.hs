@@ -11,7 +11,7 @@ import Kantour.Core.KcData.Master.Direct.Common
 data Furniture = Furniture
   { title :: T.Text
   , price :: Int
-  , season :: Int
+  , season :: Maybe Int
   , version :: Int
   , activeFlag :: Int
   , outsideId :: Int
