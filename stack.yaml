@@ -6,3 +6,5 @@ packages:
 
 extra-deps:
 - shower-0.2.0.3
+- hip-1.5.6.0
+- union-find-0.2

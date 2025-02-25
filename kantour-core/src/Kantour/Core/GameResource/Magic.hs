@@ -11,31 +11,31 @@ import qualified Data.Text as T
 import qualified Data.Vector.Unboxed as VU
 
 defaultServer :: T.Text
-defaultServer = "203.104.209.71"
+defaultServer = "w01y.kancolle-server.com"
 
 servers :: IM.IntMap T.Text
 servers =
   IM.fromList
     [ (1, defaultServer)
-    , (2, "203.104.209.87")
-    , (3, "125.6.184.215")
-    , (4, "203.104.209.183")
-    , (5, "203.104.209.150")
-    , (6, "203.104.209.134")
-    , (7, "203.104.209.167")
-    , (8, "203.104.209.199")
-    , (9, "125.6.189.7")
-    , (10, "125.6.189.39")
-    , (11, "125.6.189.71")
-    , (12, "125.6.189.103")
-    , (13, "125.6.189.135")
-    , (14, "125.6.189.167")
-    , (15, "125.6.189.215")
-    , (16, "125.6.189.247")
-    , (17, "203.104.209.23")
-    , (18, "203.104.209.39")
-    , (19, "203.104.209.55")
-    , (20, "203.104.209.102")
+    , (2, "w02k.kancolle-server.com")
+    , (3, "w03s.kancolle-server.com")
+    , (4, "w04m.kancolle-server.com")
+    , (5, "w05o.kancolle-server.com")
+    , (6, "w06t.kancolle-server.com")
+    , (7, "w07l.kancolle-server.com")
+    , (8, "w08r.kancolle-server.com")
+    , (9, "w09s.kancolle-server.com")
+    , (10, "w10b.kancolle-server.com")
+    , (11, "w11t.kancolle-server.com")
+    , (12, "w12p.kancolle-server.com")
+    , (13, "w13b.kancolle-server.com")
+    , (14, "w14h.kancolle-server.com")
+    , (15, "w15p.kancolle-server.com")
+    , (16, "w16s.kancolle-server.com")
+    , (17, "w17k.kancolle-server.com")
+    , (18, "w18i.kancolle-server.com")
+    , (19, "w19s.kancolle-server.com")
+    , (20, "w20h.kancolle-server.com")
     ]
 
 {- ORMOLU_DISABLE -}
