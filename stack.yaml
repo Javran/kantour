@@ -1,4 +1,4 @@
-resolver: lts-20.26
+resolver: lts-21.25
 
 packages:
 - kantour-core
@@ -7,4 +7,7 @@ packages:
 extra-deps:
 - shower-0.2.0.3
 - hip-1.5.6.0
-- union-find-0.2
+- repa-3.4.2.0
+- git: https://github.com/Javran/union-find.git
+  commit: 303e897af1dbea0f19906ceb054ef65bba58606c
+
