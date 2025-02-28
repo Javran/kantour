@@ -11,3 +11,5 @@ extra-deps:
 - git: https://github.com/Javran/union-find.git
   commit: 303e897af1dbea0f19906ceb054ef65bba58606c
 
+notify-if-no-run-tests: false
+
