@@ -11,6 +11,7 @@ category: Web
 ghc-options:
   - -Wall
   - -Wno-incomplete-uni-patterns
+  - -Wno-x-partial
 
 default-extensions:
   - BangPatterns
@@ -50,6 +51,7 @@ default-extensions:
   - TupleSections
   - TypeApplications
   - TypeFamilies
+  - TypeOperators
   - TypeSynonymInstances
 
 dependencies:
@@ -79,7 +81,6 @@ library:
     - mtl
     - transformers
     - vector
-    - writer-cps-mtl
     - yaml
 
 tests:

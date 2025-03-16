@@ -1,4 +1,4 @@
-resolver: lts-21.25
+resolver: lts-23.14
 
 packages:
 - kantour-core
@@ -6,10 +6,15 @@ packages:
 
 extra-deps:
 - shower-0.2.0.3
-- hip-1.5.6.0
 - repa-3.4.2.0
 - git: https://github.com/Javran/union-find.git
   commit: 303e897af1dbea0f19906ceb054ef65bba58606c
-
+- aeson-picker-0.1.0.6
+- git: https://github.com/lehins/hip
+  commit: 9f1111ea8e3f6d284404074cb6ac3e2ff164f0fe
 notify-if-no-run-tests: false
 
+allow-newer: true
+allow-newer-deps:
+- shower
+- aeson-picker

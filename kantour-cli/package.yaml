@@ -11,6 +11,7 @@ category: Web
 ghc-options:
   - -Wall
   - -Wno-incomplete-uni-patterns
+  - -Wno-x-partial
 
 default-extensions:
   - BangPatterns
@@ -25,6 +26,7 @@ default-extensions:
   - DeriveGeneric
   - DeriveTraversable
   - DerivingVia
+  - DuplicateRecordFields
   - EmptyCase
   - EmptyDataDecls
   - ExistentialQuantification
@@ -50,6 +52,7 @@ default-extensions:
   - TupleSections
   - TypeApplications
   - TypeFamilies
+  - TypeOperators
   - TypeSynonymInstances
 
 dependencies:
@@ -89,11 +92,11 @@ dependencies:
 - template-haskell
 - text
 - time
+- transformers
 - union-find
 - unordered-containers
 - vector
 - vector-algorithms
-- writer-cps-mtl
 - yaml
 
 library:

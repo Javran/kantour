@@ -1,8 +1,9 @@
-module Kantour.Coded (
-  defaultMain,
-  SubCmdCoded,
-) where
+module Kantour.Coded
+  ( defaultMain
+  , SubCmdCoded
+  ) where
 
+import Control.Monad
 import Control.Monad.State
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS

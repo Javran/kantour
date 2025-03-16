@@ -1,21 +1,21 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module Kantour.Core.KcData.Master.Direct.Common (
-  CollectExtra (..),
-  HasKnownFields (..),
-  kcFields,
-  Verifiable (..),
-  vLogT,
-  vLogS,
-  module Control.Monad,
-  NFData,
-  parseKcMstJson,
-  inRange,
-  fix,
-  Generic,
-  findDuplicates,
-  isIntParsable,
-) where
+module Kantour.Core.KcData.Master.Direct.Common
+  ( CollectExtra (..)
+  , HasKnownFields (..)
+  , kcFields
+  , Verifiable (..)
+  , vLogT
+  , vLogS
+  , module Control.Monad
+  , NFData
+  , parseKcMstJson
+  , inRange
+  , fix
+  , Generic
+  , findDuplicates
+  , isIntParsable
+  ) where
 
 import Control.DeepSeq (NFData)
 import Control.Monad
@@ -25,7 +25,9 @@ import qualified Data.Aeson.Key
 import qualified Data.Aeson.KeyMap as KM
 import Data.Aeson.Types
 import Data.Bifunctor
+import Data.Char
 import qualified Data.DList as DL
+import Data.Function
 import Data.Ix (inRange)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -33,7 +35,6 @@ import Data.Proxy
 import qualified Data.Set as S
 import qualified Data.Text as T
 import GHC.Generics
-import Data.Char
 
 {-
 

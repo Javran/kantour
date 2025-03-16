@@ -8,7 +8,7 @@ import Control.Monad
 import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.State
-import Control.Monad.Writer.CPS
+import Control.Monad.Trans.Writer.CPS
 import Data.Bifunctor
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.Pure.SHA

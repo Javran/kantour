@@ -45,7 +45,7 @@ aswEquips =
 
 type EquipList = [ASWEquip]
 
-fI :: _
+fI :: (Integral a, Num b) => a -> b
 fI = fromIntegral
 
 firePower :: Int -> EquipList -> Double

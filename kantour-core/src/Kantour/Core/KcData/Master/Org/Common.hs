@@ -1,22 +1,23 @@
 {-# LANGUAGE UndecidableInstances #-}
 
-module Kantour.Core.KcData.Master.Org.Common (
-  FromDirect (..),
-  Side (..),
-  NFData,
-  Generic,
-  illformed,
-  textToInt,
-  when,
-  unless,
-  throwError,
-  intBoolFlag,
-  AesonOrg (..),
-  AesonOrgStrict,
-  AesonOrgUnchecked,
-) where
+module Kantour.Core.KcData.Master.Org.Common
+  ( FromDirect (..)
+  , Side (..)
+  , NFData
+  , Generic
+  , illformed
+  , textToInt
+  , when
+  , unless
+  , throwError
+  , intBoolFlag
+  , AesonOrg (..)
+  , AesonOrgStrict
+  , AesonOrgUnchecked
+  ) where
 
 import Control.DeepSeq (NFData)
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Writer
 import Data.Aeson
