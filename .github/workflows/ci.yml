@@ -29,7 +29,7 @@ jobs:
       - name: Setup Stack
         uses: haskell/actions/setup@v2
         with:
-          ghc-version: '9.0.2'
+          ghc-version: '9.8.4'
           enable-stack: true
           stack-version: 'latest'
 
@@ -37,9 +37,9 @@ jobs:
         id: cache_key
         run: echo ::set-output name=key::$(md5sum stack.yaml | awk '{print $1}')
 
-      - name: Cache Dependencies
-        id: cache
-        uses: actions/cache@v2
+      - name: Restore cached deps
+        id: cache-deps-restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.stack
           key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
@@ -53,3 +53,11 @@ jobs:
         run: stack --no-interleaved-output --no-terminal build --test --only-dependencies
 
       - run: stack --interleaved-output --no-terminal build --test
+
+      - name: Save deps
+        id: cache-deps-save
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.stack
+          key: ${{ matrix.os }}-${{ steps.cache_key.outputs.key }}
+
