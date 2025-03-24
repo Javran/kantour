@@ -39,9 +39,8 @@ defaultMain = do
   args <- getArgs
   case args of
     [] -> helpAndQuit
-    (sub : subArgs) -> do
-      let mSubCmd = lookup (mk sub) cmds
-      case mSubCmd of
+    (sub : subArgs) ->
+      case lookup (mk sub) cmds of
         Nothing -> do
           printf "subcommand \"%s\" is not found\n" sub
           helpAndQuit
