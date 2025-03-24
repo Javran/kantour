@@ -21,13 +21,13 @@ where
 
 import Control.Monad
 import Data.Aeson
-import Data.Tuple
-import GHC.Generics
-import System.FilePath
-
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
+import Data.Tuple
+import GHC.Generics
 import qualified Graphics.Image as Img
+import System.Exit (die)
+import System.FilePath
 
 {-
   Example resource:
@@ -109,12 +109,12 @@ data FileMeta = FileMeta
 
 instance FromJSON FileMeta where
   parseJSON = withObject "FileMeta" $ \v -> do
-    (format :: T.Text) <- v .: "format"
+    format <- v .: "format"
     when (format /= "RGBA8888") $
       fail $
         "unexpected format: " <> T.unpack format
-    (sizeObj :: Object) <- v .: "size"
-    FileMeta <$> parseJSON (Object sizeObj)
+    sizeObj <- v .: "size"
+    FileMeta <$> parseJSON sizeObj
 
 newtype FileInfo
   = FileInfo (SpriteFrames, FileMeta)
@@ -134,20 +134,20 @@ type Image = Img.Image Img.VS Img.RGBA Img.Word8
 
 loadSpritesmith :: FilePath -> FilePath -> IO (M.Map T.Text Image)
 loadSpritesmith jsonFile pngFile = do
-  Right (FileInfo (SpriteFrames sf, FileMeta (Wh sz))) <-
-    eitherDecodeFileStrict @FileInfo jsonFile
+  FileInfo (SpriteFrames sf, FileMeta (Wh sz)) <-
+    eitherDecodeFileStrict jsonFile >>= \case
+      Left err -> die $ "JSON parse error: " <> err
+      Right v -> pure v
+
   mapM_ print (M.toAscList sf)
   img <- Img.readImageExact' Img.PNG pngFile
-  -- img <- Img.readImageRGBA Img.VU pngFile
   -- note that here hip dimension is represented as (h,w), rather than (w,h).
   let (imgH, imgW) = Img.dims img
   when (sz /= (imgW, imgH)) $
     error $
       "image size mismatch: " <> show (sz, (imgW, imgH))
   putStrLn $ "width: " <> show imgW <> ", height: " <> show imgH
-  let images :: M.Map T.Text Image
-      images = M.map (extractImage img) sf
-  pure images
+  pure $ M.map (extractImage img) sf
 
 outputImages :: FilePath -> M.Map T.Text Image -> IO ()
 outputImages outputDir = mapM_ outputImage . M.toList
