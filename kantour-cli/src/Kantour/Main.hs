@@ -19,6 +19,7 @@ import Kantour.MapToolFast.Main ()
 import Kantour.MapTwol.Main ()
 import Kantour.MasterLab ()
 import Kantour.ShipStat.Main ()
+import Kantour.Sprite ()
 import Kantour.Subcommand
 import Kantour.TH
 import Kantour.WhoCallsTheFleet.Main ()
