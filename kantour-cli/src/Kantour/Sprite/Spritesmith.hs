@@ -90,11 +90,10 @@ instance FromJSON FrameInfo where
     trimmed <- v .: "trimmed"
     when trimmed $
       fail "trimmed shouldn't be False"
-    (frame :: Object) <- v .: "frame"
+    frame <- v .: "frame"
 
-    let vf = Object frame
-    xy <- parseJSON vf
-    wh <- parseJSON vf
+    xy <- parseJSON frame
+    wh <- parseJSON frame
     pure $ FrameInfo xy wh
 
 newtype SpriteFrames
