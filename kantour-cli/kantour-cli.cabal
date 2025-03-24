@@ -44,6 +44,8 @@ library
       Kantour.ShipStat.Core
       Kantour.ShipStat.Main
       Kantour.ShipStat.ProcessDump
+      Kantour.Sprite
+      Kantour.Sprite.Spritesmith
       Kantour.Subcommand
       Kantour.TH
       Kantour.WhoCallsTheFleet.Fetch
