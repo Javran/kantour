@@ -62,7 +62,7 @@ data Root = Root
   , itemShop :: ItemShop
   , kcConst :: Const
   , equipExslotShips :: EquipExslotShip
-  , equipShips :: IM.IntMap EquipShip
+  , equipShips :: EquipShip
   , furnitures :: IM.IntMap Furniture
   , furnitureGraphs :: IM.IntMap FurnitureGraph
   , mapAreas :: IM.IntMap MapArea
@@ -117,8 +117,7 @@ instance FromDirect Root where
         buildFromList (\Ship {kcId = i} -> i) mstShip
       kcConst <- fromDirect mstConst
       equipExslotShips <- fromDirect mstEquipExslotShip
-      equipShips <-
-        buildFromList (\EquipShip {shipId = i} -> i) mstEquipShip
+      equipShips <- fromDirect mstEquipShip
       furnitures <-
         buildFromList (\Furniture {kcId = i} -> i) mstFurniture
       furnitureGraphs <-
