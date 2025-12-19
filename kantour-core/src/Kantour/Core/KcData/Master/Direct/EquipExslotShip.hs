@@ -8,11 +8,8 @@ module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
 ) where
 
 import Data.Aeson as Aeson
-import qualified Data.Aeson.Key as AK
-import qualified Data.Aeson.KeyMap as AK
 import Data.Coerce (coerce)
 import qualified Data.IntMap.Strict as IM
-import qualified Data.Text as T
 import Kantour.Core.KcData.Master.Direct.Common
 
 newtype EquipExslotShip = EquipExslotShip
@@ -30,25 +27,6 @@ instance NFData EquipExslotShip
 
 instance Verifiable EquipExslotShip where
   verify (EquipExslotShip m) = mapM_ verify m
-
-{-
-  Parse an object whose keys are stringified integers into IntMap.
-
-  Note: this could be general-purpose.
- -}
-newtype IntMapByObj v = IntMapByObj (IM.IntMap v)
-  deriving stock (Generic, Show)
-  deriving newtype (NFData)
-
-instance FromJSON v => FromJSON (IntMapByObj v) where
-  parseJSON = withObject "IntMapByObj" $ \o ->
-    IntMapByObj <$> do
-      let parsePair (k0, rawV) = do
-            [(k1, "")] <- pure $ reads @Integer (T.unpack (AK.toText k0))
-            let k2 = fromInteger @Int k1
-            guard $ k1 == toInteger k2
-            (k2,) <$> parseJSON @v rawV
-      IM.fromList <$> mapM parsePair (AK.toList o)
 
 {-
   Information object for a slotitem.

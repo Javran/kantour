@@ -10,6 +10,7 @@ where
 import Data.Aeson as Aeson
 import qualified Data.IntMap.Strict as IM
 import qualified Data.List.NonEmpty as NE
+import Debug.Trace
 import Kantour.Core.KcData.Master.Direct.Common
 
 newtype EquipTypeValue = EquipTypeValue (Maybe (NE.NonEmpty Int))
@@ -36,16 +37,18 @@ instance HasKnownFields EquipShipObj where
 
 instance FromJSON EquipShipObj where
   parseJSON = withObject "EquipShipObj" $ \v -> do
-    (obj :: IM.IntMap EquipTypeValue) <- v .: "api_equip_type"
+    -- TODO: not supposed to do it like this here.
+    (IntMapByObj obj) <- v .: "api_equip_type"
     pure $ EquipShipObj obj
 
-newtype EquipShip = EquipShip
-  { getEquipShip :: IM.IntMap EquipShipObj
-  }
+newtype EquipShip = EquipShip (IM.IntMap EquipShipObj)
   deriving stock (Generic, Show)
 
 instance FromJSON EquipShip where
-  parseJSON = parseKcMstJson
+  parseJSON v =
+    EquipShip <$> do
+      IntMapByObj tmp <- parseJSON v
+      pure tmp
 
 instance NFData EquipShip
 

@@ -15,6 +15,7 @@ module Kantour.Core.KcData.Master.Direct.Common
   , Generic
   , findDuplicates
   , isIntParsable
+  , IntMapByObj (..)
   ) where
 
 import Control.DeepSeq (NFData)
@@ -22,12 +23,15 @@ import Control.Monad
 import Control.Monad.Writer
 import Data.Aeson
 import qualified Data.Aeson.Key
+import qualified Data.Aeson.Key as AK
+import qualified Data.Aeson.KeyMap as AK
 import qualified Data.Aeson.KeyMap as KM
 import Data.Aeson.Types
 import Data.Bifunctor
 import Data.Char
 import qualified Data.DList as DL
 import Data.Function
+import qualified Data.IntMap.Strict as IM
 import Data.Ix (inRange)
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
@@ -132,3 +136,22 @@ findDuplicates = mapMaybe f . NE.groupAllWith id
 
 isIntParsable :: T.Text -> Bool
 isIntParsable x = x /= "" && T.all isDigit x
+
+{-
+  Parse an object whose keys are stringified integers into IntMap.
+
+  Note: this could be general-purpose.
+ -}
+newtype IntMapByObj v = IntMapByObj (IM.IntMap v)
+  deriving stock (Generic, Show)
+  deriving newtype (NFData)
+
+instance FromJSON v => FromJSON (IntMapByObj v) where
+  parseJSON = withObject "IntMapByObj" $ \o ->
+    IntMapByObj <$> do
+      let parsePair (k0, rawV) = do
+            [(k1, "")] <- pure $ reads @Integer (T.unpack (AK.toText k0))
+            let k2 = fromInteger @Int k1
+            guard $ k1 == toInteger k2
+            (k2,) <$> parseJSON @v rawV
+      IM.fromList <$> mapM parsePair (AK.toList o)

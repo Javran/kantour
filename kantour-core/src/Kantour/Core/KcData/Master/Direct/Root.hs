@@ -130,12 +130,7 @@ instance Verifiable Root where
 
       verify mstEquipExslotShip
 
-      -- TODO: verification
-      {-
-      verifyListWithUniqueId
-        "mstEquipShip"
-        (\EquipShip {shipId = i} -> i)
-        mstEquipShip -}
+      verify mstEquipShip
 
       verifyListWithUniqueId
         "Furniture"

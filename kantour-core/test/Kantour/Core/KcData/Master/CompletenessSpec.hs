@@ -1,6 +1,6 @@
-module Kantour.Core.KcData.Master.CompletenessSpec (
-  spec,
-) where
+module Kantour.Core.KcData.Master.CompletenessSpec
+  ( spec
+  ) where
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -102,8 +102,9 @@ spec =
                             T.putStrLn $ "  - " <> decodeUtf8 (BSL.toStrict v)
                       pendingWith $
                         "Unknown fields: " <> unwords (T.unpack <$> M.keys unknownFields)
-        let sel x v = v |-- [x]
-            sel' x v = [sel x v]
+        let
+          sel x v = v |-- [x]
+          sel' x v = [sel x v]
 
         mkTest (Proxy @Slotitem) $ sel "api_mst_slotitem"
         mkTest (Proxy @Shipgraph) $ sel "api_mst_shipgraph"
@@ -111,7 +112,10 @@ spec =
         mkTest (Proxy @Bgm) $ sel "api_mst_bgm"
         mkTest (Proxy @EquipExslotShipInfo) $ \mst ->
           AK.elems (mst |-- ["api_mst_equip_exslot_ship"] :: Object)
-        mkTest (Proxy @EquipShip) $ sel "api_mst_equip_ship"
+
+        mkTest (Proxy @EquipShipObj) $ \mst ->
+          AK.elems (mst |-- ["api_mst_equip_ship"] :: Object)
+
         mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
         mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
         mkTest (Proxy @Maparea) $ sel "api_mst_maparea"
