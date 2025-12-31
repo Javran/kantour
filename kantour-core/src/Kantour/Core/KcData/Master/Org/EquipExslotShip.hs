@@ -18,6 +18,7 @@ data EquipExslotShipInfo = EquipExslotShipInfo
   { shipIds :: IS.IntSet
   , cTypes :: IS.IntSet
   , sTypes :: IS.IntSet
+  , reqLevel :: Int
   }
   deriving (Generic, Show)
 
@@ -36,10 +37,12 @@ instance FromDirect EquipExslotShip where
           { D.shipIds = rawShipIds
           , D.ctypes
           , D.stypes
+          , D.reqLevel
           } =
           pure
             EquipExslotShipInfo
               { shipIds = convertSet rawShipIds
               , cTypes = convertSet ctypes
               , sTypes = convertSet stypes
+              , reqLevel
               }

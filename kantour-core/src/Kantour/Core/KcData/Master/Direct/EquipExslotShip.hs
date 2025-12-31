@@ -1,11 +1,11 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Kantour.Core.KcData.Master.Direct.EquipExslotShip (
-  EquipExslotShip (..),
-  EquipExslotShipInfoF (..),
-  EquipExslotShipInfo,
-) where
+module Kantour.Core.KcData.Master.Direct.EquipExslotShip
+  ( EquipExslotShip (..)
+  , EquipExslotShipInfoF (..)
+  , EquipExslotShipInfo
+  ) where
 
 import Data.Aeson as Aeson
 import Data.Coerce (coerce)
@@ -37,6 +37,7 @@ data EquipExslotShipInfoF f = EquipExslotShipInfo
   { shipIds :: Maybe (f Int)
   , ctypes :: Maybe (f Int)
   , stypes :: Maybe (f Int)
+  , reqLevel :: Int
   }
   deriving stock (Generic)
 
@@ -44,10 +45,10 @@ deriving instance Show (f Int) => Show (EquipExslotShipInfoF f)
 
 instance HasKnownFields EquipExslotShipInfo where
   knownFields _ =
-    kcFields "ship_ids ctypes stypes"
+    kcFields "ship_ids ctypes stypes req_level"
 
 instance Verifiable EquipExslotShipInfo where
-  verify EquipExslotShipInfo {shipIds, ctypes, stypes} = do
+  verify EquipExslotShipInfo {shipIds, ctypes, stypes, reqLevel} = do
     let verify' what = \case
           Nothing -> pure ()
           Just m -> forM_ (IM.toList m) \(k, v) -> when (v /= 1) do
@@ -56,6 +57,8 @@ instance Verifiable EquipExslotShipInfo where
     verify' "shipIds" shipIds
     verify' "ctypes" ctypes
     verify' "stypes" stypes
+    unless (0 <= reqLevel && reqLevel <= 10) do
+      vLogS $ "reqLevel should be in 0..10, but found: " <> show reqLevel
 
 type EquipExslotShipInfo = EquipExslotShipInfoF IM.IntMap
 

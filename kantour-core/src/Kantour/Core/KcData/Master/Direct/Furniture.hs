@@ -21,6 +21,7 @@ data Furniture = Furniture
   , no :: Int
   , description :: T.Text
   , saleflg :: Int
+  , bgmId :: Int
   }
   deriving stock (Generic, Show)
 
@@ -32,7 +33,7 @@ instance HasKnownFields Furniture where
   knownFields _ =
     kcFields
       "title price season version active_flag outside_id \
-      \type rarity id no description saleflg"
+      \type rarity id no description saleflg bgm_id"
 
 instance Verifiable Furniture where
   verify Furniture {kcId, kcType, activeFlag, rarity, saleflg} = do

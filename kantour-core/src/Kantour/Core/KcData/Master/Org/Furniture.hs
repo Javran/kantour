@@ -21,6 +21,7 @@ data Furniture = Furniture
   , no :: Int
   , description :: T.Text
   , saleFlag :: Bool
+  , bgmId :: Int
   }
   deriving (Generic, Show)
 
@@ -43,6 +44,7 @@ instance FromDirect Furniture where
       , no
       , description
       , saleflg = sfPre
+      , bgmId
       } = do
       activeFlag <- intBoolFlag "activeFlag" afPre
       saleFlag <- intBoolFlag "saleflg" sfPre
@@ -60,4 +62,5 @@ instance FromDirect Furniture where
           , no
           , description
           , saleFlag
+          , bgmId
           }

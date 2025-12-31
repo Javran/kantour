@@ -21,6 +21,7 @@ data Shipupgrade = Shipupgrade
   , reportCount :: Int
   , catapultCount :: Int
   , boilerCount :: Maybe Int
+  , techCount :: Int
   }
   deriving stock (Generic, Show)
 
@@ -34,7 +35,7 @@ instance HasKnownFields Shipupgrade where
     kcFields
       "id aviation_mat_count upgrade_type drawing_count \
       \upgrade_level current_ship_id original_ship_id arms_mat_count \
-      \sortno report_count catapult_count boiler_count"
+      \sortno report_count catapult_count boiler_count tech_count"
 
 instance Verifiable Shipupgrade where
   verify
@@ -59,5 +60,6 @@ instance Verifiable Shipupgrade where
             , reportCount = 0
             , catapultCount = 0
             , boilerCount = Nothing
+            , techCount = 0
             } -> pure ()
           _ -> warn $ "ignored object has non-zero consumption: " <> show x

@@ -20,6 +20,7 @@ data ShipUpgrade = ShipUpgrade
   , report :: Int
   , catapult :: Int
   , boiler :: Int
+  , foreignMat :: Int
   }
   deriving (Generic, Show)
 
@@ -44,6 +45,7 @@ instance FromDirect ShipUpgrade where
       , reportCount = report
       , catapultCount = catapult
       , boilerCount = b
+      , techCount
       } = do
       when (currentShipId == 0) do
         throwError "currentShipId should not be 0"
@@ -59,4 +61,5 @@ instance FromDirect ShipUpgrade where
           , report
           , catapult
           , boiler = fromMaybe 0 b
+          , foreignMat = techCount
           }
