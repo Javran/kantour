@@ -108,8 +108,9 @@ instance Verifiable Shipgraph where
         justShaped "pab" pab
         justShaped "weda" weda
         justShaped "wedb" wedb
-        justShaped "wedc" wedc
-        justShaped "wedd" wedd
+        -- TODO: those two seems optional
+        -- justShaped "wedc" wedc
+        -- justShaped "wedd" wedd
 
       when (kcId > 1500) do
         when (kcId < 5000) do

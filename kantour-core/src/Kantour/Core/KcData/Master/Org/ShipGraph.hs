@@ -26,7 +26,7 @@ data SGOurs = SGOurs
   , pa :: Coord
   , pab :: Coord
   , wedAB :: (Coord, Coord)
-  , wedCD :: (Coord, Coord)
+  , wedCD :: Maybe (Coord, Coord)
   }
   deriving (Generic, Show)
 
@@ -44,6 +44,9 @@ data ShipGraph = ShipGraph
 
 instance NFData ShipGraph
 
+{-
+  TODO: need coverage for converting to Org
+ -}
 instance FromDirect ShipGraph where
   type Source ShipGraph = D.Shipgraph
 
@@ -101,7 +104,7 @@ instance FromDirect ShipGraph where
             pa <- tup2 paPre
             pab <- tup2 pabPre
             wedAB <- (,) <$> tup2 weda <*> tup2 wedb
-            wedCD <- (,) <$> tup2 wedc <*> tup2 wedd
+            let wedCD = (,) <$> tup2 wedc <*> tup2 wedd
             pure
               SGOurs
                 { sortNo
