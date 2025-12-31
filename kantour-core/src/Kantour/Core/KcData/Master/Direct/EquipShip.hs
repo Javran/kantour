@@ -10,7 +10,6 @@ where
 import Data.Aeson as Aeson
 import qualified Data.IntMap.Strict as IM
 import qualified Data.List.NonEmpty as NE
-import Debug.Trace
 import Kantour.Core.KcData.Master.Direct.Common
 
 newtype EquipTypeValue = EquipTypeValue (Maybe (NE.NonEmpty Int))

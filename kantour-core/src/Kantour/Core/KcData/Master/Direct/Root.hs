@@ -29,6 +29,15 @@ import Kantour.Core.KcData.Master.Direct.Stype
 import Kantour.Core.KcData.Master.Direct.Useitem
 
 {-
+  TODO: support for api_mst_equip_limit_exslot
+
+  - this seems to be an object indexed by ship id
+  - values probably have the same meaning as equip_exslot
+  - should we check type values in those fields?
+
+ -}
+
+{-
   Root object of master data.
  -}
 data Root = Root
@@ -36,6 +45,7 @@ data Root = Root
   , mstShipgraph :: [Shipgraph]
   , mstShip :: [Ship]
   , mstEquipExslot :: [Int]
+  -- , mstEquipLimitExslot :: IM.IntMap [Int]
   , mstBgm :: [Bgm]
   , mstItemShop :: ItemShop
   , mstConst :: Const
