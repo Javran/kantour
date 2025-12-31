@@ -150,6 +150,7 @@ instance FromJSON v => FromJSON (IntMapByObj v) where
   parseJSON = withObject "IntMapByObj" $ \o ->
     IntMapByObj <$> do
       let parsePair (k0, rawV) = do
+            -- TODO: pattern here could fall.
             [(k1, "")] <- pure $ reads @Integer (T.unpack (AK.toText k0))
             let k2 = fromInteger @Int k1
             guard $ k1 == toInteger k2

@@ -32,6 +32,9 @@ data Shipgraph = Shipgraph
   , version :: NE.NonEmpty T.Text
   , weda :: Maybe [Int]
   , wedb :: Maybe [Int]
+  , wedc :: Maybe [Int]
+  , wedd :: Maybe [Int]
+  , spFlag :: Maybe Int -- TODO: this seems to be either 1 or undefined.
   }
   deriving stock (Generic, Show)
 
@@ -44,7 +47,7 @@ instance HasKnownFields Shipgraph where
     kcFields
       "ensyue_n kaisyu_n version kaisyu_d wedb ensyuf_d battle_d \
       \filename pab sortno ensyuf_n battle_n boko_n id \
-      \map_n kaizo_d boko_d weda map_d kaizo_n pa"
+      \map_n kaizo_d boko_d weda map_d kaizo_n pa sp_flag wedc wedd"
 
 instance Verifiable Shipgraph where
   verify
@@ -68,6 +71,8 @@ instance Verifiable Shipgraph where
       , pab
       , weda
       , wedb
+      , wedc
+      , wedd
       , version
       } = fix \(_ :: m ()) -> do
       let warn msg = vLogS $ "Shipgraph{" <> show kcId <> "}: " <> msg
@@ -103,6 +108,8 @@ instance Verifiable Shipgraph where
         justShaped "pab" pab
         justShaped "weda" weda
         justShaped "wedb" wedb
+        justShaped "wedc" wedc
+        justShaped "wedd" wedd
 
       when (kcId > 1500) do
         when (kcId < 5000) do

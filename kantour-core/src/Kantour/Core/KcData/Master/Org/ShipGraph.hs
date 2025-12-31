@@ -26,6 +26,7 @@ data SGOurs = SGOurs
   , pa :: Coord
   , pab :: Coord
   , wedAB :: (Coord, Coord)
+  , wedCD :: (Coord, Coord)
   }
   deriving (Generic, Show)
 
@@ -37,6 +38,7 @@ data ShipGraph = ShipGraph
   , version :: (Int, Int, Int)
   , battle :: Maybe DnPair
   , ours :: Maybe SGOurs
+  , spFlag :: Maybe Int
   }
   deriving (Generic, Show)
 
@@ -68,6 +70,9 @@ instance FromDirect ShipGraph where
       , pab = pabPre
       , weda
       , wedb
+      , wedc
+      , wedd
+      , spFlag
       } = do
       let tup2 = \case
             Just [a, b] -> pure (a, b)
@@ -96,6 +101,7 @@ instance FromDirect ShipGraph where
             pa <- tup2 paPre
             pab <- tup2 pabPre
             wedAB <- (,) <$> tup2 weda <*> tup2 wedb
+            wedCD <- (,) <$> tup2 wedc <*> tup2 wedd
             pure
               SGOurs
                 { sortNo
@@ -108,6 +114,7 @@ instance FromDirect ShipGraph where
                 , pa
                 , pab
                 , wedAB
+                , wedCD
                 }
       case (side, battle, ours) of
         (Our, Just _, Just _) -> pure ()
@@ -123,4 +130,5 @@ instance FromDirect ShipGraph where
           , version
           , battle
           , ours
+          , spFlag
           }
