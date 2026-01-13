@@ -3,7 +3,7 @@ module Kantour.Core.Utils where
 import Control.Monad
 import Data.Char
 import Data.Foldable
-import Data.List
+import Data.List hiding (compareLength)
 
 alterAL :: Eq k => (Maybe v -> Maybe v) -> k -> [(k, v)] -> [(k, v)]
 alterAL modify k [] = case modify Nothing of
