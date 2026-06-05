@@ -117,7 +117,7 @@ spec =
           AK.elems (mst |-- ["api_mst_equip_ship"] :: Object)
 
         mkTest (Proxy @Furniture) $ sel "api_mst_furniture"
-        mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
+        -- mkTest (Proxy @Furnituregraph) $ sel "api_mst_furnituregraph"
         mkTest (Proxy @Maparea) $ sel "api_mst_maparea"
         mkTest (Proxy @Mapbgm) $ sel "api_mst_mapbgm"
         mkTest (Proxy @Mapinfo) $ sel "api_mst_mapinfo"

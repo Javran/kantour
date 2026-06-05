@@ -64,7 +64,7 @@ data Root = Root
   , equipExslotShips :: EquipExslotShip
   , equipShips :: EquipShip
   , furnitures :: IM.IntMap Furniture
-  , furnitureGraphs :: IM.IntMap FurnitureGraph
+  -- , furnitureGraphs :: IM.IntMap FurnitureGraph
   , mapAreas :: IM.IntMap MapArea
   , mapBgms :: IM.IntMap MapBgm
   , mapInfos :: IM.IntMap MapInfo
@@ -94,7 +94,7 @@ instance FromDirect Root where
       , mstEquipExslotShip
       , mstEquipShip
       , mstFurniture
-      , mstFurnituregraph
+      -- , mstFurnituregraph
       , mstMaparea
       , mstMapbgm
       , mstMapinfo
@@ -120,8 +120,8 @@ instance FromDirect Root where
       equipShips <- fromDirect mstEquipShip
       furnitures <-
         buildFromList (\Furniture {kcId = i} -> i) mstFurniture
-      furnitureGraphs <-
-        buildFromList (\FurnitureGraph {kcId = i} -> i) mstFurnituregraph
+      -- furnitureGraphs <-
+      --  buildFromList (\FurnitureGraph {kcId = i} -> i) mstFurnituregraph
       mapAreas <-
         buildFromList (\MapArea {kcId = i} -> i) mstMaparea
       mapBgms <-
@@ -155,7 +155,7 @@ instance FromDirect Root where
           , equipExslotShips
           , equipShips
           , furnitures
-          , furnitureGraphs
+          -- , furnitureGraphs
           , mapAreas
           , mapBgms
           , mapInfos

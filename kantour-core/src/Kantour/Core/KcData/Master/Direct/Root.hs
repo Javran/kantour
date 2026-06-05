@@ -52,7 +52,7 @@ data Root = Root
   , mstEquipExslotShip :: EquipExslotShip
   , mstEquipShip :: EquipShip
   , mstFurniture :: [Furniture]
-  , mstFurnituregraph :: [Furnituregraph]
+  -- , mstFurnituregraph :: [Furnituregraph]
   , mstMaparea :: [Maparea]
   , mstMapbgm :: [Mapbgm]
   , mstMapinfo :: [Mapinfo]
@@ -91,7 +91,7 @@ instance Verifiable Root where
       , mstEquipExslotShip
       , mstEquipShip
       , mstFurniture
-      , mstFurnituregraph
+      -- , mstFurnituregraph
       , mstMaparea
       , mstMapbgm
       , mstMapinfo
@@ -147,10 +147,11 @@ instance Verifiable Root where
         (\Furniture {kcId = i} -> i)
         mstFurniture
 
+      {-
       verifyListWithUniqueId
         "Furnituregraph"
         (\Furnituregraph {kcId = i} -> i)
-        mstFurnituregraph
+        mstFurnituregraph -}
 
       verifyListWithUniqueId
         "Maparea"
