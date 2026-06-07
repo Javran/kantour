@@ -1,4 +1,4 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields, NoFieldSelectors #-}
 
 module Kantour.Core.KcData.Master.Org.EquipExslotShip (
   EquipExslotShip (..),

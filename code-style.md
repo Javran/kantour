@@ -36,6 +36,13 @@
 - Use `toRealFloat @Double` for converting Scientific to Double
 - Use `24 * 60` instead of hardcoded values like `1440`
 
+## Pointfree vs Lambdas
+
+- Prefer explicit lambdas over pointfree composition when readability suffers
+  - Wrong: `filter ((<= 1500) . (.kcId)) xs` or `filter ((`IS.member` s) . (.kcId)) xs`
+  - Correct: `filter (\x -> x.kcId <= 1500) xs` or `filter (\x -> IS.member x.kcId s) xs`
+  - The `(. field)` combinator is especially hard to read; use `\r -> r.field` instead
+
 ## Record Access
 
 - Use `OverloadedRecordDot` extension

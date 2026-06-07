@@ -43,6 +43,7 @@ default-extensions:
   - NamedFieldPuns
   - NoUnicodeSyntax
   - NumericUnderscores
+  - OverloadedRecordDot
   - OverloadedStrings
   - PartialTypeSignatures
   - PolyKinds

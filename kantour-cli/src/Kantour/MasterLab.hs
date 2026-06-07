@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
-module Kantour.MasterLab (
-  SubCmdMasterLab,
-) where
+module Kantour.MasterLab
+  ( SubCmdMasterLab
+  ) where
 
 import Control.Monad
 import Control.Monad.Except
@@ -76,46 +76,47 @@ remodelChainExperiment Root {mstShip} = do
                -}
               error $ "duplicated key: " <> show k
           )
-          $ fmap (\s -> (Ship.kcId s, s)) allyShips
+          $ fmap (\s -> (s.kcId, s)) allyShips
         where
-          allyShips = filter ((<= 1500) . Ship.kcId) mstShip
+          allyShips = filter (\s -> s.kcId <= 1500) mstShip
       (shipKs, shipVs) = unzip $ IM.toAscList ships
       remodelGraph :: IM.IntMap IS.IntSet
       remodelGraph =
-        IM.fromListWith IS.union $
-          mapMaybe
+        IM.fromListWith IS.union
+          $ mapMaybe
             ( \(sId, s) -> do
-                afterShipId <- afterShipIdToMaybe (Ship.aftershipid s)
+                afterShipId <- afterShipIdToMaybe s.aftershipid
                 pure (sId, IS.singleton afterShipId)
             )
-            $ IM.toList ships
+          $ IM.toList ships
       remodelClusters :: IM.IntMap [Ship]
       remodelClusters = runST $ do
         pointsPre <- mapM (\s -> UF.fresh s >>= \p -> pure (s, p)) shipKs
         let points = IM.fromList pointsPre
         forM_ (IM.elems ships) $ \ship ->
-          case afterShipIdToMaybe . Ship.aftershipid $ ship of
+          case afterShipIdToMaybe ship.aftershipid of
             Nothing -> pure ()
             Just afterId -> do
-              UF.union (points IM.! Ship.kcId ship) (points IM.! afterId)
+              UF.union (points IM.! (ship.kcId)) (points IM.! afterId)
         cluster $ zip (fmap snd pointsPre) shipVs
       sortRemodel :: [Ship] -> [Ship]
-      sortRemodel = sortOn (\s -> (rem (Ship.sortId s) 10, Ship.sortno s, Ship.kcId s))
+      sortRemodel = sortOn (\s -> (rem s.sortId 10, s.sortno, s.kcId))
       noInDegShips = IS.difference (IS.fromList shipKs) afterShipIds
         where
           afterShipIds =
             IS.fromList
-              . mapMaybe (afterShipIdToMaybe . Ship.aftershipid)
+              . mapMaybe (\s -> afterShipIdToMaybe s.aftershipid)
               . IM.elems
               $ ships
   let shipToText s =
         let ps x = T.pack (show x)
-         in Ship.name s <> "("
-              <> ps (Ship.kcId s)
+         in s.name
+              <> "("
+              <> ps s.kcId
               <> ","
-              <> ps (rem (Ship.sortId s) 10)
+              <> ps (rem s.sortId 10)
               <> ","
-              <> ps (fromJust $ Ship.sortno s)
+              <> ps (fromJust s.sortno)
               <> ")"
       handleShipCluster _ baseShipId = do
         -- TODO: verify that we indeed collects all (xs is not used for now)
@@ -144,7 +145,7 @@ remodelChainExperiment Root {mstShip} = do
   forM_ (IM.toList remodelClusters) $ \(_k, vs) -> case vs of
     [v] -> putStrLn $ "Singleton: " <> show v
     _ ->
-      case filter ((`IS.member` noInDegShips) . Ship.kcId) vs of
+      case filter (\s -> IS.member s.kcId noInDegShips) vs of
         [] -> do
           let sorted = sortRemodel vs
           let ppr xs =
@@ -154,12 +155,13 @@ remodelChainExperiment Root {mstShip} = do
                         <$> xs
                     )
           ppr sorted
-          let sortIdLastDigits = fmap (\s -> rem (Ship.sortId s) 10) sorted
+          let sortIdLastDigits = fmap (\s -> rem s.sortId 10) sorted
           unless (sortIdLastDigits == nub sortIdLastDigits) $
-            T.putStrLn $ "> " <> T.unwords (fmap (\s -> T.pack $ show s) sortIdLastDigits)
-          handleShipCluster vs (Ship.kcId $ head sorted)
+            T.putStrLn $
+              "> " <> T.unwords (fmap (\s -> T.pack $ show s) sortIdLastDigits)
+          handleShipCluster vs ((head sorted).kcId)
         [baseShipId] ->
-          handleShipCluster vs (Ship.kcId baseShipId)
+          handleShipCluster vs baseShipId.kcId
         xs -> do
           putStrLn "Warning: multiple base ship?"
           print xs

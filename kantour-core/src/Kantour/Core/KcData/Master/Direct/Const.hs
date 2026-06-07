@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields, NoFieldSelectors #-}
+
 module Kantour.Core.KcData.Master.Direct.Const (
   IntValStrVal (..),
   Const (..),

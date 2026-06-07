@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d9dde1c5aa92d53a27018ad75eb19bd3ffd01f90a61172e0ac0ac4876743ba2e
+-- hash: 8c2446c6d6ec3692d1483142f1773267c860da786371433eadced8cbe351cb6a
 
 name:           kantour-core
 version:        0.2.0.0
@@ -114,6 +114,7 @@ library
       NamedFieldPuns
       NoUnicodeSyntax
       NumericUnderscores
+      OverloadedRecordDot
       OverloadedStrings
       PartialTypeSignatures
       PolyKinds
@@ -188,6 +189,7 @@ test-suite hspec
       NamedFieldPuns
       NoUnicodeSyntax
       NumericUnderscores
+      OverloadedRecordDot
       OverloadedStrings
       PartialTypeSignatures
       PolyKinds
