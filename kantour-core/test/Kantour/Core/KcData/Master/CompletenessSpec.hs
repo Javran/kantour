@@ -22,7 +22,6 @@ import Kantour.Core.KcData.Master.Direct.Const
 import Kantour.Core.KcData.Master.Direct.EquipExslotShip
 import Kantour.Core.KcData.Master.Direct.EquipShip
 import Kantour.Core.KcData.Master.Direct.Furniture
-import Kantour.Core.KcData.Master.Direct.Furnituregraph
 import Kantour.Core.KcData.Master.Direct.ItemShop
 import Kantour.Core.KcData.Master.Direct.Maparea
 import Kantour.Core.KcData.Master.Direct.Mapbgm

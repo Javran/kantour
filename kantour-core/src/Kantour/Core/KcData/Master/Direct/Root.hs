@@ -6,6 +6,7 @@ module Kantour.Core.KcData.Master.Direct.Root (
 
 import Data.List
 import Data.Aeson as Aeson
+import qualified Data.IntMap.Strict as IM
 import qualified Data.List.NonEmpty as NE
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
@@ -28,14 +29,16 @@ import Kantour.Core.KcData.Master.Direct.SlotitemEquiptype
 import Kantour.Core.KcData.Master.Direct.Stype
 import Kantour.Core.KcData.Master.Direct.Useitem
 
-{-
-  TODO: support for api_mst_equip_limit_exslot
+newtype EquipLimitExslot = EquipLimitExslot
+  { getEquipLimitExslot :: IM.IntMap [Int]
+  }
+  deriving stock (Generic, Show)
+  deriving newtype (NFData)
 
-  - this seems to be an object indexed by ship id
-  - values probably have the same meaning as equip_exslot
-  - should we check type values in those fields?
-
- -}
+instance FromJSON EquipLimitExslot where
+  parseJSON v = EquipLimitExslot <$> do
+    IntMapByObj x <- parseJSON @(IntMapByObj [Int]) v
+    pure x
 
 {-
   Root object of master data.
@@ -45,7 +48,7 @@ data Root = Root
   , mstShipgraph :: [Shipgraph]
   , mstShip :: [Ship]
   , mstEquipExslot :: [Int]
-  -- , mstEquipLimitExslot :: IM.IntMap [Int]
+  , mstEquipLimitExslot :: EquipLimitExslot
   , mstBgm :: [Bgm]
   , mstItemShop :: ItemShop
   , mstConst :: Const
@@ -74,7 +77,7 @@ instance HasKnownFields Root where
   knownFields _ =
     kcFields
       "mst_const mst_equip_exslot_ship mst_equip_ship mst_equip_exslot \
-      \mst_furniture mst_furnituregraph mst_maparea mst_mapbgm mst_mapinfo \
+      \mst_equip_limit_exslot mst_furniture mst_maparea mst_mapbgm mst_mapinfo \
       \mst_bgm mst_item_shop mst_mission mst_payitem mst_ship mst_shipgraph \
       \mst_shipupgrade mst_slotitem mst_slotitem_equiptype mst_stype mst_useitem"
 
@@ -85,6 +88,7 @@ instance Verifiable Root where
       , mstShipgraph
       , mstShip
       , mstEquipExslot
+      , mstEquipLimitExslot = _
       , mstBgm
       , mstItemShop = _
       , mstConst
