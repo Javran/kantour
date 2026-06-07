@@ -8,13 +8,13 @@ import Data.List
 import Data.Aeson as Aeson
 import qualified Data.IntMap.Strict as IM
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Set as S
 import Kantour.Core.KcData.Master.Direct.Bgm
 import Kantour.Core.KcData.Master.Direct.Common
 import Kantour.Core.KcData.Master.Direct.Const
 import Kantour.Core.KcData.Master.Direct.EquipExslotShip
 import Kantour.Core.KcData.Master.Direct.EquipShip
 import Kantour.Core.KcData.Master.Direct.Furniture
-import Kantour.Core.KcData.Master.Direct.Furnituregraph
 import Kantour.Core.KcData.Master.Direct.ItemShop
 import Kantour.Core.KcData.Master.Direct.Maparea
 import Kantour.Core.KcData.Master.Direct.Mapbgm
@@ -88,7 +88,7 @@ instance Verifiable Root where
       , mstShipgraph
       , mstShip
       , mstEquipExslot
-      , mstEquipLimitExslot = _
+      , mstEquipLimitExslot
       , mstBgm
       , mstItemShop = _
       , mstConst
@@ -134,6 +134,15 @@ instance Verifiable Root where
         [] -> pure ()
         xs@(_ : _) ->
           vLogS $ "mstEquipExslot: items are not unique" <> show (fmap (NE.take 2) xs)
+
+      let
+        exslotSet = S.fromList mstEquipExslot
+        EquipLimitExslot limitMap = mstEquipLimitExslot
+      forM_ (IM.toList limitMap) \(shipId, excluded) ->
+        forM_ excluded \eid ->
+          when (S.notMember eid exslotSet) $
+            vLogS $ "Ship " <> show shipId <> " excludes type "
+                 <> show eid <> " which is not in api_mst_equip_exslot"
 
       verifyListWithUniqueId
         "mstBgm"
