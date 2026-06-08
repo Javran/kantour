@@ -103,7 +103,8 @@ library
       TypeSynonymInstances
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-x-partial
   build-depends:
-      SHA
+      Color
+    , SHA
     , aeson
     , aeson-pretty
     , async
@@ -116,8 +117,8 @@ library
     , diagrams-lib
     , diagrams-rasterific
     , filepath
+    , hashable
     , hexml
-    , hip
     , http-client
     , http-client-tls
     , http-date
@@ -127,6 +128,8 @@ library
     , kantour-core
     , lens
     , linear
+    , massiv
+    , massiv-io
     , math-functions
     , mono-traversable
     , mtl
@@ -198,7 +201,8 @@ executable kantour
       TypeSynonymInstances
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-x-partial -O2 -threaded -rtsopts -with-rtsopts=-N -main-is Main
   build-depends:
-      SHA
+      Color
+    , SHA
     , aeson
     , aeson-pretty
     , async
@@ -211,8 +215,8 @@ executable kantour
     , diagrams-lib
     , diagrams-rasterific
     , filepath
+    , hashable
     , hexml
-    , hip
     , http-client
     , http-client-tls
     , http-date
@@ -222,6 +226,8 @@ executable kantour
     , kantour-cli
     , lens
     , linear
+    , massiv
+    , massiv-io
     , math-functions
     , mono-traversable
     , mtl

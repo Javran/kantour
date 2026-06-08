@@ -22,10 +22,12 @@ where
 import Control.Monad
 import Data.Aeson
 import qualified Data.Map.Strict as M
+import Data.Massiv.Array (Ix2(..), Sz(..), size, compute, extractM, S(..))
+import Data.Massiv.Array.IO (Image, Pixel(..), Alpha, SRGB, Linearity(..), readImage, writeImage)
+import Data.Word (Word8)
 import qualified Data.Text as T
 import Data.Tuple
-import GHC.Generics
-import qualified Graphics.Image as Img
+import GHC.Generics hiding (S)
 import System.Exit (die)
 import System.FilePath
 
@@ -126,13 +128,16 @@ instance FromJSON FileInfo where
     fm <- v .: "meta"
     pure $ FileInfo (sf, fm)
 
-extractImage :: Image -> FrameInfo -> Image
+type KCImage = Image S (Alpha (SRGB NonLinear)) Word8
+
+extractImage :: KCImage -> FrameInfo -> IO KCImage
 extractImage img FrameInfo {fiCoord, fiSize} =
-  Img.crop (swap $ getXy fiCoord) (swap $ getWh fiSize) img
+  compute <$> extractM (Ix2 y x) (Sz (h :. w)) img
+  where
+    (x, y) = getXy fiCoord
+    (w, h) = getWh fiSize
 
-type Image = Img.Image Img.VS Img.RGBA Img.Word8
-
-loadSpritesmith :: FilePath -> FilePath -> IO (M.Map T.Text Image)
+loadSpritesmith :: FilePath -> FilePath -> IO (M.Map T.Text KCImage)
 loadSpritesmith jsonFile pngFile = do
   FileInfo (SpriteFrames sf, FileMeta (Wh sz)) <-
     eitherDecodeFileStrict jsonFile >>= \case
@@ -140,20 +145,21 @@ loadSpritesmith jsonFile pngFile = do
       Right v -> pure v
 
   mapM_ print (M.toAscList sf)
-  img <- Img.readImageExact' Img.PNG pngFile
-  -- note that here hip dimension is represented as (h,w), rather than (w,h).
-  let (imgH, imgW) = Img.dims img
+  img <- readImage pngFile
+  let Sz (imgH :. imgW) = size img
   when (sz /= (imgW, imgH)) $
     error $
       "image size mismatch: " <> show (sz, (imgW, imgH))
   putStrLn $ "width: " <> show imgW <> ", height: " <> show imgH
-  pure $ M.map (extractImage img) sf
+  fmap M.fromList . forM (M.toList sf) $ \(k, fi) -> do
+    cropped <- extractImage img fi
+    pure (k, cropped)
 
-outputImages :: FilePath -> M.Map T.Text Image -> IO ()
+outputImages :: FilePath -> M.Map T.Text KCImage -> IO ()
 outputImages outputDir = mapM_ outputImage . M.toList
   where
-    outputImage :: (T.Text, Image) -> IO ()
+    outputImage :: (T.Text, KCImage) -> IO ()
     outputImage (name, img) =
-      Img.writeImageExact Img.PNG [] outputFileName img
+      writeImage outputFileName img
       where
         outputFileName = outputDir </> T.unpack name <.> "png"
