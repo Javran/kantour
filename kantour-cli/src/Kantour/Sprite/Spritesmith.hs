@@ -143,6 +143,7 @@ loadSpritesmith jsonFile pngFile = do
 
   mapM_ print (M.toAscList sf)
   img <- readImage pngFile
+  -- note that here massiv dimension is represented as (h,w), rather than (w,h).
   let Ma.Sz (Ma.Ix2 imgH imgW) = Ma.size img
   when (sz /= (imgW, imgH)) $
     error $

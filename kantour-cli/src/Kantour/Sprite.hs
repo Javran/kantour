@@ -6,7 +6,6 @@ import Kantour.Subcommand
 import Shower
 import System.Environment
 import System.Exit (die)
-import Text.ParserCombinators.ReadP
 
 {-
 
