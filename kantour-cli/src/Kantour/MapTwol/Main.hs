@@ -11,8 +11,7 @@ import Data.Coerce
 import qualified Data.HashMap.Strict as HM
 import qualified Data.IntMap.Strict as IM
 import Data.Hashable (Hashable)
-import Data.Massiv.Array (Array, Ix2(..), Sz(..), size, (!), compute, extractM, S(..))
-import Data.Massiv.Array.IO (Image, Pixel(..), Alpha, SRGB, Linearity(..), readImage, readImageAuto, writeImage)
+import qualified Data.Massiv.Array as Ma
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
@@ -23,6 +22,7 @@ import qualified Kantour.Core.KcData.Map.Info as KcInfo
 import qualified Kantour.Core.KcData.Map.Spot as Spot
 import qualified Kantour.Core.KcData.Map.Sprite as Sprite
 import qualified Kantour.Core.KcData.Map.Xywh as Xywh
+import Kantour.Image
 import Kantour.MapTwol.Superimpose
 import Kantour.Subcommand
 import System.Environment
@@ -122,7 +122,7 @@ defaultMain =
                     else error "invalid map_main key"
         putStrLn $ "Prefix " <> show prefix <> " removed from sprite file names."
         let containRed = False
-            spotToImgs :: Spot.Spot -> [(Xywh.Xy Int, Image S (Alpha (SRGB NonLinear)) Double)]
+            spotToImgs :: Spot.Spot -> [(Xywh.Xy Int, KCImage Double)]
             spotToImgs
               Spot.Spot
                 { Spot.x = spX
@@ -139,7 +139,7 @@ defaultMain =
                           )
                   )
                   $ maybe [] HM.toList $ ms
-            extraSpotImgs :: [(Xywh.Xy Int, Image S (Alpha (SRGB NonLinear)) Double)]
+            extraSpotImgs :: [(Xywh.Xy Int, KCImage Double)]
             extraSpotImgs = foldMap spotToImgs $ KcInfo.spots mapInfo
             bgs =
               concatMap
@@ -183,20 +183,20 @@ stripSpriteKeyPrefix m =
         Just i = T.findIndex (== '_') k
 
 extractSpriteFromFilePrefix ::
-  FilePath -> IO (HM.HashMap T.Text (Sprite.Sprite, Image S (Alpha (SRGB NonLinear)) Double))
+  FilePath -> IO (HM.HashMap T.Text (Sprite.Sprite, KCImage Double))
 extractSpriteFromFilePrefix srcPrefix = do
-  img <- readImageAuto (srcPrefix <> ".png") :: IO (Image S (Alpha (SRGB NonLinear)) Double)
+  img <- readImageAuto (srcPrefix <> ".png") :: IO (KCImage Double)
   Right meta <- eitherDecodeFileStrict @KcImage.Image (srcPrefix <> ".json")
   let sprites = KcImage.frames meta
   extractSprite img sprites
 
 extractSprite ::
   (Hashable k) =>
-  Image S (Alpha (SRGB NonLinear)) Double ->
+  KCImage Double ->
   HM.HashMap k Sprite.Sprite ->
-  IO (HM.HashMap k (Sprite.Sprite, Image S (Alpha (SRGB NonLinear)) Double))
+  IO (HM.HashMap k (Sprite.Sprite, KCImage Double))
 extractSprite img sprites =
   fmap HM.fromList . forM (HM.toList sprites) $ \(k, sp) -> do
     let ((x, y), (w, h)) = coerce (Sprite.frame sp)
-    cropped <- compute <$> extractM (Ix2 y x) (Sz (h :. w)) img
+    cropped <- Ma.compute <$> Ma.extractM (Ma.Ix2 y x) (Ma.Sz (Ma.Ix2 h w)) img
     pure (k, (sp, cropped))

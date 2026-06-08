@@ -22,11 +22,10 @@ where
 import Control.Monad
 import Data.Aeson
 import qualified Data.Map.Strict as M
-import Data.Massiv.Array (Ix2(..), Sz(..), size, compute, extractM, S(..))
-import Data.Massiv.Array.IO (Image, Pixel(..), Alpha, SRGB, Linearity(..), readImage, writeImage)
+import qualified Data.Massiv.Array as Ma
 import Data.Word (Word8)
+import Kantour.Image
 import qualified Data.Text as T
-import Data.Tuple
 import GHC.Generics hiding (S)
 import System.Exit (die)
 import System.FilePath
@@ -128,16 +127,14 @@ instance FromJSON FileInfo where
     fm <- v .: "meta"
     pure $ FileInfo (sf, fm)
 
-type KCImage = Image S (Alpha (SRGB NonLinear)) Word8
-
-extractImage :: KCImage -> FrameInfo -> IO KCImage
+extractImage :: KCImage Word8 -> FrameInfo -> IO (KCImage Word8)
 extractImage img FrameInfo {fiCoord, fiSize} =
-  compute <$> extractM (Ix2 y x) (Sz (h :. w)) img
+  Ma.compute <$> Ma.extractM (Ma.Ix2 y x) (Ma.Sz (Ma.Ix2 h w)) img
   where
     (x, y) = getXy fiCoord
     (w, h) = getWh fiSize
 
-loadSpritesmith :: FilePath -> FilePath -> IO (M.Map T.Text KCImage)
+loadSpritesmith :: FilePath -> FilePath -> IO (M.Map T.Text (KCImage Word8))
 loadSpritesmith jsonFile pngFile = do
   FileInfo (SpriteFrames sf, FileMeta (Wh sz)) <-
     eitherDecodeFileStrict jsonFile >>= \case
@@ -146,7 +143,7 @@ loadSpritesmith jsonFile pngFile = do
 
   mapM_ print (M.toAscList sf)
   img <- readImage pngFile
-  let Sz (imgH :. imgW) = size img
+  let Ma.Sz (Ma.Ix2 imgH imgW) = Ma.size img
   when (sz /= (imgW, imgH)) $
     error $
       "image size mismatch: " <> show (sz, (imgW, imgH))
@@ -155,10 +152,10 @@ loadSpritesmith jsonFile pngFile = do
     cropped <- extractImage img fi
     pure (k, cropped)
 
-outputImages :: FilePath -> M.Map T.Text KCImage -> IO ()
+outputImages :: FilePath -> M.Map T.Text (KCImage Word8) -> IO ()
 outputImages outputDir = mapM_ outputImage . M.toList
   where
-    outputImage :: (T.Text, KCImage) -> IO ()
+    outputImage :: (T.Text, KCImage Word8) -> IO ()
     outputImage (name, img) =
       writeImage outputFileName img
       where

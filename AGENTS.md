@@ -28,6 +28,8 @@ Master data (`api_start2.json.xz`) is parsed in stages:
 
 Code style rules in `code-style.md`. Run `fourmolu --mode=inplace` on changed files.
 
+Knowledge notes under `notes/` contain package-specific findings (e.g. `notes/package-*.md`). Read them when working with those packages.
+
 HLint configured to ignore: Avoid lambda, Eta reduce, Use const, Use infix, Reduce duplication, Use if, Use newtype, Use head, Redundant pure, Use uncurry, Use camelCase, Use list literal pattern.
 
 Default GHC extensions in `package.yaml` — no need to enable per-file.

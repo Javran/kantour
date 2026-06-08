@@ -7,9 +7,8 @@
 
 module Kantour.MapTwol.Superimpose where
 
-import Data.Massiv.Array (Array, Ix2(..), Sz(..), size, (!), makeArrayR, computeAs, D(..), S(..), Comp(..))
-import Data.Massiv.Array.IO (Pixel(..), Alpha, SRGB, Linearity(..))
-import Foreign.Storable (Storable)
+import Data.Massiv.Array
+import Kantour.Image
 
 -- https://github.com/lehins/hip/issues/33
 superimpose' ::
@@ -17,30 +16,32 @@ superimpose' ::
   -- | @(i, j)@ starting index from within a source image.
   (Int, Int) ->
   -- | Image to be positioned above the source image.
-  Array S Ix2 (Pixel (Alpha (SRGB NonLinear)) e) ->
+  Array S Ix2 (RGBA e) ->
   -- | Source image.
-  Array S Ix2 (Pixel (Alpha (SRGB NonLinear)) e) ->
-  Array S Ix2 (Pixel (Alpha (SRGB NonLinear)) e)
+  Array S Ix2 (RGBA e) ->
+  Array S Ix2 (RGBA e)
 superimpose' (!i0, !j0) !imgA !imgB =
-  computeAs S $ makeArrayR D Seq (size imgB) $ \(i :. j) ->
-    let Sz (m :. n) = size imgA
-        i' = i - i0
-        j' = j - j0
-        old = imgB ! (i :. j)
-        new = imgA ! (i' :. j')
-    in if i' >= 0 && j' >= 0 && i' < m && j' < n then overlayAlpha old new else old
+  computeAs S $ makeArrayR D Seq (size imgB) $ \(Ix2 i j) ->
+    let
+      Sz (Ix2 m n) = size imgA
+      i' = i - i0
+      j' = j - j0
+      old = imgB ! Ix2 i j
+      new = imgA ! Ix2 i' j'
+     in
+      if i' >= 0 && j' >= 0 && i' < m && j' < n then overlayAlpha old new else old
 
 -- https://en.wikipedia.org/wiki/Alpha_compositing
 overlayAlpha ::
   (Ord e, Fractional e) =>
-  Pixel (Alpha (SRGB NonLinear)) e ->
-  Pixel (Alpha (SRGB NonLinear)) e ->
-  Pixel (Alpha (SRGB NonLinear)) e
-overlayAlpha (PixelRGBA br bg bb ba) (PixelRGBA or og ob oa) =
-  PixelRGBA (f br or) (f bg og) (f bb ob) ra
+  RGBA e ->
+  RGBA e ->
+  RGBA e
+overlayAlpha (PixelRGBA br bg bb ba) (PixelRGBA oR oG oB oA) =
+  PixelRGBA (f br oR) (f bg oG) (f bb oB) ra
   where
-    ra = oa + ba * (1 - oa)
+    ra = oA + ba * (1 - oA)
     f b o =
       if ra == 0
         then 0
-        else (o * oa + b * ba * (1 - oa)) / ra
+        else (o * oA + b * ba * (1 - oA)) / ra
