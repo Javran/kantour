@@ -65,13 +65,14 @@ dependencies:
 - base
 - bytestring
 - case-insensitive
+- Color
 - containers
 - diagrams-core
 - diagrams-lib
 - diagrams-rasterific
 - filepath
+- hashable
 - hexml
-- hip
 - http-client
 - http-client-tls
 - http-date
@@ -80,6 +81,8 @@ dependencies:
 - json
 - lens
 - linear
+- massiv
+- massiv-io
 - math-functions
 - mono-traversable
 - mtl
